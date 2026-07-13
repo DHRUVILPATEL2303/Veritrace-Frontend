@@ -1,0 +1,437 @@
+/**
+ * VerifyPage.jsx — Verification and Search Engine Flow
+ * 
+ * This page performs a comprehensive check for content authenticity by running:
+ * 1. Local SHA-256 Hash Generation:
+ *    Uses the browser's native Web Crypto API to generate the SHA-256 checksum of the file locally.
+ * 2. On-Chain Smart Contract Lookup (Arbitrum Sepolia):
+ *    Directly queries the deployed `verifyContent` read-only method on the Stylus contract 
+ *    using ethers.js (via Metamask or a public JSON-RPC fallback provider).
+ * 3. Fuzzy Match & Similarity Search (Hash Engine API):
+ *    Posts the file to the Hash Engine backend to compute its perceptual visual signature (pHash) 
+ *    and query the database for visually similar derivatives (Hamming distance match).
+ * 
+ * Deployed Contract: 0x468edc5b2fe9d1c919f2377cbe0ccb16f32ead29
+ */
+import { ethers } from 'ethers'
+import FileUpload from '../components/FileUpload'
+import HashDisplay from '../components/HashDisplay'
+import SearchResults from '../components/SearchResults'
+import { useUpload } from '../context/UploadContext'
+import {
+  HASH_ENGINE_API,
+  CONTRACT_ADDRESS,
+  CONTRACT_ABI,
+  ARBITRUM_SEPOLIA,
+  CORE_BACKEND_API,
+} from '../config'
+
+export default function VerifyPage() {
+  // ── Access persisted global state from UploadContext ──
+  const {
+    verFile: file, setVerFile: setFile,
+    verLoading: loading, setVerLoading: setLoading,
+    verUploadProgress: uploadProgress, setVerUploadProgress: setUploadProgress,
+    verError: error, setVerError: setError,
+    verLocalSha256: localSha256, setVerLocalSha256: setLocalSha256,
+    verPhash: phash, setVerPhash: setPhash,
+    verBlockchainRecord: blockchainRecord, setVerBlockchainRecord: setBlockchainRecord,
+    verDbResults: dbResults, setVerDbResults: setDbResults,
+  } = useUpload()
+
+  /**
+   * computeLocalSHA256 — Uses the Web Crypto API to generate a SHA-256 hash.
+   * Runs locally inside the user's browser, providing instant feedback.
+   */
+  const computeLocalSHA256 = async (f) => {
+    const arrayBuffer = await f.arrayBuffer()
+    const hashBuffer = await crypto.subtle.digest('SHA-256', arrayBuffer)
+    const hashArray = Array.from(new Uint8Array(hashBuffer))
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+  }
+
+  /**
+   * queryBlockchainRegistry — Reads the smart contract to check if this hash is registered.
+   * Since this is a read-only ("view") function call, it does NOT require signing or gas fees.
+   */
+  const queryBlockchainRegistry = async (sha256Hex) => {
+    try {
+      // 1. Initialize provider (use Metamask if available, fallback to public Arbitrum RPC)
+      let provider
+      if (window.ethereum) {
+        provider = new ethers.BrowserProvider(window.ethereum)
+      } else {
+        provider = new ethers.JsonRpcProvider(ARBITRUM_SEPOLIA.rpcUrl)
+      }
+
+      // 2. Instantiate read-only contract instance
+      const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider)
+
+      // 3. Prepare hex hash to match bytes32 parameter expectation
+      const bytes32Hash = '0x' + sha256Hex
+
+      // 4. Call verifyContent(bytes32) on the contract
+      // Returns: (address creator, uint64 timestamp, uint64 phash, string ipfs_cid, string ai_tool)
+      const record = await contract.verifyContent(bytes32Hash)
+      
+      return {
+        isRegistered: true,
+        creator: record[0],
+        timestamp: Number(record[1]),
+        phash: Number(record[2]),
+        ipfsCid: record[3],
+        aiTool: record[4],
+      }
+    } catch (err) {
+      // Stylus reverts with custom errors (e.g. ContentNotFound) if not registered
+      console.log('Blockchain lookup returned no matches:', err.message)
+      return null
+    }
+  }
+
+  /**
+   * handleFileSelected — Coordinates the full verification workflow.
+   */
+  const handleFileSelected = async (f) => {
+    setFile(f)
+    setError(null)
+    setLocalSha256(null)
+    setPhash(null)
+    setBlockchainRecord(null)
+    setDbResults(null)
+    setUploadProgress(0)
+
+    if (!f) return
+
+    try {
+      setLoading(true)
+
+      // ─────────────────────────────────────────────────────────────
+      // STAGE 1: Calculate SHA-256 locally
+      // ─────────────────────────────────────────────────────────────
+      const sha256Hex = await computeLocalSHA256(f)
+      setLocalSha256(sha256Hex)
+
+      // ─────────────────────────────────────────────────────────────
+      // STAGE 2: Query On-Chain Registry
+      // ─────────────────────────────────────────────────────────────
+      const onChainData = await queryBlockchainRegistry(sha256Hex)
+      if (onChainData) {
+        setBlockchainRecord(onChainData)
+      }
+
+      // ─────────────────────────────────────────────────────────────
+      // STAGE 3: Call Hash Engine to generate visual perceptual hash
+      // ─────────────────────────────────────────────────────────────
+      const hashData = await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest()
+        const formData = new FormData()
+        formData.append('file', f)
+        formData.append('filename', f.name)
+
+        // Track upload progress events
+        xhr.upload.addEventListener('progress', (e) => {
+          if (e.lengthComputable) {
+            const percent = Math.round((e.loaded / e.total) * 100)
+            setUploadProgress(percent)
+          }
+        })
+
+        // On upload and response complete
+        xhr.addEventListener('load', () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+              resolve(JSON.parse(xhr.responseText))
+            } catch (err) {
+              reject(new Error('Invalid response format from server'))
+            }
+          } else {
+            reject(new Error(`Server error: status code ${xhr.status}`))
+          }
+        })
+
+        xhr.addEventListener('error', () => reject(new Error('Verification upload failed due to network error')))
+        
+        xhr.open('POST', `${HASH_ENGINE_API}/api/v1/hash`)
+        xhr.send(formData)
+      })
+
+      // Store the computed perceptual hash globally
+      if (hashData.phash) {
+        setPhash(hashData.phash)
+      }
+
+      // ─────────────────────────────────────────────────────────────
+      // STAGE 4: Query Core Backend for Exact & Fuzzy Database Records
+      // ─────────────────────────────────────────────────────────────
+      const matches = []
+
+      // If we got blockchain record, add it as a confirmed exact match
+      if (onChainData) {
+        matches.push({
+          matchType: 'exact',
+          similarity: 100,
+          assetId: `onchain-${sha256Hex.slice(0, 8)}`,
+          mediaType: hashData.media_type || 'unknown',
+          registeredAt: new Date(onChainData.timestamp * 1000).toLocaleString(),
+          creator: onChainData.creator,
+        })
+      }
+
+      try {
+        // Query Core Backend Exact Match Database
+        const exactRes = await fetch(`${CORE_BACKEND_API}/api/v1/verify/exact?hash=0x${sha256Hex}`)
+        if (exactRes.ok) {
+          const exactData = await exactRes.json()
+          if (exactData.match_found && exactData.record) {
+            // Only add if not already added by blockchain
+            if (!onChainData) {
+              matches.push({
+                matchType: 'exact',
+                similarity: 100,
+                assetId: exactData.record.Sha256Hash?.slice(0, 16),
+                mediaType: hashData.media_type || 'unknown',
+                registeredAt: new Date(exactData.record.Timestamp * 1000).toLocaleString(),
+                creator: exactData.record.CreatorAddress,
+              })
+            }
+          }
+        }
+      } catch (dbErr) {
+        console.warn('Core Backend exact match lookup failed (using blockchain registry fallback):', dbErr.message)
+      }
+
+      try {
+        // Query Core Backend Fuzzy/Visual Similarity Matches
+        if (hashData.phash) {
+          const fuzzyRes = await fetch(`${CORE_BACKEND_API}/api/v1/verify/fuzzy?phash=${hashData.phash}`)
+          if (fuzzyRes.ok) {
+            const fuzzyData = await fuzzyRes.json()
+            if (fuzzyData.match_found && fuzzyData.record) {
+              matches.push({
+                matchType: 'similar',
+                similarity: fuzzyData.similarity || 90,
+                assetId: fuzzyData.record.Sha256Hash?.slice(0, 16),
+                mediaType: hashData.media_type || 'unknown',
+                registeredAt: new Date(fuzzyData.record.Timestamp * 1000).toLocaleString(),
+                creator: fuzzyData.record.CreatorAddress,
+              })
+            }
+          }
+        }
+      } catch (dbErr) {
+        console.warn('Core Backend fuzzy similarity lookup failed:', dbErr.message)
+      }
+      setDbResults(matches)
+    } catch (err) {
+      console.error('Verification error:', err)
+      setError(`Failed to perform verification check: ${err.message}`)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <section className="container" style={{ paddingTop: '1.5rem' }}>
+      {/* Page Title */}
+      <div className="page-title">
+        <h1>Verify & Search Content</h1>
+        <div className="page-title-sub">
+          Upload a file to check if it's registered or search for visual matches in the database
+        </div>
+      </div>
+
+      <div className="grid-2">
+        {/* ── LEFT COLUMN: File Upload + Hash Display ── */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+          
+          {/* File Upload Zone */}
+          <div className="card">
+            <div className="card-header">
+              <h2 className="card-header-title">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '0.5rem' }}>
+                  <circle cx="11" cy="11" r="8"/>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+                Upload File to Verify
+              </h2>
+            </div>
+            <div className="card-body">
+              <FileUpload
+                onFileSelected={handleFileSelected}
+                label="Drop a file to check it against the VeriTrace registry"
+              />
+            </div>
+          </div>
+
+          {/* Computed Hashes Dashboard */}
+          {(localSha256 || loading) && (
+            <div className="card animate-slide-up">
+              <div className="card-header">
+                <h2 className="card-header-title">Computed Fingerprints</h2>
+              </div>
+              <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {loading && !localSha256 ? (
+                  <div className="skeleton skeleton-text" style={{ width: '100%', height: 38 }} />
+                ) : (
+                  <>
+                    <HashDisplay
+                      label="SHA-256 Cryptographic Hash"
+                      hash={localSha256 ? `0x${localSha256}` : null}
+                      icon="C"
+                      variant="crypto"
+                    />
+
+                    {phash && (
+                      <HashDisplay
+                        label="Visual Perceptual Hash (phash)"
+                        hash={phash}
+                        icon="P"
+                        variant="perceptual"
+                      />
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Verification Indicators Legend */}
+          <div className="card">
+            <div className="card-header">
+              <h2 className="card-header-title">Understanding Results</h2>
+            </div>
+            <div className="card-body" style={{ fontSize: '0.8125rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+                <span className="badge badge-success" style={{ flexShrink: 0 }}>100%</span>
+                <div>
+                  <strong>Exact Match</strong> — Cryptographic hashes are identical. This file is byte-for-byte identical to the registered original.
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+                <span className="badge badge-warning" style={{ flexShrink: 0 }}>80-99%</span>
+                <div>
+                  <strong>Similar Content</strong> — Perceptual signatures match closely. The file might be compressed, resized, cropped, or slightly adjusted.
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+                <span className="badge badge-neutral" style={{ flexShrink: 0 }}>&lt;80%</span>
+                <div>
+                  <strong>No Match</strong> — No entries found that fall within visual or cryptographic thresholds.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ── RIGHT COLUMN: Verification Results ── */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+          
+          {/* On-Chain Provenance Record */}
+          {(blockchainRecord || loading) && (
+            <div className="card animate-slide-up" style={{ borderColor: blockchainRecord ? 'var(--color-success)' : 'var(--color-border)' }}>
+              <div className="card-header" style={{ background: blockchainRecord ? 'var(--color-success-bg)' : 'var(--color-bg)' }}>
+                <h2 className="card-header-title" style={{ color: blockchainRecord ? '#0a7c65' : 'inherit' }}>
+                  🛡️ On-Chain Smart Contract Proof
+                </h2>
+                {blockchainRecord && <span className="badge badge-success">Verified Original</span>}
+              </div>
+              <div className="card-body">
+                {loading && !blockchainRecord ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    <div className="skeleton skeleton-text" />
+                    <div className="skeleton skeleton-text" style={{ width: '80%' }} />
+                    <div className="skeleton skeleton-text" style={{ width: '60%' }} />
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.8125rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ color: 'var(--color-text-muted)' }}>Registrant Wallet</span>
+                      <a
+                        href={`${ARBITRUM_SEPOLIA.explorer}/address/${blockchainRecord.creator}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="address-tag"
+                        style={{ fontWeight: 600 }}
+                      >
+                        {blockchainRecord.creator.slice(0, 10)}...{blockchainRecord.creator.slice(-6)}
+                      </a>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ color: 'var(--color-text-muted)' }}>Proof Committed At</span>
+                      <span>{new Date(blockchainRecord.timestamp * 1000).toLocaleString()}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ color: 'var(--color-text-muted)' }}>AI Tool Attribution</span>
+                      <span style={{ fontWeight: 600 }}>{blockchainRecord.aiTool || 'None'}</span>
+                    </div>
+                    {blockchainRecord.ipfsCid && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ color: 'var(--color-text-muted)' }}>IPFS Storage Link</span>
+                        <a
+                          href={`https://ipfs.io/ipfs/${blockchainRecord.ipfsCid}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          View Metadata CID ↗
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Database Lookalike Matches */}
+          <div className="card">
+            <div className="card-header">
+              <h2 className="card-header-title">Database Similarity Results</h2>
+              {dbResults && dbResults.length > 0 && (
+                <span className="badge badge-info">{dbResults.length} matches</span>
+              )}
+            </div>
+            <div className="card-body">
+              {loading ? (
+                <div style={{ padding: '0.5rem 0' }}>
+                  {uploadProgress < 100 ? (
+                    <div className="progress-container animate-fade-in" style={{ marginTop: 0 }}>
+                      <div className="progress-header">
+                        <span>Uploading Media File...</span>
+                        <span>{uploadProgress}%</span>
+                      </div>
+                      <div className="progress-bar-track">
+                        <div className="progress-bar-fill" style={{ width: `${uploadProgress}%` }} />
+                      </div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.5rem', textAlign: 'center' }}>
+                        Uploading payload to remote Hash Engine
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ textAlign: 'center' }} className="animate-fade-in">
+                      <div className="spinner" />
+                      <div style={{ fontWeight: 600, marginTop: '1rem' }}>Searching similarity index...</div>
+                      <div style={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)', marginTop: '0.25rem' }}>
+                        Checking visual profiles and comparing perceptual Hamming distances on the server.
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <SearchResults results={dbResults} loading={loading} />
+              )}
+            </div>
+          </div>
+
+          {/* Error Banner */}
+          {error && (
+            <div className="alert-box danger">
+              <span>⚠️</span>
+              <div>{error}</div>
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
+  )
+}

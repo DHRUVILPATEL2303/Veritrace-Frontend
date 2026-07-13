@@ -1,0 +1,657 @@
+/**
+ * RegisterPage.jsx — Content Registration Flow
+ * 
+ * This page orchestrates the full registration pipeline:
+ * 
+ * Step 1: UPLOAD  — User drops/selects a file
+ * Step 2: HASH    — File is sent to the Hash Engine API (POST /api/v1/register)
+ *                    which returns SHA-256 and hash count. The hash engine also
+ *                    registers the file in its local BoltDB for future verification.
+ * Step 3: SIGN    — User fills optional AI tool attribution, then signs a
+ *                    blockchain transaction calling registerContent() on the
+ *                    VeritraceRegistry Stylus contract on Arbitrum Sepolia.
+ * Step 4: CONFIRM — Transaction is confirmed on-chain. The Go backend's EVM
+ *                    listener automatically picks up the ContentRegistered event
+ *                    and indexes it in PostgreSQL, Redis, and Qdrant.
+ * 
+ * Dependencies:
+ *   - ethers.js v6 for contract interaction via MetaMask
+ *   - Hash Engine API at api.hash.veritrace.dpkvtrading.online
+ *   - VeritraceRegistry contract at 0x468edc5b2fe9d1c919f2377cbe0ccb16f32ead29
+ */
+import { ethers } from 'ethers'
+import FileUpload from '../components/FileUpload'
+import HashDisplay from '../components/HashDisplay'
+import { useUpload } from '../context/UploadContext'
+import {
+  HASH_ENGINE_API,
+  CONTRACT_ADDRESS,
+  CONTRACT_ABI,
+  ARBITRUM_SEPOLIA,
+} from '../config'
+
+// Alphabetically ordered AI models dropdown categories
+const AI_MODELS = [
+  'None (Authentic Content)',
+  'Adobe Firefly',
+  'Claude 3.5 Sonnet',
+  'DALL-E 3',
+  'FLUX.1',
+  'Gemini 1.5 Pro',
+  'GPT-4o',
+  'Llama 3',
+  'Midjourney v6',
+  'Stable Diffusion 3',
+  'Other (Custom Input)'
+]
+
+export default function RegisterPage() {
+  // ── Access persisted global state from UploadContext ──
+  const {
+    regFile: file, setRegFile: setFile,
+    regStep: step, setRegStep: setStep,
+    regProcessing: processing, setRegProcessing: setProcessing,
+    regUploadProgress: uploadProgress, setRegUploadProgress: setUploadProgress,
+    regSigning: signing, setRegSigning: setSigning,
+    regAiCategory: aiCategory, setRegAiCategory: setAiCategory,
+    regAiTool: aiTool, setRegAiTool: setAiTool,
+    regHashes: hashes, setRegHashes: setHashes,
+    regTxResult: txResult, setRegTxResult: setTxResult,
+    regError: error, setRegError: setError,
+  } = useUpload()
+
+  /**
+   * handleFileSelected — Called when user picks a file.
+   * Sends the file to the Hash Engine API for SHA-256 computation.
+   * 
+   * Uses XMLHttpRequest instead of fetch to track upload progress.
+   * API: POST /api/v1/register
+   * Body: multipart/form-data with fields "file" and "filename"
+   * Response: { status, asset_id, media_type, sha256, hash_count }
+   */
+  const handleFileSelected = async (f) => {
+    setFile(f)
+    setError(null)
+    setTxResult(null)
+    setUploadProgress(0)
+
+    if (!f) {
+      setStep(1)
+      setHashes({ sha256: null, hashCount: null, assetId: null, mediaType: null })
+      return
+    }
+
+    try {
+      setProcessing(true)
+
+      // ── Use XMLHttpRequest to track live upload progress ──
+      const data = await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest()
+        const formData = new FormData()
+        formData.append('file', f)
+        formData.append('filename', f.name)
+
+        // Track upload progress events
+        xhr.upload.addEventListener('progress', (e) => {
+          if (e.lengthComputable) {
+            const percent = Math.round((e.loaded / e.total) * 100)
+            setUploadProgress(percent)
+          }
+        })
+
+        // On upload and response complete
+        xhr.addEventListener('load', () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+              resolve(JSON.parse(xhr.responseText))
+            } catch (err) {
+              reject(new Error('Invalid response format from server'))
+            }
+          } else {
+            reject(new Error(`Server error: status code ${xhr.status}`))
+          }
+        })
+
+        xhr.addEventListener('error', () => reject(new Error('Upload failed due to network error')))
+        
+        xhr.open('POST', `${HASH_ENGINE_API}/api/v1/hash`)
+        xhr.send(formData)
+      })
+
+      /**
+       * Handle the response:
+       * - sha256: hex string of the file's SHA-256 hash
+       * - phash: decimal string of the perceptual hash
+       * - media_type: type of media parsed
+       */
+      if (!data.sha256) {
+        throw new Error('Server response was missing SHA-256 hash')
+      }
+
+      setHashes({
+        sha256: data.sha256,
+        phash: data.phash,
+        hashCount: data.keyframes ? data.keyframes.length : 0,
+        assetId: `asset-${Date.now()}`,
+        mediaType: data.media_type,
+      })
+      setStep(2)
+    } catch (err) {
+      console.error('Hash engine error:', err)
+      setError(`Failed to compute hashes: ${err.message}`)
+    } finally {
+      setProcessing(false)
+    }
+  }
+
+  /**
+   * handleRegister — Signs and sends the blockchain transaction.
+   * 
+   * Calls: registerContent(bytes32 sha256hash, uint64 phash, string ipfs_cid, string ai_tool)
+   * 
+   * The sha256 from the hash engine is a hex string (e.g. "a7ffc6f8...").
+   * We prefix it with "0x" to create a valid bytes32 for the contract.
+   * 
+   * phash is set to 0 for now (the hash engine doesn't expose it directly;
+   * the Go backend's EVM listener extracts it from the event data).
+   * 
+   * ipfs_cid is set to "" for MVP (IPFS upload not implemented yet).
+   */
+  const handleRegister = async () => {
+    setError(null)
+
+    // ── Check MetaMask is available ──
+    if (!window.ethereum) {
+      setError('MetaMask is not installed. Please install it to register content.')
+      return
+    }
+
+    try {
+      setSigning(true)
+      setStep(3)
+
+      // ── Create ethers.js provider and signer from MetaMask ──
+      const provider = new ethers.BrowserProvider(window.ethereum)
+      const signer = await provider.getSigner()
+
+      // ── Verify we're on Arbitrum Sepolia ──
+      const network = await provider.getNetwork()
+      if (Number(network.chainId) !== ARBITRUM_SEPOLIA.chainId) {
+        // Attempt to switch networks
+        try {
+          await window.ethereum.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: ARBITRUM_SEPOLIA.chainIdHex }],
+          })
+        } catch (switchErr) {
+          throw new Error('Please switch to Arbitrum Sepolia network in MetaMask.')
+        }
+      }
+
+      // ── Create contract instance ──
+      const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer)
+
+      /**
+       * Prepare the sha256 hash as bytes32:
+       * The hash engine returns a plain hex string like "a7ffc6f8bf1ed766..."
+       * We need to prefix it with "0x" for ethers.js to parse it as bytes32.
+       */
+      const cleanHash = hashes.sha256.startsWith('0x') ? hashes.sha256.slice(2) : hashes.sha256
+      const sha256Bytes32 = '0x' + cleanHash
+
+      // ── Send the transaction ──
+      // registerContent(bytes32 sha256hash, uint64 phash, string ipfs_cid, string ai_tool)
+      
+      // Fetch latest network fee details to bypass Arbitrum Sepolia gas price spikes
+      const feeData = await provider.getFeeData()
+      const multiplier = 150n // Apply a 1.5x safety buffer to base fees
+      
+      const safeMaxFee = feeData.maxFeePerGas 
+        ? (feeData.maxFeePerGas * multiplier) / 100n 
+        : undefined
+        
+      const safePriorityFee = feeData.maxPriorityFeePerGas 
+        ? (feeData.maxPriorityFeePerGas * multiplier) / 100n 
+        : undefined
+
+      const tx = await contract.registerContent(
+        sha256Bytes32,                            // SHA-256 hash as bytes32
+        hashes.phash ? BigInt(hashes.phash) : 0n, // Actual perceptual visual hash
+        '',                                       // IPFS CID — placeholder for MVP
+        aiTool || '',                             // AI tool attribution
+        {
+          maxFeePerGas: safeMaxFee,
+          maxPriorityFeePerGas: safePriorityFee,
+        }
+      )
+
+      // ── Wait for transaction confirmation ──
+      const receipt = await tx.wait()
+
+      setTxResult({
+        hash: receipt.hash,
+        blockNumber: receipt.blockNumber,
+      })
+      setStep(4)
+    } catch (err) {
+      console.error('Registration error:', err)
+
+      // ── Parse common error messages for user-friendly display ──
+      let message = err.message
+      if (message.includes('ContentAlreadyRegistered')) {
+        message = 'This content hash is already registered on the blockchain.'
+      } else if (message.includes('user rejected')) {
+        message = 'Transaction was rejected in MetaMask.'
+      } else if (message.includes('insufficient funds')) {
+        message = 'Insufficient ETH for gas. Get free testnet ETH from the Lampros DAO Faucet.'
+      }
+      setError(message)
+      setStep(2) // Go back to the signing step
+    } finally {
+      setSigning(false)
+    }
+  }
+
+  /**
+   * resetFlow — Clears all state and returns to Step 1.
+   */
+  const resetFlow = () => {
+    setFile(null)
+    setStep(1)
+    setHashes({ sha256: null, hashCount: null, assetId: null, mediaType: null })
+    setTxResult(null)
+    setError(null)
+    setAiTool('')
+  }
+
+  return (
+    <section className="container" style={{ paddingTop: '1.5rem' }}>
+      {/* ── Page header ── */}
+      <div className="page-title">
+        <h1>Register Content</h1>
+        <div className="page-title-sub">
+          Upload a file to fingerprint and register its authenticity on-chain
+        </div>
+      </div>
+
+      {/* ════════════════════════════════════════════════════════════
+       * Progress Steps Indicator
+       * ════════════════════════════════════════════════════════════ */}
+      <div className="steps">
+        <div className={`step ${step >= 1 ? 'active' : ''} ${step > 1 ? 'completed' : ''}`}>
+          <span className="step-number">{step > 1 ? '✓' : '1'}</span> Upload File
+        </div>
+        <div className={`step-connector ${step > 1 ? 'completed' : ''}`} />
+        <div className={`step ${step >= 2 ? 'active' : ''} ${step > 2 ? 'completed' : ''}`}>
+          <span className="step-number">{step > 2 ? '✓' : '2'}</span> Generate Hashes
+        </div>
+        <div className={`step-connector ${step > 2 ? 'completed' : ''}`} />
+        <div className={`step ${step >= 3 ? 'active' : ''} ${step > 3 ? 'completed' : ''}`}>
+          <span className="step-number">{step > 3 ? '✓' : '3'}</span> Sign & Register
+        </div>
+        <div className={`step-connector ${step > 3 ? 'completed' : ''}`} />
+        <div className={`step ${step >= 4 ? 'active' : ''}`}>
+          <span className="step-number">4</span> Confirmed
+        </div>
+      </div>
+
+      {/* ════════════════════════════════════════════════════════════
+       * Two-column layout: Left = Upload + Hashes, Right = Register Action
+       * ════════════════════════════════════════════════════════════ */}
+      <div className="grid-2">
+        {/* ── LEFT COLUMN: File Upload + Hash Results ── */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+
+          {/* Upload card */}
+          <div className="card">
+            <div className="card-header">
+              <h2 className="card-header-title">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '0.5rem' }}>
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="17 8 12 3 7 8"/>
+                  <line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
+                File Upload
+              </h2>
+            </div>
+            <div className="card-body">
+              <FileUpload onFileSelected={handleFileSelected} />
+            </div>
+          </div>
+
+          {/* Hash results card — shown after processing or while computing */}
+          {(processing || hashes.sha256) && (
+            <div className="card animate-slide-up">
+              <div className="card-header">
+                <h2 className="card-header-title">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '0.5rem' }}>
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                  </svg>
+                  Content Fingerprints
+                </h2>
+                {processing && <span className="badge badge-info">Computing...</span>}
+              </div>
+              <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {processing ? (
+                  /* Skeleton loading while hash engine processes the file */
+                  <>
+                    <div className="hash-display">
+                      <div className="hash-label">SHA-256 CRYPTOGRAPHIC HASH</div>
+                      <div className="skeleton skeleton-text" style={{ width: '100%', height: 38 }} />
+                    </div>
+                  </>
+                ) : (
+                  /* Show computed hashes */
+                  <>
+                    <HashDisplay
+                      label="SHA-256 Cryptographic Hash"
+                      hash={hashes.sha256 ? (hashes.sha256.startsWith('0x') ? hashes.sha256 : `0x${hashes.sha256}`) : null}
+                      icon="C"
+                      variant="crypto"
+                    />
+                    
+                    {hashes.phash && (
+                      <HashDisplay
+                        label="Visual Perceptual Hash (phash)"
+                        hash={hashes.phash}
+                        icon="P"
+                        variant="perceptual"
+                      />
+                    )}
+
+                    {/* Additional metadata from hash engine */}
+                    <div style={{ display: 'flex', gap: '1rem', fontSize: '0.8125rem' }}>
+                      <div>
+                        <span style={{ color: 'var(--color-text-muted)' }}>Asset ID: </span>
+                        <span className="hash-tag">{hashes.assetId}</span>
+                      </div>
+                      <div>
+                        <span style={{ color: 'var(--color-text-muted)' }}>Type: </span>
+                        <span>{hashes.mediaType}</span>
+                      </div>
+                      <div>
+                        <span style={{ color: 'var(--color-text-muted)' }}>Hash Units: </span>
+                        <span>{hashes.hashCount}</span>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* ── RIGHT COLUMN: Blockchain Registration Action ── */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+          <div className="card">
+            <div className="card-header">
+              <h2 className="card-header-title">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '0.5rem' }}>
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+                Blockchain Registration
+              </h2>
+            </div>
+            <div className="card-body">
+
+              {/* ── STEP 1: Waiting for upload ── */}
+              {step < 2 && !processing && (
+                <div className="alert-box info">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 2 }}>
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="16" x2="12" y2="12"/>
+                    <line x1="12" y1="8" x2="12.01" y2="8"/>
+                  </svg>
+                  <div>
+                    Upload a file first. We'll compute its SHA-256 fingerprint via the hash engine, then you can register it on Arbitrum Sepolia.
+                  </div>
+                </div>
+              )}
+
+              {/* ── STEP 1b: Uploading & Computing hashes ── */}
+              {processing && (
+                <div style={{ padding: '1rem 0' }}>
+                  {uploadProgress < 100 ? (
+                    <div className="progress-container animate-fade-in" style={{ marginTop: 0 }}>
+                      <div className="progress-header">
+                        <span>Uploading Media File...</span>
+                        <span>{uploadProgress}%</span>
+                      </div>
+                      <div className="progress-bar-track">
+                        <div className="progress-bar-fill" style={{ width: `${uploadProgress}%` }} />
+                      </div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.5rem', textAlign: 'center' }}>
+                        Uploading payload to remote Hash Engine
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ textAlign: 'center' }} className="animate-fade-in">
+                      <div className="spinner" />
+                      <div style={{ fontWeight: 600, marginTop: '1rem' }}>Extracting & Hashing...</div>
+                      <div style={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)', marginTop: '0.25rem' }}>
+                        Upload complete! Extracting keyframes and generating signatures. This may take up to a minute for larger video files.
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ── STEP 2: Ready to sign ── */}
+              {step === 2 && !processing && (
+                <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  <div className="alert-box success">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 2 }}>
+                      <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                    <div>
+                      Fingerprints computed. Click below to sign a transaction and register on-chain.
+                    </div>
+                  </div>
+
+                  {/* AI Tool Dropdown Attribution */}
+                  <div>
+                    <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-muted)', display: 'block', marginBottom: '0.375rem' }}>
+                      AI Generator Attribution
+                    </label>
+                    <select
+                      value={aiCategory}
+                      onChange={(e) => {
+                        const val = e.target.value
+                        setAiCategory(val)
+                        if (val === 'None (Authentic Content)') {
+                          setAiTool('')
+                        } else if (val !== 'Other (Custom Input)') {
+                          setAiTool(val)
+                        }
+                      }}
+                      style={{
+                        width: '100%',
+                        padding: '0.5rem 0.75rem',
+                        fontSize: '0.8125rem',
+                        border: '1px solid var(--color-border)',
+                        borderRadius: 'var(--radius-sm)',
+                        fontFamily: 'var(--font-sans)',
+                        backgroundColor: 'var(--color-surface)',
+                        outline: 'none',
+                        marginBottom: aiCategory === 'Other (Custom Input)' ? '0.75rem' : '0'
+                      }}
+                    >
+                      {AI_MODELS.map(model => (
+                        <option key={model} value={model}>{model}</option>
+                      ))}
+                    </select>
+
+                    {/* Secondary text input shown only when "Other (Custom Input)" is selected */}
+                    {aiCategory === 'Other (Custom Input)' && (
+                      <input
+                        type="text"
+                        value={aiTool}
+                        onChange={(e) => setAiTool(e.target.value)}
+                        placeholder="Enter custom AI model name (e.g. Ideogram, Sora)"
+                        style={{
+                          width: '100%',
+                          padding: '0.5rem 0.75rem',
+                          fontSize: '0.8125rem',
+                          border: '1px solid var(--color-border)',
+                          borderRadius: 'var(--radius-sm)',
+                          fontFamily: 'var(--font-sans)',
+                          outline: 'none',
+                        }}
+                      />
+                    )}
+                  </div>
+
+                  {/* Transaction preview */}
+                  <div style={{ background: 'var(--color-bg)', borderRadius: 'var(--radius-md)', padding: '1rem' }}>
+                    <div className="text-cap" style={{ marginBottom: '0.75rem' }}>Transaction Preview</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.8125rem' }}>
+                      <TxRow label="Contract" value="VeriTraceRegistry" accent />
+                      <TxRow label="Method" value="registerContent(bytes32, uint64, string, string)" />
+                      <TxRow label="SHA-256" value={`0x${hashes.sha256?.slice(0, 12)}...`} />
+                      <TxRow label="Network" value="Arbitrum Sepolia" />
+                      <TxRow label="AI Tool" value={aiTool || '(none)'} />
+                    </div>
+                  </div>
+
+                  <button className="btn btn-primary btn-lg w-full" onClick={handleRegister}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    </svg>
+                    Register on Blockchain
+                  </button>
+                </div>
+              )}
+
+              {/* ── STEP 3: Waiting for MetaMask confirmation ── */}
+              {step === 3 && signing && (
+                <div className="animate-fade-in" style={{ textAlign: 'center', padding: '2rem 0' }}>
+                  <div className="spinner" />
+                  <div style={{ fontWeight: 600, marginTop: '1rem' }}>Waiting for confirmation...</div>
+                  <div style={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)' }}>
+                    Please confirm the transaction in MetaMask and wait for it to be mined
+                  </div>
+                </div>
+              )}
+
+              {/* ── STEP 4: Success ── */}
+              {step === 4 && txResult && (
+                <div className="animate-scale-in" style={{ textAlign: 'center', padding: '1.5rem 0' }}>
+                  {/* Success checkmark circle */}
+                  <div style={{
+                    width: 56, height: 56, margin: '0 auto 1rem',
+                    background: 'var(--color-success-bg)', borderRadius: '50%',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: 'var(--color-success)',
+                  }}>
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                  </div>
+                  <div style={{ fontWeight: 700, fontSize: '1.125rem', marginBottom: '0.375rem' }}>
+                    Successfully Registered!
+                  </div>
+                  <div style={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)', marginBottom: '1rem' }}>
+                    Your content has been anchored on Arbitrum Sepolia
+                  </div>
+
+                  {/* Transaction details */}
+                  <div style={{ background: 'var(--color-bg)', borderRadius: 'var(--radius-md)', padding: '1rem', textAlign: 'left', fontSize: '0.8125rem' }}>
+                    <TxRow label="Tx Hash">
+                      <a
+                        href={`${ARBITRUM_SEPOLIA.explorer}/tx/${txResult.hash}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hash-tag"
+                      >
+                        {txResult.hash.slice(0, 16)}...{txResult.hash.slice(-8)}
+                      </a>
+                    </TxRow>
+                    <TxRow label="Block" value={txResult.blockNumber?.toString()} />
+                    <TxRow label="Status">
+                      <span className="badge badge-success">Confirmed</span>
+                    </TxRow>
+                  </div>
+
+                  {/* Action buttons */}
+                  <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.25rem' }}>
+                    <a
+                      href={`${ARBITRUM_SEPOLIA.explorer}/tx/${txResult.hash}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn btn-outline btn-sm"
+                      style={{ flex: 1, textDecoration: 'none' }}
+                    >
+                      View on Arbiscan ↗
+                    </a>
+                    <button className="btn btn-primary btn-sm" style={{ flex: 1 }} onClick={resetFlow}>
+                      Register Another
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* ── Error display ── */}
+              {error && (
+                <div className="alert-box danger" style={{ marginTop: '1rem' }}>
+                  <span>⚠️</span>
+                  <div style={{ wordBreak: 'break-word' }}>{error}</div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* ── Info card: What gets stored ── */}
+          <div className="card">
+            <div className="card-header">
+              <h2 className="card-header-title">What gets stored?</h2>
+            </div>
+            <div className="card-body" style={{ fontSize: '0.8125rem', lineHeight: 1.7, color: 'var(--color-text-secondary)' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                <InfoRow label="On-Chain" color="var(--color-accent)"
+                  items={['SHA-256 hash (bytes32)', 'Wallet address (msg.sender)', 'Block timestamp', 'AI tool attribution']} />
+                <InfoRow label="Hash Engine (BoltDB)" color="var(--color-info)"
+                  items={['SHA-256 hash', 'Perceptual hash units', 'File content (for verification)', 'Asset metadata']} />
+                <InfoRow label="Backend (Postgres/Qdrant)" color="var(--color-success)"
+                  items={['Event-sourced metadata', 'pHash vectors (64-dim)', 'Redis exact-match cache']} />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/** Transaction preview row — key/value pair */
+function TxRow({ label, value, accent, children }) {
+  return (
+    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+      <span style={{ color: 'var(--color-text-muted)' }}>{label}</span>
+      {children || (
+        <span style={{ color: accent ? 'var(--color-accent)' : 'inherit' }}>{value}</span>
+      )}
+    </div>
+  )
+}
+
+/** Info row with colored bullet and items list */
+function InfoRow({ label, items, color }) {
+  return (
+    <div>
+      <div style={{
+        display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
+        marginBottom: '0.25rem', fontWeight: 600, fontSize: '0.75rem',
+        textTransform: 'uppercase', letterSpacing: '0.05em', color,
+      }}>
+        <span style={{ width: 8, height: 8, borderRadius: '50%', background: color, opacity: 0.6 }} />
+        {label}
+      </div>
+      <ul style={{ paddingLeft: '1.25rem', margin: 0 }}>
+        {items.map((item, i) => (
+          <li key={i} style={{ color: 'var(--color-text-secondary)' }}>{item}</li>
+        ))}
+      </ul>
+    </div>
+  )
+}
