@@ -192,12 +192,13 @@ export default function VerifyPage() {
         if (hashData.phash) {
           const uploadedPhash = BigInt(hashData.phash)
 
-          events.forEach(event => {
+          for (const event of events) {
             const args = event.args || {}
             const registeredSha = args.sha256hash
             const registeredCreator = args.creator
             const registeredPhash = args.phash || 0n
             const registeredTime = Number(args.timestamp || 0n)
+            const registeredIpfs = args.ipfsCid || ''
             const registeredAi = args.aitool || ''
 
             // Skip if this is the exact same file (will be handled by the exact match display)
@@ -209,18 +210,44 @@ export default function VerifyPage() {
 
               // If similarity is >= 80% (same logic as the backend BoltDB threshold)
               if (score >= 80) {
+                // Fetch the metadata JSON from IPFS to extract the S3/IPFS image URL!
+                let mediaS3Url, mediaIpfsUrl
+                if (registeredIpfs && registeredIpfs !== '') {
+                  try {
+                    const controller = new AbortController()
+                    const timeoutId = setTimeout(() => controller.abort(), 3000) // 3 seconds timeout
+                    
+                    const metaRes = await fetch(`https://gateway.pinata.cloud/ipfs/${registeredIpfs}`, {
+                      signal: controller.signal
+                    })
+                    clearTimeout(timeoutId)
+                    
+                    if (metaRes.ok) {
+                      const metaData = await metaRes.json()
+                      mediaS3Url = metaData.media_s3_url
+                      mediaIpfsUrl = metaData.media_ipfs_url
+                    }
+                  } catch (e) {
+                    console.warn(`Failed to fetch IPFS metadata for ${registeredIpfs}:`, e.message)
+                  }
+                }
+
                 matches.push({
                   matchType: isExactSha ? 'exact' : 'similar',
                   similarity: score,
                   assetId: registeredSha.slice(0, 16),
+                  sha256: registeredSha,
                   mediaType: hashData.media_type || 'unknown',
                   registeredAt: new Date(registeredTime * 1000).toLocaleString(),
                   creator: registeredCreator,
                   aiTool: registeredAi,
+                  ipfsCid: registeredIpfs,
+                  mediaS3Url: mediaS3Url,
+                  mediaIpfsUrl: mediaIpfsUrl,
                 })
               }
             }
-          })
+          }
         }
       } catch (logErr) {
         console.error('On-chain fuzzy search lookup failed:', logErr)
@@ -232,10 +259,12 @@ export default function VerifyPage() {
           matchType: 'exact',
           similarity: 100,
           assetId: `onchain-${sha256Hex.slice(0, 8)}`,
+          sha256: `0x${sha256Hex}`,
           mediaType: hashData.media_type || 'unknown',
           registeredAt: new Date(onChainData.timestamp * 1000).toLocaleString(),
           creator: onChainData.creator,
           aiTool: onChainData.aiTool,
+          ipfsCid: onChainData.ipfsCid,
         })
       }
 
@@ -255,10 +284,14 @@ export default function VerifyPage() {
                 matchType: 'exact',
                 similarity: 100,
                 assetId: exactData.record.Sha256Hash?.slice(0, 16),
+                sha256: exactData.record.Sha256Hash,
                 mediaType: hashData.media_type || 'unknown',
                 registeredAt: new Date(exactData.record.Timestamp * 1000).toLocaleString(),
                 creator: exactData.record.CreatorAddress,
                 aiTool: exactData.record.AiTool,
+                ipfsCid: exactData.record.IpfsCid,
+                mediaS3Url: exactData.record.MediaS3Url,
+                mediaIpfsUrl: exactData.record.MediaIpfsUrl,
               })
             }
           }
@@ -268,27 +301,82 @@ export default function VerifyPage() {
       }
 
       try {
-        // Query Core Backend Fuzzy/Visual Similarity Matches
-        if (hashData.phash) {
+        // Query Core Backend Similarity Matches (Segmented check for Videos/Docs, Fuzzy check for Images)
+        const isVideoOrDoc = hashData.media_type === 'video' || hashData.media_type === 'document'
+        
+        if (isVideoOrDoc && hashData.keyframes && hashData.keyframes.length > 0) {
+          // Query Segment Match for multi-page documents or video segments
+          const segmentRes = await fetch(`${CORE_BACKEND_API}/api/v1/verify/segments`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              sha256: sha256Bytes32,
+              media_type: hashData.media_type,
+              segments: hashData.keyframes.map(k => ({
+                offset: Number(k.offset),
+                phash: Number(k.phash)
+              })),
+            }),
+          })
+
+          if (segmentRes.ok) {
+            const segmentData = await segmentRes.json()
+            if (segmentData.match_found && segmentData.record) {
+              const alreadyMatched = matches.some(m => m.assetId.toLowerCase().includes(segmentData.record.Sha256Hash?.slice(0, 8).toLowerCase()))
+              if (!alreadyMatched) {
+                matches.push({
+                  matchType: 'similar',
+                  similarity: segmentData.similarity || 90,
+                  assetId: segmentData.record.Sha256Hash?.slice(0, 16),
+                  sha256: segmentData.record.Sha256Hash,
+                  mediaType: hashData.media_type || 'unknown',
+                  registeredAt: new Date(segmentData.record.Timestamp * 1000).toLocaleString(),
+                  creator: segmentData.record.CreatorAddress,
+                  aiTool: segmentData.record.AiTool,
+                  ipfsCid: segmentData.record.IpfsCid,
+                  mediaS3Url: segmentData.record.MediaS3Url,
+                  mediaIpfsUrl: segmentData.record.MediaIpfsUrl,
+                })
+              }
+            }
+          }
+        } else if (hashData.phash) {
+          // Query Fuzzy Visual Search for single images
           const fuzzyRes = await fetch(`${CORE_BACKEND_API}/api/v1/verify/fuzzy?phash=${hashData.phash}`)
           if (fuzzyRes.ok) {
             const fuzzyData = await fuzzyRes.json()
             if (fuzzyData.match_found && fuzzyData.record) {
-              matches.push({
-                matchType: 'similar',
-                similarity: fuzzyData.similarity || 90,
-                assetId: fuzzyData.record.Sha256Hash?.slice(0, 16),
-                mediaType: hashData.media_type || 'unknown',
-                registeredAt: new Date(fuzzyData.record.Timestamp * 1000).toLocaleString(),
-                creator: fuzzyData.record.CreatorAddress,
-              })
+              const alreadyMatched = matches.some(m => m.assetId.toLowerCase().includes(fuzzyData.record.Sha256Hash?.slice(0, 8).toLowerCase()))
+              if (!alreadyMatched) {
+                matches.push({
+                  matchType: 'similar',
+                  similarity: fuzzyData.similarity || 90,
+                  assetId: fuzzyData.record.Sha256Hash?.slice(0, 16),
+                  sha256: fuzzyData.record.Sha256Hash,
+                  mediaType: hashData.media_type || 'unknown',
+                  registeredAt: new Date(fuzzyData.record.Timestamp * 1000).toLocaleString(),
+                  creator: fuzzyData.record.CreatorAddress,
+                  aiTool: fuzzyData.record.AiTool,
+                  ipfsCid: fuzzyData.record.IpfsCid,
+                  mediaS3Url: fuzzyData.record.MediaS3Url,
+                  mediaIpfsUrl: fuzzyData.record.MediaIpfsUrl,
+                })
+              }
             }
           }
         }
       } catch (dbErr) {
-        console.warn('Core Backend fuzzy similarity lookup failed:', dbErr.message)
+        console.warn('Core Backend similarity search failed:', dbErr.message)
       }
       setDbResults(matches)
+      
+      // Increment local verification stats
+      try {
+        const count = Number(localStorage.getItem('vt_verifs_count') || 0)
+        localStorage.setItem('vt_verifs_count', count + 1)
+      } catch (e) {}
     } catch (err) {
       console.error('Verification error:', err)
       setError(`Failed to perform verification check: ${err.message}`)
@@ -450,14 +538,14 @@ export default function VerifyPage() {
           )}
 
           {/* Database Lookalike Matches */}
-          <div className="card">
+          <div className="card animate-slide-up">
             <div className="card-header">
               <h2 className="card-header-title">Database Similarity Results</h2>
               {dbResults && dbResults.length > 0 && (
                 <span className="badge badge-info">{dbResults.length} matches</span>
               )}
             </div>
-            <div className="card-body">
+            <div className="card-body" style={{ maxHeight: '520px', overflowY: 'auto' }}>
               {loading ? (
                 <div style={{ padding: '0.5rem 0' }}>
                   {uploadProgress < 100 ? (
@@ -484,7 +572,7 @@ export default function VerifyPage() {
                   )}
                 </div>
               ) : (
-                <SearchResults results={dbResults} loading={loading} />
+                <SearchResults results={dbResults} loading={loading} uploadedFile={file} />
               )}
             </div>
           </div>

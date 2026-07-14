@@ -84,11 +84,33 @@ export default function FileUpload({ onFileSelected, accept, label }) {
 
   // ── If a file is already selected, show the preview card ──
   if (file) {
+    const isImage = file.type?.startsWith('image/')
+    const imageUrl = isImage ? URL.createObjectURL(file) : null
+
     return (
       <div className="animate-scale-in">
-        <div className="file-info">
-          <div className="file-info-icon">{getFileIcon(file.type)}</div>
-          <div className="file-info-details">
+        <div className="file-info" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          {isImage ? (
+            <img
+              src={imageUrl}
+              alt="Upload Preview"
+              style={{
+                width: '48px',
+                height: '48px',
+                objectFit: 'cover',
+                borderRadius: 'var(--radius-sm)',
+                border: '1px solid var(--color-border)',
+                background: 'var(--color-bg)',
+              }}
+              onLoad={() => {
+                // Revoke object URL after image loads to prevent memory leaks
+                if (imageUrl) URL.revokeObjectURL(imageUrl)
+              }}
+            />
+          ) : (
+            <div className="file-info-icon">{getFileIcon(file.type)}</div>
+          )}
+          <div className="file-info-details" style={{ flexGrow: 1 }}>
             <div className="file-info-name">{file.name}</div>
             <div className="file-info-meta">
               {file.type || 'Unknown type'} • {formatSize(file.size)}

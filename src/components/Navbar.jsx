@@ -43,9 +43,9 @@ export default function Navbar() {
     <nav className={`navbar ${scrolled ? 'scrolled' : ''}`}>
       <div className="container">
         {/* ── Brand logo ── */}
-        <Link to="/" className="navbar-brand">
-          <div className="navbar-brand-icon">VT</div>
-          <span>VeriTrace</span>
+        <Link to="/" className="navbar-brand" style={{ gap: '0.65rem' }}>
+          <LogoIcon size={32} />
+          <span style={{ fontWeight: 800, letterSpacing: '-0.02em', background: 'linear-gradient(135deg, var(--color-text) 30%, var(--color-accent) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>VeriTrace</span>
         </Link>
 
         {/* ── Navigation links ── */}
@@ -176,5 +176,52 @@ function WalletButton() {
         </>
       )}
     </button>
+  )
+}
+
+export function LogoIcon({ size = 30, className = "" }) {
+  return (
+    <svg 
+      width={size} 
+      height={size} 
+      viewBox="0 0 32 32" 
+      fill="none" 
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+    >
+      <defs>
+        <linearGradient id="logo-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#2563eb" />
+          <stop offset="100%" stopColor="#10b981" />
+        </linearGradient>
+      </defs>
+      
+      {/* Outer shield structure */}
+      <path 
+        d="M16 2.5 L26.5 6 C26.5 16.5, 20.5 24.5, 16 29.5 C11.5 24.5, 5.5 16.5, 5.5 6 Z" 
+        fill="url(#logo-grad)"
+        style={{ filter: 'drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.15))' }}
+      />
+      
+      {/* Inside checkmark */}
+      <path 
+        d="M11 16 L14.5 19.5 L21.5 12" 
+        stroke="white" 
+        strokeWidth="2.5" 
+        strokeLinecap="round" 
+        strokeLinejoin="round" 
+      />
+      
+      {/* Visual scanning line */}
+      <line 
+        x1="7" 
+        y1="16" 
+        x2="25" 
+        y2="16" 
+        stroke="rgba(255, 255, 255, 0.25)" 
+        strokeWidth="1.2" 
+        strokeDasharray="2,2" 
+      />
+    </svg>
   )
 }

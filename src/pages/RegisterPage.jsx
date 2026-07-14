@@ -22,11 +22,13 @@
 import FileUpload from '../components/FileUpload'
 import HashDisplay from '../components/HashDisplay'
 import { useUpload } from '../context/UploadContext'
+import { ethers } from 'ethers'
 import { useAccount, useWriteContract, useConfig } from 'wagmi'
 import { waitForTransactionReceipt } from '@wagmi/core'
 import { parseAbi } from 'viem'
 import {
   HASH_ENGINE_API,
+  CORE_BACKEND_API,
   CONTRACT_ADDRESS,
   CONTRACT_ABI,
   ARBITRUM_SEPOLIA,
@@ -198,10 +200,109 @@ export default function RegisterPage() {
        * The hash engine returns a plain hex string like "a7ffc6f8bf1ed766..."
        * We need to prefix it with "0x" to parse it as bytes32.
        */
-      const cleanHash = hashes.sha256.startsWith('0x') ? hashes.sha256.slice(2) : hashes.sha256
-      const sha256Bytes32 = '0x' + cleanHash
+       const cleanHash = hashes.sha256.startsWith('0x') ? hashes.sha256.slice(2) : hashes.sha256
+       const sha256Bytes32 = '0x' + cleanHash
+ 
+       // ─────────────────────────────────────────────────────────────
+       // PRE-FLIGHT CHECK: Verify if the hash is already registered
+       // ─────────────────────────────────────────────────────────────
+       try {
+         let checkProvider
+         if (window.ethereum) {
+           checkProvider = new ethers.BrowserProvider(window.ethereum)
+         } else {
+           checkProvider = new ethers.JsonRpcProvider(ARBITRUM_SEPOLIA.rpcUrl)
+         }
+         const checkContract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, checkProvider)
+         
+         // Calls verifyContent(bytes32). If it succeeds without reverting, it is already registered.
+         const existingRecord = await checkContract.verifyContent(sha256Bytes32)
+         if (existingRecord && Number(existingRecord[1]) !== 0) {
+           throw new Error('This file has already been registered in the smart contract registry.')
+         }
+       } catch (checkErr) {
+         // If it's our custom error, propagate it to block registration
+         if (checkErr.message.includes('already been registered')) {
+           throw checkErr
+         }
+         // Otherwise, the contract reverted (e.g. ContentNotFound), meaning it's unregistered and safe to proceed!
+       }
+ 
+       // ─────────────────────────────────────────────────────────────
+       // STEP 1: Pin Raw Media to S3 / IPFS
+       // ─────────────────────────────────────────────────────────────
+      const fileFormData = new FormData()
+      fileFormData.append('file', file) // file is the state variable holding the selected file
 
-      // ── Send the transaction via Wagmi writeContractAsync ──
+      const pinFileRes = await fetch(`${CORE_BACKEND_API}/api/v1/pin-file`, {
+        method: 'POST',
+        body: fileFormData,
+      })
+
+      if (!pinFileRes.ok) {
+        const errText = await pinFileRes.text()
+        throw new Error(`Failed to pin media file to storage: ${errText || pinFileRes.statusText}`)
+      }
+
+      const pinFileData = await pinFileRes.json()
+      const mediaIpfsUrl = pinFileData.media_ipfs_url
+      const mediaS3Url = pinFileData.media_s3_url
+
+      // ─────────────────────────────────────────────────────────────
+      // STEP 2: Pin Metadata to IPFS
+      // ─────────────────────────────────────────────────────────────
+      const metadataPayload = {
+        sha256: sha256Bytes32,
+        representative_phash: hashes.phash ? Number(hashes.phash) : 0,
+        media_ipfs_url: mediaIpfsUrl,
+        media_s3_url: mediaS3Url,
+        allow_ai_training: true,
+        webhook_url: '',
+        parent_sha256: '',
+        media_type: hashes.mediaType || 'image',
+        keyframes: [],
+      }
+
+      const pinMetaRes = await fetch(`${CORE_BACKEND_API}/api/v1/pin`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(metadataPayload),
+      })
+
+      if (!pinMetaRes.ok) {
+        const errText = await pinMetaRes.text()
+        throw new Error(`Failed to pin registration metadata: ${errText || pinMetaRes.statusText}`)
+      }
+
+      const pinMetaData = await pinMetaRes.json()
+      const ipfsCid = pinMetaData.ipfs_cid
+
+      // ─────────────────────────────────────────────────────────────
+      // STEP 3: Blockchain Transaction (Smart Contract)
+      // ─────────────────────────────────────────────────────────────
+      
+      // Fetch latest network fee details to bypass Arbitrum Sepolia gas price spikes
+      let safeMaxFee, safePriorityFee
+      try {
+        if (window.ethereum) {
+          const provider = new ethers.BrowserProvider(window.ethereum)
+          const feeData = await provider.getFeeData()
+          const multiplier = 150n // Apply a 1.5x safety buffer to base fees
+          
+          safeMaxFee = feeData.maxFeePerGas 
+            ? (feeData.maxFeePerGas * multiplier) / 100n 
+            : undefined
+            
+          safePriorityFee = feeData.maxPriorityFeePerGas 
+            ? (feeData.maxPriorityFeePerGas * multiplier) / 100n 
+            : undefined
+        }
+      } catch (feeErr) {
+        console.warn('Failed to estimate custom gas overrides, falling back to wallet default fees:', feeErr)
+      }
+
       const txHash = await writeContractAsync({
         address: CONTRACT_ADDRESS,
         abi: parseAbi(CONTRACT_ABI),
@@ -209,15 +310,35 @@ export default function RegisterPage() {
         args: [
           sha256Bytes32,
           hashes.phash ? BigInt(hashes.phash) : 0n,
-          '',
+          ipfsCid || '',
           aiTool || '',
         ],
+        // Pass estimated gas overrides only if fetched successfully
+        ...(safeMaxFee || safePriorityFee ? {
+          maxFeePerGas: safeMaxFee,
+          maxPriorityFeePerGas: safePriorityFee,
+        } : {}),
       })
 
       // ── Wait for transaction confirmation ──
       const receipt = await waitForTransactionReceipt(config, {
         hash: txHash,
       })
+
+      // Cache media urls in localStorage to avoid IPFS Gateway fallback/latency issues (prevent legacy registration display)
+      try {
+        const cacheKey = `vt_media_${sha256Bytes32.toLowerCase()}`
+        const cacheData = {
+          sha256: sha256Bytes32,
+          media_ipfs_url: mediaIpfsUrl,
+          media_s3_url: mediaS3Url,
+          media_type: hashes.mediaType || 'image',
+          ipfsCid: ipfsCid
+        }
+        localStorage.setItem(cacheKey, JSON.stringify(cacheData))
+      } catch (e) {
+        console.warn("Failed to write media cache to localStorage:", e)
+      }
 
       setTxResult({
         hash: receipt.transactionHash,

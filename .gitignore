@@ -29,3 +29,6 @@ node_modules
 *.njsproj
 *.sln
 *.sw?
+
+# Cloned Demo Folder
+veritrace-working-demo-code/
