@@ -279,6 +279,15 @@ export default function VerifyPage() {
           if (exactData.match_found && exactData.record) {
             // Only add if not already in matches list
             const alreadyMatched = matches.some(m => m.assetId.toLowerCase().includes(sha256Hex.slice(0, 8).toLowerCase()))
+            
+            if (onChainData) {
+              setBlockchainRecord(prev => ({
+                ...prev,
+                mediaS3Url: exactData.record.MediaS3Url,
+                mediaIpfsUrl: exactData.record.MediaIpfsUrl
+              }))
+            }
+
             if (!alreadyMatched) {
               matches.push({
                 matchType: 'exact',
@@ -521,13 +530,40 @@ export default function VerifyPage() {
                     </div>
                     {blockchainRecord.ipfsCid && (
                       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <span style={{ color: 'var(--color-text-muted)' }}>IPFS Storage Link</span>
+                        <span style={{ color: 'var(--color-text-muted)' }}>Metadata (IPFS)</span>
                         <a
-                          href={`https://ipfs.io/ipfs/${blockchainRecord.ipfsCid}`}
+                          href={`https://gateway.pinata.cloud/ipfs/${blockchainRecord.ipfsCid}`}
                           target="_blank"
                           rel="noopener noreferrer"
+                          style={{ textDecoration: 'underline' }}
                         >
                           View Metadata CID ↗
+                        </a>
+                      </div>
+                    )}
+                    {blockchainRecord.mediaIpfsUrl && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ color: 'var(--color-text-muted)' }}>Media (IPFS)</span>
+                        <a
+                          href={blockchainRecord.mediaIpfsUrl.replace('ipfs://', 'https://gateway.pinata.cloud/ipfs/')}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{ textDecoration: 'underline' }}
+                        >
+                          View Media IPFS ↗
+                        </a>
+                      </div>
+                    )}
+                    {blockchainRecord.mediaS3Url && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ color: 'var(--color-text-muted)' }}>Media (S3)</span>
+                        <a
+                          href={blockchainRecord.mediaS3Url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{ textDecoration: 'underline' }}
+                        >
+                          View Media S3 ↗
                         </a>
                       </div>
                     )}

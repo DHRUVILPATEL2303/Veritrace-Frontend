@@ -19,13 +19,15 @@
  *   - Hash Engine API at api.hash.veritrace.dpkvtrading.online
  *   - VeritraceRegistry contract at 0x468edc5b2fe9d1c919f2377cbe0ccb16f32ead29
  */
+import { useState } from 'react'
 import FileUpload from '../components/FileUpload'
 import HashDisplay from '../components/HashDisplay'
 import { useUpload } from '../context/UploadContext'
 import { ethers } from 'ethers'
-import { useAccount, useWriteContract, useConfig } from 'wagmi'
+import { useAccount, useWriteContract, useConfig, useSwitchChain } from 'wagmi'
 import { waitForTransactionReceipt } from '@wagmi/core'
 import { parseAbi } from 'viem'
+import { downloadCertificate } from '../utils/generateCertificate'
 import {
   HASH_ENGINE_API,
   CORE_BACKEND_API,
@@ -64,9 +66,13 @@ export default function RegisterPage() {
     regError: error, setRegError: setError,
   } = useUpload()
 
-  const { isConnected, chain } = useAccount()
+  const { address, isConnected, chain } = useAccount()
   const { writeContractAsync } = useWriteContract()
+  const { switchChainAsync } = useSwitchChain()
   const config = useConfig()
+
+  const [allowAiTraining, setAllowAiTraining] = useState(true)
+  const [webhookUrl, setWebhookUrl] = useState('')
 
   /**
    * handleFileSelected — Called when user picks a file.
@@ -179,18 +185,14 @@ export default function RegisterPage() {
       setStep(3)
 
       // ── Verify we're on Arbitrum Sepolia ──
-      if (chain && chain.id !== ARBITRUM_SEPOLIA.chainId) {
-        // Attempt to switch networks
-        if (window.ethereum) {
-          try {
-            await window.ethereum.request({
-              method: 'wallet_switchEthereumChain',
-              params: [{ chainId: ARBITRUM_SEPOLIA.chainIdHex }],
-            })
-          } catch (switchErr) {
-            throw new Error('Please switch to Arbitrum Sepolia network in MetaMask.')
+      if (!chain || chain.id !== ARBITRUM_SEPOLIA.chainId) {
+        try {
+          if (switchChainAsync) {
+            await switchChainAsync({ chainId: ARBITRUM_SEPOLIA.chainId })
+          } else {
+            throw new Error('Network switching is not supported by your wallet.')
           }
-        } else {
+        } catch (switchErr) {
           throw new Error('Please switch to Arbitrum Sepolia network in your wallet.')
         }
       }
@@ -207,12 +209,7 @@ export default function RegisterPage() {
        // PRE-FLIGHT CHECK: Verify if the hash is already registered
        // ─────────────────────────────────────────────────────────────
        try {
-         let checkProvider
-         if (window.ethereum) {
-           checkProvider = new ethers.BrowserProvider(window.ethereum)
-         } else {
-           checkProvider = new ethers.JsonRpcProvider(ARBITRUM_SEPOLIA.rpcUrl)
-         }
+         const checkProvider = new ethers.JsonRpcProvider(ARBITRUM_SEPOLIA.rpcUrl)
          const checkContract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, checkProvider)
          
          // Calls verifyContent(bytes32). If it succeeds without reverting, it is already registered.
@@ -256,8 +253,8 @@ export default function RegisterPage() {
         representative_phash: hashes.phash ? Number(hashes.phash) : 0,
         media_ipfs_url: mediaIpfsUrl,
         media_s3_url: mediaS3Url,
-        allow_ai_training: true,
-        webhook_url: '',
+        allow_ai_training: allowAiTraining,
+        webhook_url: webhookUrl,
         parent_sha256: '',
         media_type: hashes.mediaType || 'image',
         keyframes: [],
@@ -283,27 +280,25 @@ export default function RegisterPage() {
       // STEP 3: Blockchain Transaction (Smart Contract)
       // ─────────────────────────────────────────────────────────────
       
-      // Fetch latest network fee details to bypass Arbitrum Sepolia gas price spikes
+      // Fetch latest network fee details directly from Arbitrum RPC to bypass gas price spikes
       let safeMaxFee, safePriorityFee
       try {
-        if (window.ethereum) {
-          const provider = new ethers.BrowserProvider(window.ethereum)
-          const feeData = await provider.getFeeData()
-          const multiplier = 150n // Apply a 1.5x safety buffer to base fees
+        const feeProvider = new ethers.JsonRpcProvider(ARBITRUM_SEPOLIA.rpcUrl)
+        const feeData = await feeProvider.getFeeData()
+        const multiplier = 200n // Apply a 2.0x safety buffer to base fees to guarantee inclusion
+        
+        safeMaxFee = feeData.maxFeePerGas 
+          ? (feeData.maxFeePerGas * multiplier) / 100n 
+          : undefined
           
-          safeMaxFee = feeData.maxFeePerGas 
-            ? (feeData.maxFeePerGas * multiplier) / 100n 
-            : undefined
-            
-          safePriorityFee = feeData.maxPriorityFeePerGas 
-            ? (feeData.maxPriorityFeePerGas * multiplier) / 100n 
-            : undefined
-        }
+        safePriorityFee = feeData.maxPriorityFeePerGas 
+          ? (feeData.maxPriorityFeePerGas * multiplier) / 100n 
+          : undefined
       } catch (feeErr) {
-        console.warn('Failed to estimate custom gas overrides, falling back to wallet default fees:', feeErr)
+        console.warn('Failed to estimate custom gas overrides:', feeErr)
       }
-
       const txHash = await writeContractAsync({
+        chainId: ARBITRUM_SEPOLIA.chainId,
         address: CONTRACT_ADDRESS,
         abi: parseAbi(CONTRACT_ABI),
         functionName: 'registerContent',
@@ -313,7 +308,6 @@ export default function RegisterPage() {
           ipfsCid || '',
           aiTool || '',
         ],
-        // Pass estimated gas overrides only if fetched successfully
         ...(safeMaxFee || safePriorityFee ? {
           maxFeePerGas: safeMaxFee,
           maxPriorityFeePerGas: safePriorityFee,
@@ -343,6 +337,10 @@ export default function RegisterPage() {
       setTxResult({
         hash: receipt.transactionHash,
         blockNumber: Number(receipt.blockNumber),
+        mediaIpfsUrl: mediaIpfsUrl,
+        mediaS3Url: mediaS3Url,
+        ipfsCid: ipfsCid,
+        sha256: sha256Bytes32,
       })
       setStep(4)
     } catch (err) {
@@ -614,6 +612,41 @@ export default function RegisterPage() {
                     )}
                   </div>
 
+                  {/* AI Training Opt-in */}
+                  <div style={{ marginTop: '1rem' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8125rem', cursor: 'pointer', color: 'var(--color-text-secondary)' }}>
+                      <input 
+                        type="checkbox" 
+                        checked={allowAiTraining} 
+                        onChange={(e) => setAllowAiTraining(e.target.checked)}
+                      />
+                      Allow AI models to use this content for training
+                    </label>
+                  </div>
+
+                  {/* Webhook URL Input */}
+                  <div style={{ marginTop: '1rem' }}>
+                    <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-muted)', display: 'block', marginBottom: '0.375rem' }}>
+                      Webhook URL (Optional)
+                    </label>
+                    <input
+                      type="url"
+                      value={webhookUrl}
+                      onChange={(e) => setWebhookUrl(e.target.value)}
+                      placeholder="e.g. Discord, Slack"
+                      style={{
+                        width: '100%',
+                        padding: '0.5rem 0.75rem',
+                        fontSize: '0.8125rem',
+                        border: '1px solid var(--color-border)',
+                        borderRadius: 'var(--radius-sm)',
+                        fontFamily: 'var(--font-sans)',
+                        backgroundColor: 'var(--color-surface)',
+                        outline: 'none',
+                      }}
+                    />
+                  </div>
+
                   {/* Transaction preview */}
                   <div style={{ background: 'var(--color-bg)', borderRadius: 'var(--radius-md)', padding: '1rem' }}>
                     <div className="text-cap" style={{ marginBottom: '0.75rem' }}>Transaction Preview</div>
@@ -683,22 +716,69 @@ export default function RegisterPage() {
                     <TxRow label="Status">
                       <span className="badge badge-success">Confirmed</span>
                     </TxRow>
+                    {txResult.ipfsCid && (
+                      <TxRow label="Metadata (IPFS)">
+                        <a
+                          href={`https://gateway.pinata.cloud/ipfs/${txResult.ipfsCid}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="hash-tag"
+                          style={{ textDecoration: 'underline' }}
+                        >
+                          View on Pinata ↗
+                        </a>
+                      </TxRow>
+                    )}
+                    {txResult.mediaIpfsUrl && (
+                      <TxRow label="Media (IPFS)">
+                        <a
+                          href={txResult.mediaIpfsUrl.replace('ipfs://', 'https://gateway.pinata.cloud/ipfs/')}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="hash-tag"
+                          style={{ textDecoration: 'underline' }}
+                        >
+                          View on Pinata ↗
+                        </a>
+                      </TxRow>
+                    )}
+                    {txResult.mediaS3Url && (
+                      <TxRow label="Media (S3)">
+                        <a
+                          href={txResult.mediaS3Url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="hash-tag"
+                          style={{ textDecoration: 'underline' }}
+                        >
+                          View on AWS S3 ↗
+                        </a>
+                      </TxRow>
+                    )}
                   </div>
 
                   {/* Action buttons */}
-                  <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.25rem' }}>
-                    <a
-                      href={`${ARBITRUM_SEPOLIA.explorer}/tx/${txResult.hash}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="btn btn-outline btn-sm"
-                      style={{ flex: 1, textDecoration: 'none' }}
+                  <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.25rem', flexDirection: 'column' }}>
+                    <button 
+                      className="btn btn-primary btn-sm w-full" 
+                      onClick={() => downloadCertificate(txResult, address, CORE_BACKEND_API)}
                     >
-                      View on Arbiscan ↗
-                    </a>
-                    <button className="btn btn-primary btn-sm" style={{ flex: 1 }} onClick={resetFlow}>
-                      Register Another
+                      📄 Download PDF Certificate
                     </button>
+                    <div style={{ display: 'flex', gap: '0.75rem' }}>
+                      <a
+                        href={`${ARBITRUM_SEPOLIA.explorer}/tx/${txResult.hash}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn btn-outline btn-sm"
+                        style={{ flex: 1, textDecoration: 'none' }}
+                      >
+                        View on Arbiscan ↗
+                      </a>
+                      <button className="btn btn-outline btn-sm" style={{ flex: 1 }} onClick={resetFlow}>
+                        Register Another
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}

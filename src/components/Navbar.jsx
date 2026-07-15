@@ -125,57 +125,117 @@ function WalletButton() {
 
   // ── Automatically switch to Arbitrum Sepolia if connected to a different network ──
   useEffect(() => {
-    if (isConnected && chain && chain.id !== ARBITRUM_SEPOLIA.chainId) {
+    if (isConnected && (!chain || chain.id !== ARBITRUM_SEPOLIA.chainId)) {
       switchChain({ chainId: ARBITRUM_SEPOLIA.chainId })
     }
   }, [isConnected, chain, switchChain])
 
-  const connectWallet = async () => {
+  const [showDropdown, setShowDropdown] = useState(false)
+
+  const handleMainClick = () => {
     if (isConnected) {
       disconnect()
-      return
-    }
-
-    // Find MetaMask first (EIP-6963), then generic injected, then any first available connector
-    const connectorToUse = connectors.find((c) => c.id === 'io.metamask')
-      || connectors.find((c) => c.id === 'injected')
-      || connectors[0]
-
-    if (connectorToUse) {
-      connect({ connector: connectorToUse })
     } else {
-      alert('MetaMask or another Web3 wallet is not installed. Please install a wallet to use VeriTrace.')
+      setShowDropdown(!showDropdown)
     }
+  }
+
+  const handleConnect = (connector) => {
+    connect({ connector })
+    setShowDropdown(false)
   }
 
   /** Truncate address for display: 0x1234...abcd */
   const formatAddress = (addr) => `${addr.slice(0, 6)}...${addr.slice(-4)}`
 
   return (
-    <button
-      className={`btn btn-wallet ${isConnected ? 'connected' : ''}`}
-      onClick={connectWallet}
-    >
-      {isConnected && address ? (
-        <>
-          {/* User icon */}
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-            <circle cx="12" cy="7" r="4"/>
-          </svg>
-          {formatAddress(address)}
-        </>
-      ) : (
-        <>
-          {/* Wallet icon */}
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="2" y="6" width="20" height="14" rx="2"/>
-            <path d="M22 10H2"/>
-          </svg>
-          Connect Wallet
-        </>
+    <div style={{ position: 'relative' }}>
+      <button
+        className={`btn btn-wallet ${isConnected ? 'connected' : ''}`}
+        onClick={handleMainClick}
+      >
+        {isConnected && address ? (
+          <>
+            {/* User icon */}
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+            {formatAddress(address)}
+          </>
+        ) : (
+          <>
+            {/* Wallet icon */}
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="2" y="6" width="20" height="14" rx="2"/>
+              <path d="M22 10H2"/>
+            </svg>
+            Connect Wallet
+          </>
+        )}
+      </button>
+
+      {!isConnected && showDropdown && (
+        <div 
+          className="wallet-dropdown"
+          style={{
+            position: 'absolute',
+            top: 'calc(100% + 8px)',
+            right: 0,
+            background: 'var(--color-surface)',
+            border: '1px solid var(--color-border)',
+            borderRadius: 'var(--radius-md)',
+            padding: '8px',
+            boxShadow: 'var(--shadow-md)',
+            zIndex: 100,
+            minWidth: '200px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '4px'
+          }}
+        >
+          {connectors.map((connector) => (
+            <button
+              key={connector.uid}
+              onClick={() => handleConnect(connector)}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                padding: '10px 16px',
+                textAlign: 'left',
+                borderRadius: 'var(--radius-sm)',
+                cursor: 'pointer',
+                color: 'var(--color-text)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: '14px',
+                fontWeight: 500,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                transition: 'background 0.2s ease, color 0.2s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'var(--color-accent-bg)'
+                e.currentTarget.style.color = 'var(--color-accent)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'transparent'
+                e.currentTarget.style.color = 'var(--color-text)'
+              }}
+            >
+              {/* Optional dynamic icon for the wallet can be added here if available in connector.icon */}
+              {connector.icon && <img src={connector.icon} alt={connector.name} style={{ width: 20, height: 20 }} />}
+              {connector.name}
+            </button>
+          ))}
+          {connectors.length === 0 && (
+            <div style={{ padding: '8px', fontSize: '14px', color: 'var(--color-text-muted)', textAlign: 'center' }}>
+              No wallets found
+            </div>
+          )}
+        </div>
       )}
-    </button>
+    </div>
   )
 }
 
