@@ -161,11 +161,14 @@ button { cursor: pointer; font-family: inherit; }
 .marquee-track {
   display: flex;
   width: max-content;
-  gap: 4rem; /* Spacing between scrolling blocks */
-  animation: marquee-scroll 25s linear infinite;
+  gap: 2rem; /* Uniform gap between content groups */
+  animation: marquee-scroll 35s linear infinite;
 }
 .marquee-banner:hover .marquee-track { animation-play-state: paused; }
 .marquee-content {
+  display: flex;
+  align-items: center;
+  gap: 2rem; /* Uniform gap between messages and separators */
   white-space: nowrap;
   flex-shrink: 0;
 }
@@ -175,9 +178,13 @@ button { cursor: pointer; font-family: inherit; }
   text-underline-offset: 2px;
 }
 .marquee-content a:hover { color: #a7f3d0; }
+.marquee-separator {
+  color: #eab308;
+  font-size: 0.875rem;
+}
 @keyframes marquee-scroll {
   0%   { transform: translate3d(0, 0, 0); }
-  100% { transform: translate3d(calc(-50% - 2rem), 0, 0); } /* Offset half the track plus half the gap width */
+  100% { transform: translate3d(calc(-50% - 1rem), 0, 0); } /* Offset half the track minus half the gap */
 }
 
 /* ── Navbar ── */
