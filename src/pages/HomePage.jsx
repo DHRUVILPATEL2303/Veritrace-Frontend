@@ -73,15 +73,14 @@ export default function HomePage() {
        * ════════════════════════════════════════════════════════════ */}
       <section className="hero" style={{ position: 'relative', overflow: 'hidden' }}>
         {/* Floating background decorative logos (Layer 1.5) */}
-        <div className="floating-logo float-1" aria-hidden="true">
-          <LogoIcon size={120} />
-        </div>
-        <div className="floating-logo float-2" aria-hidden="true">
-          <LogoIcon size={80} />
-        </div>
-        <div className="floating-logo float-3" aria-hidden="true">
-          <LogoIcon size={160} />
-        </div>
+        <div className="floating-logo float-1" aria-hidden="true"><LogoIcon size={80} /></div>
+        <div className="floating-logo float-2" aria-hidden="true"><LogoIcon size={60} /></div>
+        <div className="floating-logo float-3" aria-hidden="true"><LogoIcon size={110} /></div>
+        <div className="floating-logo float-4" aria-hidden="true"><LogoIcon size={50} /></div>
+        <div className="floating-logo float-5" aria-hidden="true"><LogoIcon size={95} /></div>
+        <div className="floating-logo float-6" aria-hidden="true"><LogoIcon size={70} /></div>
+        <div className="floating-logo float-7" aria-hidden="true"><LogoIcon size={120} /></div>
+        <div className="floating-logo float-8" aria-hidden="true"><LogoIcon size={65} /></div>
         <div className="container">
           <div className="hero-content">
             <h1>Verify Content Authenticity on the Blockchain</h1>

@@ -73,6 +73,7 @@ export default function RegisterPage() {
 
   const [allowAiTraining, setAllowAiTraining] = useState(true)
   const [webhookUrl, setWebhookUrl] = useState('')
+  const [showAllKeyframes, setShowAllKeyframes] = useState(false)
 
   /**
    * handleFileSelected — Called when user picks a file.
@@ -148,6 +149,7 @@ export default function RegisterPage() {
         hashCount: data.keyframes ? data.keyframes.length : 0,
         assetId: `asset-${Date.now()}`,
         mediaType: data.media_type,
+        keyframes: data.keyframes || [],
       })
       setStep(2)
     } catch (err) {
@@ -257,7 +259,7 @@ export default function RegisterPage() {
         webhook_url: webhookUrl,
         parent_sha256: '',
         media_type: hashes.mediaType || 'image',
-        keyframes: [],
+        keyframes: hashes.keyframes || [],
       }
 
       const pinMetaRes = await fetch(`${CORE_BACKEND_API}/api/v1/pin`, {
@@ -327,7 +329,8 @@ export default function RegisterPage() {
           media_ipfs_url: mediaIpfsUrl,
           media_s3_url: mediaS3Url,
           media_type: hashes.mediaType || 'image',
-          ipfsCid: ipfsCid
+          ipfsCid: ipfsCid,
+          keyframes: hashes.keyframes || []
         }
         localStorage.setItem(cacheKey, JSON.stringify(cacheData))
       } catch (e) {
@@ -485,6 +488,44 @@ export default function RegisterPage() {
                         <span>{hashes.hashCount}</span>
                       </div>
                     </div>
+
+                    {/* Collapsible Keyframes Signatures List */}
+                    {hashes.keyframes && hashes.keyframes.length > 0 && (
+                      <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '0.75rem', marginTop: '0.5rem' }}>
+                        <div style={{ fontWeight: 600, color: 'var(--color-text-muted)', marginBottom: '0.375rem', fontSize: '0.8125rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span>Extracted Video Keyframes ({hashes.keyframes.length})</span>
+                          <button 
+                            type="button"
+                            className="btn btn-sm btn-secondary" 
+                            style={{ padding: '0.125rem 0.5rem', fontSize: '0.6875rem', height: 'auto', minHeight: 'unset' }}
+                            onClick={() => setShowAllKeyframes(!showAllKeyframes)}
+                          >
+                            {showAllKeyframes ? 'Show Less 🔼' : 'Show All 🔽'}
+                          </button>
+                        </div>
+                        <div style={{ 
+                          maxHeight: showAllKeyframes ? '180px' : '65px', 
+                          overflowY: 'auto', 
+                          background: 'var(--color-bg)', 
+                          padding: '0.5rem', 
+                          borderRadius: 'var(--radius-sm)',
+                          border: '1px solid var(--color-border)',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '0.25rem',
+                          fontFamily: 'var(--font-mono)',
+                          fontSize: '0.725rem',
+                          transition: 'max-height 0.2s ease-in-out'
+                        }}>
+                          {(showAllKeyframes ? hashes.keyframes : hashes.keyframes.slice(0, 2)).map((kf, i) => (
+                            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--color-text)' }}>
+                              <span>⏱️ Offset: {kf.offset}ms</span>
+                              <span style={{ color: 'var(--color-accent)' }}>🔑 pHash: {kf.phash}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </>
                 )}
               </div>
