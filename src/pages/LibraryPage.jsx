@@ -1,33 +1,22 @@
-/**
- * LibraryPage.jsx — Decentralized Content Registry Explorer
- * 
- * This page queries the smart contract's historical event logs directly 
- * from the Arbitrum Sepolia blockchain (using ethers.js queryFilter).
- * 
- * It extracts all `ContentRegistered` events emitted by the registry contract,
- * displaying an immutable, real-time list of all registered media assets, 
- * including their cryptographic hashes, visual perceptual hashes (pHash), 
- * owners, block timestamps, and AI model attributions.
- * 
- * Written for VeriTrace. Zero backend database dependencies.
- */
 import { useState, useEffect } from 'react'
-import HashDisplay from '../components/HashDisplay'
+import { motion } from 'framer-motion'
 import { getContractEvents } from '@wagmi/core'
 import { parseAbi } from 'viem'
 import { config } from '../wagmiConfig'
-import {
-  CONTRACT_ADDRESS,
-  CONTRACT_ABI,
-  ARBITRUM_SEPOLIA,
-} from '../config'
+import { Card, CardHeader, CardTitle, CardBody } from '../components/ui/card'
+import { Badge } from '../components/ui/badge'
+import { Button } from '../components/ui/button'
+import { Spinner } from '../components/ui/spinner'
+import { EmptyState } from '../components/ui/empty-state'
+import { Modal, ModalHeader } from '../components/ui/modal'
+import { Alert } from '../components/ui/alert'
+import { CONTRACT_ADDRESS, CONTRACT_ABI, ARBITRUM_SEPOLIA } from '../config'
+import { Library as LibraryIcon, Eye, ExternalLink, Download, Lock, Shield } from 'lucide-react'
 
 export default function LibraryPage() {
   const [registrations, setRegistrations] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-
-  // Layer 2 Modal variables with secure screenshot copy protection
   const [selectedAsset, setSelectedAsset] = useState(null)
   const [modalMediaUrl, setModalMediaUrl] = useState(null)
   const [modalMediaType, setModalMediaType] = useState('image')
@@ -35,14 +24,10 @@ export default function LibraryPage() {
 
   const getGatewayUrl = (url) => {
     if (!url) return null
-    if (url.startsWith('ipfs://')) {
-      const cid = url.replace('ipfs://', '')
-      return `https://gateway.pinata.cloud/ipfs/${cid}`
-    }
+    if (url.startsWith('ipfs://')) return `https://gateway.pinata.cloud/ipfs/${url.slice(7)}`
     if (url.includes('/ipfs/')) {
       const parts = url.split('/ipfs/')
-      const cid = parts[parts.length - 1]
-      return `https://gateway.pinata.cloud/ipfs/${cid}`
+      return `https://gateway.pinata.cloud/ipfs/${parts[parts.length - 1]}`
     }
     return url
   }
@@ -51,479 +36,250 @@ export default function LibraryPage() {
     setSelectedAsset(item)
     setModalMediaUrl(null)
     setModalMediaType('image')
-    
     const hashKey = (item.sha256 || '').toLowerCase()
-    
-    // 1. Try local cache first
+
     const cachedStr = localStorage.getItem(`vt_media_${hashKey}`)
     if (cachedStr) {
       try {
         const cached = JSON.parse(cachedStr)
         if (cached.media_ipfs_url || cached.media_s3_url) {
-          const resolved = getGatewayUrl(cached.media_s3_url || cached.media_ipfs_url)
-          setModalMediaUrl(resolved)
+          setModalMediaUrl(getGatewayUrl(cached.media_s3_url || cached.media_ipfs_url))
           setModalMediaType(cached.media_type || 'image')
           return
         }
-      } catch (e) {}
+      } catch {}
     }
 
-    // 2. Fetch from IPFS Gateway
     if (item.ipfsCid && !item.ipfsCid.startsWith('QmYourMetadataCid')) {
       setModalLoading(true)
       try {
         const controller = new AbortController()
-        const timeoutId = setTimeout(() => controller.abort(), 4000) // 4s timeout
-        
-        const res = await fetch(`https://gateway.pinata.cloud/ipfs/${item.ipfsCid}`, {
-          signal: controller.signal
-        })
+        const timeoutId = setTimeout(() => controller.abort(), 4000)
+        const res = await fetch(`https://gateway.pinata.cloud/ipfs/${item.ipfsCid}`, { signal: controller.signal })
         clearTimeout(timeoutId)
-        
         if (res.ok) {
           const meta = await res.json()
-          const resolved = getGatewayUrl(meta.media_s3_url || meta.media_ipfs_url)
-          setModalMediaUrl(resolved)
+          setModalMediaUrl(getGatewayUrl(meta.media_s3_url || meta.media_ipfs_url))
           setModalMediaType(meta.media_type || 'image')
-          
-          // Cache it for future loads
           try {
             localStorage.setItem(`vt_media_${hashKey}`, JSON.stringify({
-              sha256: item.sha256,
-              media_ipfs_url: meta.media_ipfs_url,
-              media_s3_url: meta.media_s3_url,
-              media_type: meta.media_type || 'image',
-              ipfsCid: item.ipfsCid
+              sha256: item.sha256, media_ipfs_url: meta.media_ipfs_url, media_s3_url: meta.media_s3_url,
+              media_type: meta.media_type || 'image', ipfsCid: item.ipfsCid,
             }))
-          } catch (e) {}
-        } else {
-          // Try fallback public gateway
-          const fallbackRes = await fetch(`https://ipfs.io/ipfs/${item.ipfsCid}`)
-          if (fallbackRes.ok) {
-            const meta = await fallbackRes.json()
-            const resolved = getGatewayUrl(meta.media_s3_url || meta.media_ipfs_url)
-            setModalMediaUrl(resolved)
-            setModalMediaType(meta.media_type || 'image')
-          }
+          } catch {}
         }
       } catch (err) {
-        console.warn("Failed to fetch asset media from IPFS gateway:", err.message)
+        console.warn('Failed to fetch asset:', err.message)
       } finally {
         setModalLoading(false)
       }
     }
   }
 
-  // Fetch all registrations from the blockchain logs on mount
   useEffect(() => {
     const fetchEventLogs = async () => {
       try {
-        setLoading(true)
-        setError(null)
-
-        // 1. Query all historical "ContentRegistered" events
+        setLoading(true); setError(null)
         const events = await getContractEvents(config, {
-          address: CONTRACT_ADDRESS,
-          abi: parseAbi(CONTRACT_ABI),
-          eventName: 'ContentRegistered',
-          fromBlock: 0n,
-          toBlock: 'latest',
+          address: CONTRACT_ADDRESS, abi: parseAbi(CONTRACT_ABI),
+          eventName: 'ContentRegistered', fromBlock: 0n, toBlock: 'latest',
         })
-
-        // 2. Map events to user-friendly registration entries
         const parsedLogs = events.map(event => {
           const args = event.args || {}
           return {
-            sha256: args.sha256hash,
-            creator: args.creator,
-            phash: args.phash?.toString() || '0',
-            timestamp: Number(args.timestamp || 0n),
-            ipfsCid: args.ipfsCid || '',
-            aiTool: args.aitool || '',
-            txHash: event.transactionHash,
-            blockNumber: Number(event.blockNumber),
+            sha256: args.sha256hash, creator: args.creator,
+            phash: args.phash?.toString() || '0', timestamp: Number(args.timestamp || 0n),
+            ipfsCid: args.ipfsCid || '', aiTool: args.aitool || '',
+            txHash: event.transactionHash, blockNumber: Number(event.blockNumber),
           }
         })
-
-        // Sort descending (newest registrations first)
         setRegistrations(parsedLogs.reverse())
       } catch (err) {
-        console.error('Failed to query contract logs:', err)
         setError(`Failed to read on-chain registry: ${err.message}`)
       } finally {
         setLoading(false)
       }
     }
-
     fetchEventLogs()
   }, [])
 
-  /** Truncate address for safe display: 0x1234...abcd */
   const formatAddress = (addr) => `${addr.slice(0, 6)}...${addr.slice(-4)}`
 
   return (
-    <section className="container" style={{ paddingTop: '1.5rem' }}>
-      {/* Page Title */}
-      <div className="page-title">
-        <h1>On-Chain Asset Library</h1>
-        <div className="page-title-sub">
-          Immutable history of all registered media assets parsed directly from Arbitrum Sepolia logs
-        </div>
+    <section className="max-w-[1280px] mx-auto px-5 pt-6">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold mb-1">On-Chain Asset Library</h1>
+        <p className="text-sm text-[var(--color-text-muted)]">Immutable history of all registered media assets parsed directly from Arbitrum Sepolia logs</p>
       </div>
 
-      {/* Error Banner */}
-      {error && (
-        <div className="alert-box danger" style={{ marginBottom: '1.5rem' }}>
-          <span>⚠️</span>
-          <div>{error}</div>
-        </div>
-      )}
+      {error && <div className="mb-5"><Alert variant="danger">{error}</Alert></div>}
 
-      {/* ── Main content block ── */}
-      <div className="card">
-        <div className="card-header">
-          <h2 className="card-header-title">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '0.5rem' }}>
-              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-              <line x1="9" y1="3" x2="9" y2="21"/>
-            </svg>
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            <LibraryIcon size={16} className="text-blue-400" />
             Registered Assets ({registrations.length})
-          </h2>
-        </div>
+          </CardTitle>
+        </CardHeader>
 
-        {/* ── Loading State ── */}
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '3rem 0' }}>
-            <div className="spinner" />
-            <div style={{ fontWeight: 600, marginTop: '1rem' }}>Reading blockchain event log...</div>
-            <div style={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)', marginTop: '0.25rem' }}>
-              Connecting to RPC node and querying Arbitrum Sepolia contract filters
-            </div>
+          <div className="text-center py-12">
+            <Spinner size={40} />
+            <div className="font-semibold mt-3 text-sm">Reading blockchain event log...</div>
+            <div className="text-xs text-[var(--color-text-muted)] mt-1">Querying Arbitrum Sepolia contract filters</div>
           </div>
         ) : registrations.length === 0 ? (
-          /* ── Empty State ── */
-          <div className="empty-state">
-            <div className="empty-state-icon">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                <line x1="9" y1="3" x2="9" y2="21"/>
-              </svg>
-            </div>
-            <div className="empty-state-title">No assets registered yet</div>
-            <div className="empty-state-text">
-              Go to the Register tab to write the first cryptographic fingerprint to the contract!
-            </div>
-          </div>
+          <EmptyState
+            icon={<LibraryIcon size={28} />}
+            title="No assets registered yet"
+            description="Go to the Register tab to write the first cryptographic fingerprint to the contract!"
+          />
         ) : (
-          /* ── Data Table ── */
-          <div className="table-responsive">
-            <table className="data-table">
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
               <thead>
-                <tr>
-                  <th>Cryptographic SHA-256</th>
-                  <th>Visual pHash (Decimal)</th>
-                  <th>Registrant Owner</th>
-                  <th>AI Model</th>
-                  <th>Date Anchored</th>
-                  <th style={{ textAlign: 'right' }}>Actions</th>
+                <tr className="border-b border-[var(--color-border)]">
+                  {['Cryptographic SHA-256', 'Visual pHash', 'Registrant Owner', 'AI Model', 'Date Anchored', 'Actions'].map((h, i) => (
+                    <th key={h} className={`px-5 py-3 text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-muted)] bg-[var(--color-base-50)] text-left ${i === 5 ? 'text-right' : ''}`}>
+                      {h}
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
                 {registrations.map((item, idx) => (
-                  <tr key={idx} className="animate-fade-in" style={{ animationDelay: `${idx * 40}ms` }}>
-                    {/* SHA-256 hex display */}
-                    <td>
-                      <span className="hash-tag" title={item.sha256}>
-                        {item.sha256.slice(0, 10)}...{item.sha256.slice(-8)}
+                  <motion.tr
+                    key={idx}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: idx * 0.03 }}
+                    className="border-b border-[var(--color-border)] hover:bg-[var(--color-surface-hover)] transition-colors"
+                  >
+                    <td className="px-5 py-3">
+                      <span className="font-mono text-xs text-blue-400" title={item.sha256}>
+                        {item.sha256?.slice(0, 10)}...{item.sha256?.slice(-8)}
                       </span>
                     </td>
-                    
-                    {/* Visual pHash */}
-                    <td>
-                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--color-text)' }}>
-                        {item.phash !== '0' ? item.phash : <span className="text-muted" style={{ fontStyle: 'italic' }}>None</span>}
+                    <td className="px-5 py-3">
+                      <span className="font-mono text-xs text-[var(--color-text)]">
+                        {item.phash !== '0' ? item.phash : <span className="text-[var(--color-text-muted)] italic">None</span>}
                       </span>
                     </td>
-                    
-                    {/* Registrant Address */}
-                    <td>
-                      <a
-                        href={`${ARBITRUM_SEPOLIA.explorer}/address/${item.creator}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="address-tag"
-                      >
+                    <td className="px-5 py-3">
+                      <a href={`${ARBITRUM_SEPOLIA.explorer}/address/${item.creator}`} target="_blank" rel="noopener noreferrer" className="font-mono text-xs text-blue-400 hover:text-blue-300">
                         {formatAddress(item.creator)}
                       </a>
                     </td>
- 
-                    {/* AI Tool */}
-                    <td>
-                      {item.aiTool ? (
-                        <span className="badge badge-info">{item.aiTool}</span>
-                      ) : (
-                        <span className="badge badge-success">Authentic</span>
-                      )}
+                    <td className="px-5 py-3">
+                      {item.aiTool ? <Badge variant="info">{item.aiTool}</Badge> : <Badge variant="success">Authentic</Badge>}
                     </td>
- 
-                    {/* Block Timestamp */}
-                    <td>
-                      <span style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)' }}>
-                        {new Date(item.timestamp * 1000).toLocaleString()}
-                      </span>
+                    <td className="px-5 py-3">
+                      <span className="text-xs text-[var(--color-text-secondary)]">{new Date(item.timestamp * 1000).toLocaleString()}</span>
                     </td>
- 
-                    {/* Actions Column */}
-                    <td>
-                      <div style={{ display: 'flex', gap: '0.375rem', justifyContent: 'flex-end', alignItems: 'center' }}>
-                        <button
-                          onClick={() => handleOpenAsset(item)}
-                          className="btn btn-sm btn-primary"
-                          style={{ padding: '0.2rem 0.5rem', fontSize: '0.6875rem' }}
-                        >
-                          View Asset 👁️
-                        </button>
-                        <a
-                          href={`${ARBITRUM_SEPOLIA.explorer}/tx/${item.txHash}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="btn btn-sm btn-outline"
-                          style={{ padding: '0.2rem 0.5rem', fontSize: '0.6875rem' }}
-                        >
-                          View Tx ↗
+                    <td className="px-5 py-3">
+                      <div className="flex gap-1.5 justify-end items-center">
+                        <Button variant="primary" size="sm" onClick={() => handleOpenAsset(item)} className="!px-2 !py-1 !text-[11px]">
+                          <Eye size={12} /> View
+                        </Button>
+                        <a href={`${ARBITRUM_SEPOLIA.explorer}/tx/${item.txHash}`} target="_blank" rel="noopener noreferrer">
+                          <Button variant="outline" size="sm" className="!px-2 !py-1 !text-[11px]"><ExternalLink size={12} /></Button>
                         </a>
                       </div>
                     </td>
-                  </tr>
+                  </motion.tr>
                 ))}
               </tbody>
             </table>
           </div>
         )}
-      </div>
+      </Card>
 
-      {/* ── Layer 2 Detail Modal (Asset Viewer with Screenshot Protection) ── */}
-      {selectedAsset && (
-        <div className="modal-overlay" onClick={() => setSelectedAsset(null)} style={{
-          position: 'fixed',
-          inset: 0,
-          background: 'rgba(0, 0, 0, 0.75)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000,
-          padding: '1.5rem',
-          backdropFilter: 'blur(4px)'
-        }}>
-          <div className="modal-card card animate-scale-in" onClick={(e) => e.stopPropagation()} style={{
-            width: '100%',
-            maxWidth: '650px',
-            background: 'var(--color-surface)',
-            border: '1px solid var(--color-border)',
-            borderRadius: 'var(--radius-lg)',
-            boxShadow: 'var(--shadow-lg)',
-            overflow: 'hidden'
-          }}>
-            <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h2 className="card-header-title" style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
-                <span>🛡️</span> Registered Asset Details
-              </h2>
-              <button 
-                className="btn btn-sm btn-outline" 
-                onClick={() => setSelectedAsset(null)}
-                style={{ padding: '0.25rem 0.5rem' }}
-              >
-                ✕ Close
-              </button>
-            </div>
-            
-            <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-              {/* Media Preview Box with Screenshot/Stealing Protection */}
-              <div 
-                style={{
-                  position: 'relative',
-                  width: '100%',
-                  height: '320px',
-                  background: '#0d0d0d',
-                  borderRadius: 'var(--radius-md)',
-                  overflow: 'hidden',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  border: '1px solid var(--color-border)'
-                }}
-                onContextMenu={(e) => e.preventDefault()} // Disable Right-Click
-              >
+      <Modal open={!!selectedAsset} onClose={() => setSelectedAsset(null)} maxWidth="max-w-2xl">
+        {selectedAsset && (
+          <>
+            <ModalHeader title="Registered Asset Details" onClose={() => setSelectedAsset(null)} icon={<Shield size={18} className="text-emerald-400" />} />
+            <div className="p-5 flex flex-col gap-4">
+              <div className="relative w-full h-72 bg-black/40 rounded-xl overflow-hidden flex items-center justify-center border border-[var(--color-border)]" onContextMenu={(e) => e.preventDefault()}>
                 {modalLoading ? (
-                  <div style={{ textAlign: 'center', color: 'white' }}>
-                    <div className="spinner" style={{ borderTopColor: 'white' }} />
-                    <div style={{ marginTop: '1rem', fontSize: '0.8125rem' }}>Retrieving protected media from IPFS...</div>
-                  </div>
+                  <div className="text-center"><Spinner /><div className="text-xs text-[var(--color-text-muted)] mt-2">Retrieving media from IPFS...</div></div>
                 ) : modalMediaUrl ? (
                   <>
-                    {/* The Media Element */}
                     {modalMediaType === 'video' ? (
-                      <video 
-                        src={modalMediaUrl} 
-                        controls
-                        controlsList="nodownload" // Disable downloading
-                        style={{ maxWidth: '100%', maxHeight: '100%', userSelect: 'none', pointerEvents: 'none' }}
-                        className="copy-protected-media"
-                      />
+                      <video src={modalMediaUrl} controls controlsList="nodownload" className="max-w-full max-h-full pointer-events-none select-none" />
                     ) : (
-                      <img 
-                        src={modalMediaUrl} 
-                        alt="Protected Registry Asset"
-                        style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', userSelect: 'none', pointerEvents: 'none' }}
-                        className="copy-protected-media"
-                      />
+                      <img src={modalMediaUrl} alt="Asset" className="max-w-full max-h-full object-contain pointer-events-none select-none" />
                     )}
-                    
-                    {/* Copy Protection Layer: Watermarks & Stripes */}
-                    <div className="watermark-overlay" style={{
-                      position: 'absolute',
-                      inset: 0,
-                      pointerEvents: 'none',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      background: 'repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.02) 15px, rgba(0, 0, 0, 0.15) 15px, rgba(0, 0, 0, 0.15) 30px)'
-                    }}>
-                      <div style={{
-                        transform: 'rotate(-25deg)',
-                        fontSize: '1.125rem',
-                        fontWeight: '900',
-                        color: 'rgba(255, 255, 255, 0.18)',
-                        textAlign: 'center',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.15em',
-                        userSelect: 'none',
-                        lineHeight: '1.8'
-                      }}>
-                        VERITRACE REGISTERED<br />
-                        COPY PROTECTED<br />
-                        <span style={{ fontSize: '0.625rem', fontFamily: 'var(--font-mono)' }}>
-                          OWNER: {selectedAsset.creator.slice(0, 16)}...{selectedAsset.creator.slice(-6)}
-                        </span>
-                      </div>
+                    <div className="absolute inset-0 pointer-events-none flex items-center justify-center" style={{ background: 'repeating-linear-gradient(45deg, rgba(255,255,255,0.02), rgba(255,255,255,0.02) 15px, rgba(0,0,0,0.15) 15px, rgba(0,0,0,0.15) 30px)' }}>
+                      <span className="rotate-[-25deg] text-sm font-extrabold uppercase tracking-widest text-white/15 select-none text-center leading-relaxed">
+                        VERITRACE REGISTERED<br />COPY PROTECTED<br />
+                        <span className="text-[10px] font-mono">OWNER: {selectedAsset.creator.slice(0, 16)}...{selectedAsset.creator.slice(-6)}</span>
+                      </span>
                     </div>
                   </>
                 ) : (
-                  <div style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: '2rem', width: '100%' }}>
-                    <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🔒</div>
-                    <div style={{ fontWeight: 600, fontSize: '0.875rem', color: 'white' }}>Protected Registry Node</div>
-                    <div style={{ fontSize: '0.75rem', marginTop: '0.25rem', color: 'var(--color-text-muted)', marginBottom: '1.25rem' }}>
-                      {selectedAsset.ipfsCid ? "Media not resolved from IPFS." : "Legacy registration: File was not pinned to storage."}
+                  <div className="text-center p-4 flex flex-col items-center">
+                    <Lock size={28} className="text-[var(--color-text-muted)] mb-1" />
+                    <div className="text-xs font-semibold text-white">Protected Registry Node</div>
+                    <div className="text-[11px] text-[var(--color-text-muted)] mt-1 mb-3 max-w-[240px]">
+                      {selectedAsset.ipfsCid ? 'Media not resolved from IPFS.' : 'Legacy registration: File was not pinned to storage.'}
                     </div>
-                    <div>
-                      <label 
-                        className="btn btn-secondary btn-sm" 
-                        style={{ cursor: 'pointer', padding: '0.375rem 0.75rem', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
-                      >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                          <polyline points="17 8 12 3 7 8"/>
-                          <line x1="12" y1="3" x2="12" y2="15"/>
-                        </svg>
-                        Select local file to view securely
-                        <input 
-                          type="file" 
-                          style={{ display: 'none' }} 
-                          onChange={(e) => {
-                            const file = e.target.files[0]
-                            if (file) {
-                              const localUrl = URL.createObjectURL(file)
-                              setModalMediaUrl(localUrl)
-                              setModalMediaType(file.type.startsWith('video/') ? 'video' : 'image')
-                            }
-                          }}
-                        />
-                      </label>
-                    </div>
+                    <label className="cursor-pointer">
+                      <Button variant="outline" size="sm" as="span">Select local file to view</Button>
+                      <input type="file" className="hidden" onChange={(e) => {
+                        const file = e.target.files[0]
+                        if (file) {
+                          setModalMediaUrl(URL.createObjectURL(file))
+                          setModalMediaType(file.type.startsWith('video/') ? 'video' : 'image')
+                        }
+                      }} />
+                    </label>
                   </div>
                 )}
               </div>
-              
-              {/* Asset Metadatas */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem', fontSize: '0.8125rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.375rem' }}>
-                  <span style={{ color: 'var(--color-text-muted)' }}>Cryptographic SHA-256</span>
-                  <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600 }}>{selectedAsset.sha256}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.375rem' }}>
-                  <span style={{ color: 'var(--color-text-muted)' }}>Visual Perceptual Hash (pHash)</span>
-                  <span style={{ fontFamily: 'var(--font-mono)' }}>{selectedAsset.phash !== '0' ? selectedAsset.phash : 'None'}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.375rem' }}>
-                  <span style={{ color: 'var(--color-text-muted)' }}>Anchored Date</span>
-                  <span>{new Date(selectedAsset.timestamp * 1000).toLocaleString()}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.375rem' }}>
-                  <span style={{ color: 'var(--color-text-muted)' }}>Attributed AI Model</span>
-                  <span>
-                    {selectedAsset.aiTool ? (
-                      <span className="badge badge-info">{selectedAsset.aiTool}</span>
-                    ) : (
-                      <span className="badge badge-success">Authentic Content</span>
-                    )}
-                  </span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--color-text-muted)' }}>Registrant Address</span>
-                  <a
-                    href={`${ARBITRUM_SEPOLIA.explorer}/address/${selectedAsset.creator}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="address-tag"
-                  >
-                    {selectedAsset.creator}
-                  </a>
-                </div>
+
+              <div className="flex flex-col gap-2 text-xs">
+                <DataRow label="Cryptographic SHA-256" value={selectedAsset.sha256} mono />
+                <DataRow label="Visual Perceptual Hash" value={selectedAsset.phash !== '0' ? selectedAsset.phash : 'None'} mono />
+                <DataRow label="Anchored Date" value={new Date(selectedAsset.timestamp * 1000).toLocaleString()} />
+                <DataRow label="AI Model" value={selectedAsset.aiTool || 'Authentic Content'} />
+                <DataRow label="Registrant Address">
+                  <a href={`${ARBITRUM_SEPOLIA.explorer}/address/${selectedAsset.creator}`} target="_blank" rel="noopener noreferrer" className="font-mono text-blue-400 hover:text-blue-300">{selectedAsset.creator}</a>
+                </DataRow>
               </div>
             </div>
-            
-            <div className="card-footer" style={{ justifyContent: 'space-between', gap: '1rem', background: 'var(--color-bg)' }}>
-              <a
-                href={`${ARBITRUM_SEPOLIA.explorer}/tx/${selectedAsset.txHash}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn btn-sm btn-primary"
-                style={{ flex: 1, textAlign: 'center' }}
-              >
-                Inspect On Arbiscan Explorer ↗
+            <div className="px-5 py-3 border-t border-[var(--color-border)] bg-[var(--color-base-50)] flex gap-3">
+              <a href={`${ARBITRUM_SEPOLIA.explorer}/tx/${selectedAsset.txHash}`} target="_blank" rel="noopener noreferrer" className="flex-1">
+                <Button variant="primary" size="sm" className="w-full"><ExternalLink size={14} /> Arbiscan</Button>
               </a>
               {selectedAsset.ipfsCid && (
-                <button
-                  className="btn btn-sm btn-outline"
-                  onClick={() => {
-                    const certData = {
-                      title: "VeriTrace Registration Certificate",
-                      sha256: selectedAsset.sha256,
-                      phash: selectedAsset.phash,
-                      owner: selectedAsset.creator,
-                      anchoredAt: new Date(selectedAsset.timestamp * 1000).toISOString(),
-                      aiModel: selectedAsset.aiTool || "None (Authentic Content)",
-                      ipfsMetadataUrl: `https://ipfs.io/ipfs/${selectedAsset.ipfsCid}`
-                    }
-                    const blob = new Blob([JSON.stringify(certData, null, 2)], { type: 'application/json' })
-                    const url = URL.createObjectURL(blob)
-                    const a = document.createElement('a')
-                    a.href = url
-                    a.download = `veritrace-cert-${selectedAsset.sha256.slice(2, 10)}.json`
-                    document.body.appendChild(a)
-                    a.click()
-                    document.body.removeChild(a)
-                    URL.revokeObjectURL(url)
-                  }}
-                  style={{ flex: 1 }}
-                >
-                  Download Certificate 📜
-                </button>
+                <Button variant="outline" size="sm" className="flex-1" onClick={() => {
+                  const certData = {
+                    title: 'VeriTrace Registration Certificate', sha256: selectedAsset.sha256, phash: selectedAsset.phash,
+                    owner: selectedAsset.creator, anchoredAt: new Date(selectedAsset.timestamp * 1000).toISOString(),
+                    aiModel: selectedAsset.aiTool || 'None', ipfsMetadataUrl: `https://ipfs.io/ipfs/${selectedAsset.ipfsCid}`,
+                  }
+                  const blob = new Blob([JSON.stringify(certData, null, 2)], { type: 'application/json' })
+                  const url = URL.createObjectURL(blob)
+                  const a = document.createElement('a')
+                  a.href = url; a.download = `veritrace-cert-${selectedAsset.sha256?.slice(2, 10)}.json`
+                  document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url)
+                }}>
+                  <Download size={14} /> Certificate
+                </Button>
               )}
             </div>
-          </div>
-        </div>
-      )}
+          </>
+        )}
+      </Modal>
     </section>
+  )
+}
+
+function DataRow({ label, value, mono, children }) {
+  return (
+    <div className="flex justify-between items-center border-b border-[var(--color-border)] pb-1.5">
+      <span className="text-[var(--color-text-muted)]">{label}</span>
+      {children || <span className={mono ? 'font-mono font-semibold' : ''}>{value}</span>}
+    </div>
   )
 }

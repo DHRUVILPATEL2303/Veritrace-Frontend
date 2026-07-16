@@ -1,9 +1,3 @@
-/**
- * App.jsx — Root application shell
- * 
- * Renders the persistent layout (Topbar, Navbar, Footer) and
- * switches page content via react-router-dom Routes.
- */
 import { Routes, Route, Navigate } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import Topbar from './components/Topbar'
@@ -17,14 +11,9 @@ import AboutPage from './pages/AboutPage'
 function App() {
   return (
     <>
-      {/* Network status bar + faucet marquee */}
       <Topbar />
-
-      {/* Sticky navigation with wallet connect */}
       <Navbar />
-
-      {/* Page content — swapped by the router */}
-      <main className="main-content">
+      <main className="min-h-[calc(100vh-200px)] pb-8">
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/register" element={<RegisterPage />} />
@@ -34,8 +23,6 @@ function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
-
-      {/* Site footer */}
       <Footer />
     </>
   )

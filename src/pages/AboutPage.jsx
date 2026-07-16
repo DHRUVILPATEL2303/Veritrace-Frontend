@@ -1,385 +1,209 @@
-/**
- * AboutPage.jsx — How VeriTrace Works
- *
- * Detailed guide covering:
- *  - How to register content
- *  - How to verify content
- *  - Hash types: SHA-256, pHash, semantic, face, audio
- *  - System architecture overview
- *  - FAQ
- */
 import { Link } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import { LogoIcon } from '../components/Navbar'
-
-// ─── Data ────────────────────────────────────────────────────────────────────
+import { Button } from '../components/ui/button'
+import { Card, CardBody } from '../components/ui/card'
+import { Badge } from '../components/ui/badge'
+import {
+  FilePlus, Search, Fingerprint, Shield, Database, Server, Cpu, Bot,
+  ArrowRight, ChevronDown, Upload, Pin, Check, Layers, Zap, Eye, AlertTriangle
+} from 'lucide-react'
 
 const REGISTER_STEPS = [
-  {
-    num: '01',
-    title: 'Upload Your File',
-    desc: 'Drag and drop or select any image, video, or document on the Register page. The file is sent to the Hash Engine API.',
-    color: '#6366f1',
-  },
-  {
-    num: '02',
-    title: 'Fingerprint Extraction',
-    desc: 'The Hash Engine computes a SHA-256 cryptographic hash, a 64-bit perceptual hash (pHash), semantic embeddings, ArcFace biometrics, and wav2vec2 audio vectors.',
-    color: '#8b5cf6',
-  },
-  {
-    num: '03',
-    title: 'Pin to IPFS & S3',
-    desc: 'Your media file is pinned to IPFS via Pinata and backed up to S3. A metadata JSON containing all fingerprints is also pinned, giving you a permanent ipfsCid.',
-    color: '#0ea5e9',
-  },
-  {
-    num: '04',
-    title: 'Sign Blockchain Transaction',
-    desc: 'Connect MetaMask on Arbitrum Sepolia and call registerContent(sha256, phash, ipfsCid, aiTool) on the VeriTrace Registry smart contract.',
-    color: '#10b981',
-  },
-  {
-    num: '05',
-    title: 'Indexed & Protected',
-    desc: 'The Go backend\'s EVM listener picks up the ContentRegistered event and indexes your asset in PostgreSQL, Redis, and Qdrant — ready for instant verification.',
-    color: '#f59e0b',
-  },
+  { num: '01', title: 'Upload Your File', desc: 'Drag and drop or select any image, video, or document on the Register page. The file is sent to the Hash Engine API.', icon: Upload, color: 'text-blue-400' },
+  { num: '02', title: 'Fingerprint Extraction', desc: 'The Hash Engine computes a SHA-256 cryptographic hash, a 64-bit perceptual hash (pHash), semantic embeddings, ArcFace biometrics, and wav2vec2 audio vectors.', icon: Fingerprint, color: 'text-cyan-400' },
+  { num: '03', title: 'Pin to IPFS & S3', desc: 'Your media file is pinned to IPFS via Pinata and backed up to S3. A metadata JSON containing all fingerprints is also pinned, giving you a permanent ipfsCid.', icon: Pin, color: 'text-purple-400' },
+  { num: '04', title: 'Sign Blockchain Transaction', desc: 'Connect MetaMask on Arbitrum Sepolia and call registerContent(sha256, phash, ipfsCid, aiTool) on the VeriTrace Registry smart contract.', icon: Shield, color: 'text-emerald-400' },
+  { num: '05', title: 'Indexed & Protected', desc: "The Go backend's EVM listener picks up the ContentRegistered event and indexes your asset in PostgreSQL, Redis, and Qdrant — ready for instant verification.", icon: Database, color: 'text-amber-400' },
 ]
 
 const VERIFY_STEPS = [
-  {
-    num: '01',
-    title: 'Upload Suspect File',
-    desc: 'Go to the Verify page and drop in any file you want to check — whether it\'s an original, copy, or modified version.',
-    color: '#6366f1',
-  },
-  {
-    num: '02',
-    title: 'Exact Match Check',
-    desc: 'The SHA-256 hash is compared against the registry. A hit means a 100% exact match — the file is byte-for-byte identical to a registered original.',
-    color: '#0ea5e9',
-  },
-  {
-    num: '03',
-    title: 'Fuzzy / Segment Match',
-    desc: 'If exact match fails, pHash Hamming distance search runs via Qdrant KNN. For videos, every keyframe is individually compared using Manhattan (L1) distance.',
-    color: '#8b5cf6',
-  },
-  {
-    num: '04',
-    title: 'Deepfake Detection',
-    desc: 'Face embeddings (ArcFace) and audio vectors (wav2vec2) are matched even when visual similarity is low — catching AI-generated deepfakes and voice clones.',
-    color: '#ef4444',
-  },
-  {
-    num: '05',
-    title: 'Result & Certificate',
-    desc: 'View Exact Match, Derivative Match (with similarity %), or Unregistered. Download a signed JSON verification certificate for legal proof.',
-    color: '#10b981',
-  },
+  { num: '01', title: 'Upload Suspect File', desc: "Go to the Verify page and drop in any file you want to check — whether it's an original, copy, or modified version.", icon: Upload, color: 'text-blue-400' },
+  { num: '02', title: 'Exact Match Check', desc: 'The SHA-256 hash is compared against the registry. A hit means a 100% exact match — the file is byte-for-byte identical to a registered original.', icon: Check, color: 'text-cyan-400' },
+  { num: '03', title: 'Fuzzy / Segment Match', desc: 'If exact match fails, pHash Hamming distance search runs via Qdrant KNN. For videos, every keyframe is individually compared using Manhattan (L1) distance.', icon: Search, color: 'text-purple-400' },
+  { num: '04', title: 'Deepfake Detection', desc: 'Face embeddings (ArcFace) and audio vectors (wav2vec2) are matched even when visual similarity is low — catching AI-generated deepfakes and voice clones.', icon: AlertTriangle, color: 'text-red-400' },
+  { num: '05', title: 'Result & Certificate', desc: 'View Exact Match, Derivative Match (with similarity %), or Unregistered. Download a signed JSON verification certificate for legal proof.', icon: FilePlus, color: 'text-emerald-400' },
 ]
 
 const HASH_TYPES = [
-  {
-    tag: 'SHA-256',
-    color: '#6366f1',
-    bg: 'rgba(99,102,241,0.12)',
-    title: 'Cryptographic Hash',
-    desc: 'A deterministic 256-bit fingerprint of the raw file bytes. Any single changed byte produces a completely different hash. Used for exact-match detection.',
-    use: 'Exact match • Duplicate detection • Blockchain registration',
-  },
-  {
-    tag: 'pHash',
-    color: '#0ea5e9',
-    bg: 'rgba(14,165,233,0.12)',
-    title: 'Perceptual Hash',
-    desc: 'A 64-bit integer derived from the visual structure of an image or video frame (DCT-based). Similar images produce hashes with low Hamming distance.',
-    use: 'Fuzzy image matching • Video keyframe comparison • Compression-resistant',
-  },
-  {
-    tag: 'SEM',
-    color: '#7c3aed',
-    bg: 'rgba(124,58,237,0.12)',
-    title: 'Semantic Embedding',
-    desc: 'A high-dimensional float vector encoding the semantic meaning of visual content, generated by a vision transformer model. Resists cropping, color shifts, and style transfers.',
-    use: 'Semantic similarity • Style-transfer detection • Cross-modal search',
-  },
-  {
-    tag: 'FACE',
-    color: '#059669',
-    bg: 'rgba(5,150,105,0.12)',
-    title: 'ArcFace Biometric',
-    desc: 'A 512-dimensional face identity embedding produced by the ArcFace model. Matches faces across lighting, age, pose, and cosmetic changes.',
-    use: 'Deepfake detection • Face swap detection • Identity verification',
-  },
-  {
-    tag: 'AUD',
-    color: '#ea580c',
-    bg: 'rgba(234,88,12,0.12)',
-    title: 'wav2vec2 Voice Print',
-    desc: 'A 768-dimensional biometric vector of vocal frequencies and speech patterns from Facebook\'s wav2vec2-base model. Unique to each speaker.',
-    use: 'Audio deepfake detection • Voice clone detection • Speaker verification',
-  },
+  { tag: 'SHA-256', color: 'text-blue-400', bg: 'bg-blue-500/10', title: 'Cryptographic Hash', desc: 'A deterministic 256-bit fingerprint of the raw file bytes. Any single changed byte produces a completely different hash. Used for exact-match detection.', use: 'Exact match • Duplicate detection • Blockchain registration' },
+  { tag: 'pHash', color: 'text-cyan-400', bg: 'bg-cyan-400/10', title: 'Perceptual Hash', desc: 'A 64-bit integer derived from the visual structure of an image or video frame (DCT-based). Similar images produce hashes with low Hamming distance.', use: 'Fuzzy image matching • Video keyframe comparison • Compression-resistant' },
+  { tag: 'SEM', color: 'text-purple-400', bg: 'bg-purple-400/10', title: 'Semantic Embedding', desc: 'A high-dimensional float vector encoding the semantic meaning of visual content, generated by a vision transformer model. Resists cropping, color shifts, and style transfers.', use: 'Semantic similarity • Style-transfer detection • Cross-modal search' },
+  { tag: 'FACE', color: 'text-emerald-400', bg: 'bg-emerald-400/10', title: 'ArcFace Biometric', desc: 'A 512-dimensional face identity embedding produced by the ArcFace model. Matches faces across lighting, age, pose, and cosmetic changes.', use: 'Deepfake detection • Face swap detection • Identity verification' },
+  { tag: 'AUD', color: 'text-orange-400', bg: 'bg-orange-400/10', title: 'wav2vec2 Voice Print', desc: "A 768-dimensional biometric vector of vocal frequencies and speech patterns from Facebook's wav2vec2-base model. Unique to each speaker.", use: 'Audio deepfake detection • Voice clone detection • Speaker verification' },
 ]
 
 const FAQ = [
-  {
-    q: 'Does VeriTrace store my original file?',
-    a: 'Yes — your file is pinned to IPFS (permanent, content-addressed) and backed up to S3. Only the fingerprint hashes are written on-chain; the file itself lives off-chain.',
-  },
-  {
-    q: 'What blockchain does VeriTrace use?',
-    a: 'Arbitrum Sepolia (testnet). The registry smart contract is deployed at 0x468edc5b2fe9d1c919f2377cbe0ccb16f32ead29 and uses the Stylus VM for gas efficiency.',
-  },
-  {
-    q: 'Can I detect AI-generated content?',
-    a: 'Yes. The hash engine computes an AI confidence score. If it exceeds 75%, you must declare the AI model used during registration. Undeclared AI content is flagged.',
-  },
-  {
-    q: 'What is the fuzzy match threshold?',
-    a: 'A pHash Hamming distance ≤ 22 out of 64 bits is considered a match. For semantic vectors, cosine similarity ≥ 0.85 triggers a match. Face embeddings use a 0.6 cosine threshold.',
-  },
-  {
-    q: 'Is the verification free?',
-    a: 'Verification (exact, fuzzy, segmented) is free — it only hits the Go backend API. Only registration requires a gas-paid blockchain transaction.',
-  },
+  { q: 'Does VeriTrace store my original file?', a: 'Yes — your file is pinned to IPFS (permanent, content-addressed) and backed up to S3. Only the fingerprint hashes are written on-chain; the file itself lives off-chain.' },
+  { q: 'What blockchain does VeriTrace use?', a: 'Arbitrum Sepolia (testnet). The registry smart contract is deployed at 0x468edc5b2fe9d1c919f2377cbe0ccb16f32ead29 and uses the Stylus VM for gas efficiency.' },
+  { q: 'Can I detect AI-generated content?', a: 'Yes. The hash engine computes an AI confidence score. If it exceeds 75%, you must declare the AI model used during registration. Undeclared AI content is flagged.' },
+  { q: 'What is the fuzzy match threshold?', a: 'A pHash Hamming distance ≤ 22 out of 64 bits is considered a match. For semantic vectors, cosine similarity ≥ 0.85 triggers a match. Face embeddings use a 0.6 cosine threshold.' },
+  { q: 'Is the verification free?', a: 'Verification (exact, fuzzy, segmented) is free — it only hits the Go backend API. Only registration requires a gas-paid blockchain transaction.' },
 ]
 
-// ─── Sub-components ───────────────────────────────────────────────────────────
-
-function StepCard({ num, title, desc, color }) {
+export default function AboutPage() {
   return (
-    <div style={{
-      background: 'var(--color-surface)',
-      border: '1px solid var(--color-border)',
-      borderRadius: 'var(--radius)',
-      padding: '1.25rem',
-      display: 'flex',
-      gap: '1rem',
-      alignItems: 'flex-start',
-      transition: 'transform 0.2s, box-shadow 0.2s',
-    }}
-    onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = `0 8px 24px rgba(0,0,0,0.15)`; }}
-    onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = ''; }}
-    >
-      <div style={{
-        flexShrink: 0,
-        width: 40, height: 40,
-        borderRadius: '50%',
-        background: color,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontWeight: 800, fontSize: '0.875rem', color: 'white',
-      }}>{num}</div>
-      <div>
-        <div style={{ fontWeight: 700, marginBottom: '0.25rem' }}>{title}</div>
-        <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', lineHeight: 1.6 }}>{desc}</div>
-      </div>
+    <div className="min-h-screen">
+      {/* HERO */}
+      <section className="relative overflow-hidden mesh-gradient py-20 text-center">
+        <div className="absolute inset-0 grid-pattern opacity-30" />
+        {[...Array(5)].map((_, i) => (
+          <motion.div key={i} className="absolute pointer-events-none opacity-[0.04]"
+            animate={{ y: [0, -20, 0], x: [0, 10, 0], rotate: [0, 180, 360] }}
+            transition={{ duration: 20 + i * 5, repeat: Infinity, ease: 'linear' }}
+            style={{ top: `${10 + i * 20}%`, left: `${15 + i * 15}%` }}
+          >
+            <LogoIcon size={50 + i * 20} />
+          </motion.div>
+        ))}
+        <div className="relative max-w-[1280px] mx-auto px-5">
+          <div className="flex items-center justify-center gap-3 mb-5">
+            <LogoIcon size={44} />
+            <span className="font-extrabold text-lg uppercase tracking-widest gradient-text-accent">VeriTrace</span>
+          </div>
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
+            className="text-4xl md:text-5xl font-extrabold leading-tight mb-4"
+          >
+            How VeriTrace <span className="gradient-text">Works</span>
+          </motion.h1>
+          <p className="text-base text-[var(--color-text-secondary)] max-w-2xl mx-auto leading-relaxed mb-8">
+            Blockchain-backed content provenance using multi-modal fingerprinting — SHA-256, perceptual hashes, semantic vectors, ArcFace biometrics, and wav2vec2 voice prints.
+          </p>
+          <div className="flex gap-3 justify-center flex-wrap">
+            <Link to="/register"><Button variant="primary" size="lg"><FilePlus size={18} /> Register Content</Button></Link>
+            <Link to="/verify"><Button variant="outline" size="lg"><Search size={18} /> Verify Content</Button></Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ARCHITECTURE */}
+      <section className="max-w-[1280px] mx-auto px-5 py-16">
+        <h2 className="text-center text-3xl font-extrabold mb-2">System Architecture</h2>
+        <p className="text-center text-sm text-[var(--color-text-muted)] mb-10">Five layers working together to protect your content</p>
+        <div className="flex items-stretch justify-center gap-0 flex-wrap overflow-x-auto">
+          {[
+            { icon: Cpu, label: 'Hash Engine', sub: 'Port 8081', color: 'text-blue-400' },
+            { icon: Pin, label: 'IPFS + S3', sub: 'Pinata / MinIO', color: 'text-cyan-400' },
+            { icon: Shield, label: 'Arbitrum', sub: 'Smart Contract', color: 'text-purple-400' },
+            { icon: Server, label: 'Go Backend', sub: 'EVM Listener', color: 'text-emerald-400' },
+            { icon: Database, label: 'PG + Redis + Qdrant', sub: 'Storage Layer', color: 'text-amber-400' },
+          ].map((node, i, arr) => (
+            <div key={i} className="flex items-center">
+              <motion.div
+                initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl p-5 text-center min-w-[130px] hover:border-[var(--color-border-hover)] transition-colors"
+              >
+                <node.icon size={28} className={`mx-auto mb-1.5 ${node.color}`} />
+                <div className="font-bold text-sm text-[var(--color-text)]">{node.label}</div>
+                <div className="text-[11px] text-[var(--color-text-muted)]">{node.sub}</div>
+              </motion.div>
+              {i < arr.length - 1 && <ArrowRight size={20} className="mx-1 text-[var(--color-text-faint)] flex-shrink-0" />}
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* HOW TO REGISTER & VERIFY */}
+      <section className="max-w-[1280px] mx-auto px-5 pb-16">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div>
+            <div className="flex items-center gap-2.5 mb-5">
+              <span className="bg-blue-500/10 text-blue-400 rounded-lg p-2"><FilePlus size={20} /></span>
+              <h2 className="text-2xl font-extrabold">How to Register</h2>
+            </div>
+            <div className="flex flex-col gap-3">
+              {REGISTER_STEPS.map((s, i) => <StepCard key={s.num} {...s} delay={i * 0.05} />)}
+            </div>
+          </div>
+          <div>
+            <div className="flex items-center gap-2.5 mb-5">
+              <span className="bg-cyan-400/10 text-cyan-400 rounded-lg p-2"><Search size={20} /></span>
+              <h2 className="text-2xl font-extrabold">How to Verify</h2>
+            </div>
+            <div className="flex flex-col gap-3">
+              {VERIFY_STEPS.map((s, i) => <StepCard key={s.num} {...s} delay={i * 0.05} />)}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* HASH TYPES */}
+      <section className="max-w-[1280px] mx-auto px-5 pb-16">
+        <h2 className="text-center text-3xl font-extrabold mb-2">Fingerprint Types</h2>
+        <p className="text-center text-sm text-[var(--color-text-muted)] mb-10">Multi-modal hashing catches everything from exact copies to AI deepfakes</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {HASH_TYPES.map((h, i) => (
+            <motion.div key={h.tag} initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.05 }}>
+              <Card hover className="h-full">
+                <CardBody className="p-5 flex flex-col gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className={`px-2 py-0.5 rounded text-xs font-bold ${h.bg} ${h.color}`}>{h.tag}</span>
+                    <span className="font-bold text-sm">{h.title}</span>
+                  </div>
+                  <p className="text-xs text-[var(--color-text-muted)] leading-relaxed m-0">{h.desc}</p>
+                  <div className={`text-[11px] rounded px-2 py-1 ${h.bg} ${h.color}`}>Use cases: {h.use}</div>
+                </CardBody>
+              </Card>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="max-w-[760px] mx-auto px-5 pb-16">
+        <h2 className="text-center text-3xl font-extrabold mb-2">Frequently Asked Questions</h2>
+        <p className="text-center text-sm text-[var(--color-text-muted)] mb-8">Everything you need to know about VeriTrace</p>
+        <div className="flex flex-col gap-3">
+          {FAQ.map((f, i) => <FaqItem key={i} {...f} />)}
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="relative overflow-hidden mesh-gradient py-16 text-center">
+        <div className="absolute inset-0 grid-pattern opacity-30" />
+        <div className="relative max-w-[1280px] mx-auto px-5">
+          <h2 className="text-3xl font-extrabold mb-3">Ready to protect your content?</h2>
+          <p className="text-sm text-[var(--color-text-secondary)] mb-8">Join the VeriTrace registry and secure your creative work on the blockchain.</p>
+          <div className="flex gap-3 justify-center flex-wrap">
+            <Link to="/register"><Button variant="primary" size="lg"><FilePlus size={18} /> Get Started</Button></Link>
+            <Link to="/verify"><Button variant="outline" size="lg"><Search size={18} /> Verify Content</Button></Link>
+          </div>
+        </div>
+      </section>
     </div>
   )
 }
 
-function HashCard({ tag, color, bg, title, desc, use }) {
+function StepCard({ num, title, desc, icon: Icon, color, delay }) {
   return (
-    <div style={{
-      background: 'var(--color-surface)',
-      border: `1px solid ${color}40`,
-      borderRadius: 'var(--radius)',
-      padding: '1.25rem',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '0.5rem',
-      transition: 'transform 0.2s, box-shadow 0.2s',
-    }}
-    onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = `0 8px 24px ${color}22`; }}
-    onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = ''; }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
-        <span style={{ background: color, color: 'white', borderRadius: '6px', padding: '0.15rem 0.5rem', fontWeight: 800, fontSize: '0.75rem', letterSpacing: '0.05em' }}>{tag}</span>
-        <span style={{ fontWeight: 700, fontSize: '0.9375rem' }}>{title}</span>
-      </div>
-      <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', margin: 0, lineHeight: 1.6 }}>{desc}</p>
-      <div style={{ fontSize: '0.75rem', color, background: bg, borderRadius: '4px', padding: '0.25rem 0.5rem' }}>
-        Use cases: {use}
-      </div>
-    </div>
+    <motion.div initial={{ opacity: 0, y: 8 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay }}>
+      <Card hover className="flex gap-3 items-start p-4">
+        <div className={`flex-shrink-0 w-10 h-10 rounded-full bg-[var(--color-base-100)] flex items-center justify-center font-extrabold text-sm ${color}`}>
+          {num}
+        </div>
+        <div className="flex-1">
+          <div className="flex items-center gap-1.5 font-bold text-sm mb-1">
+            <Icon size={14} className={color} /> {title}
+          </div>
+          <div className="text-xs text-[var(--color-text-muted)] leading-relaxed">{desc}</div>
+        </div>
+      </Card>
+    </motion.div>
   )
 }
 
 function FaqItem({ q, a }) {
   return (
-    <details style={{
-      background: 'var(--color-surface)',
-      border: '1px solid var(--color-border)',
-      borderRadius: 'var(--radius)',
-      overflow: 'hidden',
-    }}>
-      <summary style={{
-        padding: '1rem 1.25rem',
-        cursor: 'pointer',
-        fontWeight: 600,
-        listStyle: 'none',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        userSelect: 'none',
-      }}>
+    <details className="group bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl overflow-hidden hover:border-[var(--color-border-hover)] transition-colors">
+      <summary className="p-4 cursor-pointer font-semibold text-sm flex items-center justify-between list-none select-none">
         {q}
-        <span style={{ fontSize: '1.2rem', color: 'var(--color-accent)', flexShrink: 0 }}>+</span>
+        <ChevronDown size={18} className="text-blue-400 flex-shrink-0 group-open:rotate-180 transition-transform" />
       </summary>
-      <div style={{ padding: '0 1.25rem 1rem', fontSize: '0.9rem', color: 'var(--color-text-muted)', lineHeight: 1.7, borderTop: '1px solid var(--color-border)' }}>
+      <div className="px-4 pb-4 text-xs text-[var(--color-text-muted)] leading-relaxed border-t border-[var(--color-border)] pt-3">
         {a}
       </div>
     </details>
-  )
-}
-
-// ─── Page ─────────────────────────────────────────────────────────────────────
-
-export default function AboutPage() {
-  return (
-    <div style={{ minHeight: '100vh' }}>
-
-      {/* ════ HERO ════ */}
-      <section style={{
-        position: 'relative',
-        overflow: 'hidden',
-        background: 'linear-gradient(135deg, #0f0f23 0%, #1a0a2e 40%, #0d1b3e 100%)',
-        padding: '5rem 0 4rem',
-        textAlign: 'center',
-      }}>
-        {/* Floating deco logos */}
-        {[80, 50, 110, 60, 90].map((size, i) => (
-          <div key={i} className={`floating-logo float-${i + 1}`} aria-hidden="true">
-            <LogoIcon size={size} />
-          </div>
-        ))}
-
-        <div className="container" style={{ position: 'relative', zIndex: 2 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', marginBottom: '1.25rem' }}>
-            <LogoIcon size={48} />
-            <span style={{
-              fontWeight: 900, fontSize: '1.125rem', letterSpacing: '0.15em', textTransform: 'uppercase',
-              background: 'linear-gradient(135deg, #a5b4fc, #818cf8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-            }}>VeriTrace</span>
-          </div>
-          <h1 style={{
-            fontSize: 'clamp(2rem, 5vw, 3.25rem)', fontWeight: 900, lineHeight: 1.15,
-            background: 'linear-gradient(135deg, #f0f0ff 0%, #a5b4fc 60%, #818cf8 100%)',
-            WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: '1rem',
-          }}>How VeriTrace Works</h1>
-          <p style={{ color: 'rgba(200,200,240,0.75)', fontSize: '1.0625rem', maxWidth: 600, margin: '0 auto 2rem', lineHeight: 1.7 }}>
-            Blockchain-backed content provenance using multi-modal fingerprinting — SHA-256, perceptual hashes, semantic vectors, ArcFace biometrics, and wav2vec2 voice prints.
-          </p>
-          <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link to="/register" className="btn btn-primary">Register Content</Link>
-            <Link to="/verify" className="btn btn-secondary">Verify Content</Link>
-          </div>
-        </div>
-      </section>
-
-      {/* ════ ARCHITECTURE FLOW ════ */}
-      <section style={{ padding: '4rem 0', background: 'var(--color-bg)' }}>
-        <div className="container">
-          <h2 style={{ textAlign: 'center', fontWeight: 800, marginBottom: '0.5rem', fontSize: '1.75rem' }}>System Architecture</h2>
-          <p style={{ textAlign: 'center', color: 'var(--color-text-muted)', marginBottom: '2.5rem' }}>Five layers working together to protect your content</p>
-
-          <div style={{ display: 'flex', alignItems: 'stretch', justifyContent: 'center', gap: '0', flexWrap: 'wrap', overflowX: 'auto' }}>
-            {[
-              { icon: '🖥️', label: 'Hash Engine', sub: 'Port 8081', color: '#6366f1' },
-              { icon: '📌', label: 'IPFS + S3', sub: 'Pinata / MinIO', color: '#0ea5e9' },
-              { icon: '⛓️', label: 'Arbitrum', sub: 'Smart Contract', color: '#8b5cf6' },
-              { icon: '🔊', label: 'Go Backend', sub: 'EVM Listener', color: '#10b981' },
-              { icon: '🗄️', label: 'PG + Redis + Qdrant', sub: 'Storage Layer', color: '#f59e0b' },
-            ].map((node, i, arr) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center' }}>
-                <div style={{
-                  background: 'var(--color-surface)',
-                  border: `1px solid ${node.color}50`,
-                  borderRadius: 'var(--radius)',
-                  padding: '1.125rem 1.25rem',
-                  textAlign: 'center',
-                  minWidth: 120,
-                }}>
-                  <div style={{ fontSize: '1.75rem', marginBottom: '0.25rem' }}>{node.icon}</div>
-                  <div style={{ fontWeight: 700, fontSize: '0.8125rem', color: node.color }}>{node.label}</div>
-                  <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>{node.sub}</div>
-                </div>
-                {i < arr.length - 1 && (
-                  <div style={{ padding: '0 0.25rem', color: 'var(--color-text-muted)', fontSize: '1.25rem', flexShrink: 0 }}>→</div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ════ HOW TO REGISTER ════ */}
-      <section style={{ padding: '4rem 0', background: 'var(--color-surface)' }}>
-        <div className="container">
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '3rem' }}>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
-                <span style={{ background: '#6366f1', borderRadius: '8px', padding: '0.4rem', display: 'flex' }}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
-                </span>
-                <h2 style={{ fontWeight: 800, fontSize: '1.5rem', margin: 0 }}>How to Register</h2>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
-                {REGISTER_STEPS.map(s => <StepCard key={s.num} {...s} />)}
-              </div>
-            </div>
-
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
-                <span style={{ background: '#0ea5e9', borderRadius: '8px', padding: '0.4rem', display: 'flex' }}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                </span>
-                <h2 style={{ fontWeight: 800, fontSize: '1.5rem', margin: 0 }}>How to Verify</h2>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
-                {VERIFY_STEPS.map(s => <StepCard key={s.num} {...s} />)}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ════ HASH TYPES ════ */}
-      <section style={{ padding: '4rem 0', background: 'var(--color-bg)' }}>
-        <div className="container">
-          <h2 style={{ textAlign: 'center', fontWeight: 800, marginBottom: '0.5rem', fontSize: '1.75rem' }}>Fingerprint Types</h2>
-          <p style={{ textAlign: 'center', color: 'var(--color-text-muted)', marginBottom: '2.5rem' }}>Multi-modal hashing catches everything from exact copies to AI deepfakes</p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
-            {HASH_TYPES.map(h => <HashCard key={h.tag} {...h} />)}
-          </div>
-        </div>
-      </section>
-
-      {/* ════ FAQ ════ */}
-      <section style={{ padding: '4rem 0', background: 'var(--color-surface)' }}>
-        <div className="container" style={{ maxWidth: 760 }}>
-          <h2 style={{ textAlign: 'center', fontWeight: 800, marginBottom: '0.5rem', fontSize: '1.75rem' }}>Frequently Asked Questions</h2>
-          <p style={{ textAlign: 'center', color: 'var(--color-text-muted)', marginBottom: '2.5rem' }}>Everything you need to know about VeriTrace</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            {FAQ.map((f, i) => <FaqItem key={i} {...f} />)}
-          </div>
-        </div>
-      </section>
-
-      {/* ════ CTA ════ */}
-      <section style={{
-        padding: '4rem 0',
-        background: 'linear-gradient(135deg, #1a0a2e 0%, #0d1b3e 100%)',
-        textAlign: 'center',
-      }}>
-        <div className="container">
-          <h2 style={{ fontWeight: 900, fontSize: '1.875rem', color: '#f0f0ff', marginBottom: '0.75rem' }}>Ready to protect your content?</h2>
-          <p style={{ color: 'rgba(200,200,240,0.7)', marginBottom: '2rem' }}>Join the VeriTrace registry and secure your creative work on the blockchain.</p>
-          <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link to="/register" className="btn btn-primary" style={{ fontSize: '1rem', padding: '0.75rem 2rem' }}>Get Started</Link>
-            <Link to="/verify" className="btn btn-secondary" style={{ fontSize: '1rem', padding: '0.75rem 2rem' }}>Verify Content</Link>
-          </div>
-        </div>
-      </section>
-
-    </div>
   )
 }

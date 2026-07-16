@@ -1,78 +1,34 @@
-/**
- * FileUpload.jsx — Drag-and-drop file upload zone
- * 
- * Features:
- * - Drag-and-drop with visual feedback (border color + background change)
- * - Click-to-browse with a hidden <input type="file">
- * - Displays supported format tags (PNG, JPG, MP4, PDF, etc.)
- * - After selection, shows file preview (name, type, size) with change button
- * - Validates file size against dynamic MAX_FILE_SIZES (e.g., 500MB for video)
- * 
- * Props:
- *   onFileSelected(file)  — called when user picks/drops a file (or null on clear)
- *   accept                — mime type accept string for the input
- *   label                 — custom instruction text for the drop zone
- */
 import { useState, useRef } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { UploadCloud, File as FileIcon, X } from 'lucide-react'
 import { SUPPORTED_FILES, MAX_FILE_SIZES } from '../config'
+import { cn } from '@/lib/utils'
 
 export default function FileUpload({ onFileSelected, accept, label }) {
-  const [dragover, setDragover] = useState(false)  // true when file is dragged over the zone
-  const [file, setFile] = useState(null)            // currently selected file
-  const [error, setError] = useState(null)          // validation error message
-  const inputRef = useRef(null)                     // reference to the hidden file input
+  const [dragover, setDragover] = useState(false)
+  const [file, setFile] = useState(null)
+  const [error, setError] = useState(null)
+  const inputRef = useRef(null)
 
-  /** Helper to find limit for a specific file based on MIME type / extension */
-  const getMaxSizeForFile = (f) => {
-    if (f.type?.startsWith('image/')) return MAX_FILE_SIZES.image
-    if (f.type?.startsWith('video/')) return MAX_FILE_SIZES.video
-    if (f.type?.includes('pdf') || f.type?.includes('text')) return MAX_FILE_SIZES.document
-    
-    // Fallback detection using file extension if MIME type is empty or generic
-    const ext = '.' + f.name.split('.').pop().toLowerCase()
-    if (SUPPORTED_FILES.image.extensions.includes(ext)) return MAX_FILE_SIZES.image
-    if (SUPPORTED_FILES.video.extensions.includes(ext)) return MAX_FILE_SIZES.video
-    if (SUPPORTED_FILES.document.extensions.includes(ext)) return MAX_FILE_SIZES.document
-    
-    return MAX_FILE_SIZES.default
-  }
-
-  /**
-   * handleFile — Validates and sets the selected file.
-   * File size limits have been removed for testing.
-   */
   const handleFile = (f) => {
     if (!f) return
     setError(null)
-
     setFile(f)
     if (onFileSelected) onFileSelected(f)
   }
 
-  // ── Drag event handlers ──
   const handleDrop = (e) => {
     e.preventDefault()
     setDragover(false)
-    const f = e.dataTransfer.files[0]
-    handleFile(f)
+    handleFile(e.dataTransfer.files[0])
   }
-  const handleDragOver = (e) => { e.preventDefault(); setDragover(true) }
-  const handleDragLeave = () => setDragover(false)
 
-  // ── Click handler: triggers the hidden file input ──
-  const handleClick = () => inputRef.current?.click()
-
-  // ── Input change handler ──
-  const handleChange = (e) => handleFile(e.target.files[0])
-
-  /** Format bytes to human-readable string */
   const formatSize = (bytes) => {
     if (bytes < 1024) return `${bytes} B`
     if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} KB`
     return `${(bytes / 1048576).toFixed(1)} MB`
   }
 
-  /** Return an emoji icon based on the file's MIME type */
   const getFileIcon = (type) => {
     if (type?.startsWith('image/')) return '🖼️'
     if (type?.startsWith('video/')) return '🎬'
@@ -82,107 +38,106 @@ export default function FileUpload({ onFileSelected, accept, label }) {
     return '📁'
   }
 
-  // ── If a file is already selected, show the preview card ──
   if (file) {
     const isImage = file.type?.startsWith('image/')
     const imageUrl = isImage ? URL.createObjectURL(file) : null
 
     return (
-      <div className="animate-scale-in">
-        <div className="file-info" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          {isImage ? (
-            <img
-              src={imageUrl}
-              alt="Upload Preview"
-              style={{
-                width: '48px',
-                height: '48px',
-                objectFit: 'cover',
-                borderRadius: 'var(--radius-sm)',
-                border: '1px solid var(--color-border)',
-                background: 'var(--color-bg)',
-              }}
-              onLoad={() => {
-                // Revoke object URL after image loads to prevent memory leaks
-                if (imageUrl) URL.revokeObjectURL(imageUrl)
-              }}
-            />
-          ) : (
-            <div className="file-info-icon">{getFileIcon(file.type)}</div>
-          )}
-          <div className="file-info-details" style={{ flexGrow: 1 }}>
-            <div className="file-info-name">{file.name}</div>
-            <div className="file-info-meta">
-              {file.type || 'Unknown type'} • {formatSize(file.size)}
-            </div>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="flex items-center gap-3 p-3.5 rounded-xl bg-[var(--color-base-50)] border border-[var(--color-border)]"
+      >
+        {isImage ? (
+          <img
+            src={imageUrl}
+            alt="Preview"
+            className="w-12 h-12 rounded-lg object-cover border border-[var(--color-border)] bg-[var(--color-bg)]"
+            onLoad={() => { if (imageUrl) URL.revokeObjectURL(imageUrl) }}
+          />
+        ) : (
+          <div className="w-12 h-12 rounded-lg flex items-center justify-center text-2xl bg-[var(--color-surface)] border border-[var(--color-border)]">
+            {getFileIcon(file.type)}
           </div>
-          {/* Clear selection and return to drop zone */}
-          <button
-            className="btn btn-sm btn-outline"
-            onClick={() => {
-              setFile(null)
-              if (onFileSelected) onFileSelected(null)
-            }}
-          >
-            Change
-          </button>
+        )}
+        <div className="flex-1 min-w-0">
+          <div className="font-semibold text-sm truncate">{file.name}</div>
+          <div className="text-xs text-[var(--color-text-muted)]">
+            {file.type || 'Unknown type'} • {formatSize(file.size)}
+          </div>
         </div>
-      </div>
+        <button
+          className="flex-shrink-0 px-3 py-1.5 text-xs font-semibold rounded-lg border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-border-hover)] hover:text-[var(--color-text)] transition-colors"
+          onClick={() => {
+            setFile(null)
+            if (onFileSelected) onFileSelected(null)
+          }}
+        >
+          Change
+        </button>
+      </motion.div>
     )
   }
 
-  // ── Render the drop zone ──
   return (
     <div>
       <div
-        className={`upload-zone ${dragover ? 'dragover' : ''}`}
+        className={cn(
+          'border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-200',
+          dragover
+            ? 'border-blue-500 bg-blue-500/5 scale-[1.01]'
+            : 'border-[var(--color-border)] bg-[var(--color-base-50)] hover:border-blue-500/50 hover:bg-blue-500/5'
+        )}
         onDrop={handleDrop}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onClick={handleClick}
+        onDragOver={(e) => { e.preventDefault(); setDragover(true) }}
+        onDragLeave={() => setDragover(false)}
+        onClick={() => inputRef.current?.click()}
       >
-        {/* Upload cloud icon */}
-        <div className="upload-zone-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-            <polyline points="17 8 12 3 7 8"/>
-            <line x1="12" y1="3" x2="12" y2="15"/>
-          </svg>
-        </div>
-
-        <div className="upload-zone-title">
+        <motion.div
+          animate={dragover ? { y: -4 } : { y: 0 }}
+          className="w-14 h-14 rounded-full bg-blue-500/10 text-blue-400 flex items-center justify-center mx-auto mb-4"
+        >
+          <UploadCloud size={26} />
+        </motion.div>
+        <div className="font-semibold text-sm mb-1.5 text-[var(--color-text)]">
           {label || 'Drop your file here, or click to browse'}
         </div>
-        <div className="upload-zone-subtitle">
+        <div className="text-xs text-[var(--color-text-muted)] mb-4">
           Supports large images, videos, and documents (No size limits)
         </div>
-
-        {/* ── Format tags showing all supported extensions ── */}
-        <div className="upload-zone-formats">
+        <div className="flex flex-wrap gap-1.5 justify-center">
           {Object.values(SUPPORTED_FILES).flatMap(cat =>
             cat.extensions.map(ext => (
-              <span key={ext} className="format-tag">{ext}</span>
+              <span key={ext} className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-muted)]">
+                {ext}
+              </span>
             ))
           )}
         </div>
-
-        {/* Hidden file input element */}
         <input
           ref={inputRef}
           type="file"
           accept={accept || Object.values(SUPPORTED_FILES).map(f => f.accept).join(',')}
-          onChange={handleChange}
-          style={{ display: 'none' }}
+          onChange={(e) => handleFile(e.target.files[0])}
+          className="hidden"
         />
       </div>
 
-      {/* ── Validation error message ── */}
-      {error && (
-        <div className="alert-box danger" style={{ marginTop: '0.75rem' }}>
-          <span>⚠️</span>
-          <div>{error}</div>
-        </div>
-      )}
+      <AnimatePresence>
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className="mt-3"
+          >
+            <div className="flex gap-2 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+              <X size={16} className="flex-shrink-0 mt-0.5" />
+              <div>{error}</div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
