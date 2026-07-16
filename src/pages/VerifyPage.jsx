@@ -112,7 +112,7 @@ export default function VerifyPage() {
         if (hashData.keyframes?.length > 0) segmentsPayload = hashData.keyframes.map(k => ({ offset: Number(k.offset), phash: Number(k.phash), semantic_hash: k.semantic_hash || [], face_hash: k.face_hash || [] }))
         else if (hashData.phash) segmentsPayload = [{ offset: 0, phash: Number(hashData.phash), semantic_hash: hashData.semantic_hash || [], face_hash: hashData.face_hash || [] }]
         if (segmentsPayload.length > 0) {
-          const segmentRes = await fetch(`${CORE_BACKEND_API}/api/v1/verify/segments`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sha256: '0x' + sha256Hex, media_type: hashData.media_type, segments: segmentsPayload }) })
+          const segmentRes = await fetch(`${CORE_BACKEND_API}/api/v1/verify/segments`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sha256: '0x' + sha256Hex, media_type: hashData.media_type, audio_hashes: hashData.audio_hashes || [], segments: segmentsPayload }) })
           if (segmentRes.ok) {
             const segmentData = await segmentRes.json()
             if (segmentData.match_found && segmentData.record) {
