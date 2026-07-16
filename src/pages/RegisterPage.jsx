@@ -75,6 +75,15 @@ export default function RegisterPage() {
   const [webhookUrl, setWebhookUrl] = useState('')
   const [showAllKeyframes, setShowAllKeyframes] = useState(false)
 
+  // Compute maximum AI confidence score across the asset and all video keyframes
+  let maxConf = hashes.aiConfidenceScore || 0;
+  if (hashes.keyframes) {
+    hashes.keyframes.forEach(kf => {
+      if (kf.ai_confidence_score > maxConf) maxConf = kf.ai_confidence_score;
+    });
+  }
+  const showAiRequirement = aiCategory === 'None (Authentic Content)' && maxConf > 0.75;
+
   /**
    * handleFileSelected — Called when user picks a file.
    * Sends the file to the Hash Engine API for SHA-256 computation.
@@ -150,6 +159,8 @@ export default function RegisterPage() {
         assetId: `asset-${Date.now()}`,
         mediaType: data.media_type,
         aiConfidenceScore: data.ai_confidence_score,
+        semanticHash: data.semantic_hash || [],
+        faceHashes: data.face_hashes || [],
         keyframes: data.keyframes || [],
       })
       setStep(2)
@@ -186,15 +197,8 @@ export default function RegisterPage() {
     try {
       setSigning(true)
       
-      let maxConf = hashes.aiConfidenceScore || 0;
-      if (hashes.keyframes) {
-        hashes.keyframes.forEach(kf => {
-          if (kf.ai_confidence_score > maxConf) maxConf = kf.ai_confidence_score;
-        });
-      }
-
-      if (aiCategory === 'None (Authentic Content)' && maxConf > 0.75) {
-        setError(`Lie Detected ❌\n\nOur AI analyzer detected a high probability (${(maxConf * 100).toFixed(1)}%) that this media is AI-generated. You cannot register this as Authentic Content.\n\nPlease declare the correct AI tool to proceed.`);
+      if (showAiRequirement) {
+        setError('You must select the correct AI model to register this AI-generated content.');
         setSigning(false);
         return;
       }
@@ -274,8 +278,8 @@ export default function RegisterPage() {
         webhook_url: webhookUrl,
         parent_sha256: '',
         media_type: hashes.mediaType || 'image',
-        semantic_hash: hashes.semantic_hash || [],
-        face_hash: hashes.face_hash || [],
+        semantic_hash: hashes.semanticHash || [],
+        face_hashes: hashes.faceHashes || [],
         keyframes: hashes.keyframes || [],
       }
 
@@ -649,6 +653,11 @@ export default function RegisterPage() {
                         <option key={model} value={model}>{model}</option>
                       ))}
                     </select>
+                    {showAiRequirement && (
+                      <div style={{ color: 'var(--color-error)', fontSize: '0.75rem', marginTop: '0.375rem', fontWeight: 500 }}>
+                        ⚠️ Our AI analyzer detected a high probability ({Math.round(maxConf * 100)}%) that this media is AI-generated. You must declare the correct AI model to proceed.
+                      </div>
+                    )}
 
                     {/* Secondary text input shown only when "Other (Custom Input)" is selected */}
                     {aiCategory === 'Other (Custom Input)' && (
@@ -717,11 +726,15 @@ export default function RegisterPage() {
                     </div>
                   </div>
 
-                  <button className="btn btn-primary btn-lg w-full" onClick={handleRegister}>
+                  <button 
+                    className="btn btn-primary btn-lg w-full" 
+                    onClick={handleRegister}
+                    disabled={showAiRequirement}
+                  >
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                     </svg>
-                    Register on Blockchain
+                    {showAiRequirement ? 'Select AI Model to Register' : 'Register on Blockchain'}
                   </button>
                 </div>
               )}
