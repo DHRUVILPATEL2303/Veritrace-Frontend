@@ -14,6 +14,8 @@ import { SpotlightCard } from '../components/aceternity/SpotlightCard'
 import { TextReveal } from '../components/aceternity/TextReveal'
 import { BeamLine } from '../components/aceternity/BeamLine'
 import { ArbitrumLogo, ArbitrumOrbit, AnimatedArbitrumBadge, AnimatedNetworkBadge } from '../components/ArbitrumLogo'
+import { ChainSimulation } from '../components/blockchain/ChainSimulation'
+import { ArbitrumNetworkVisualization } from '../components/blockchain/ArbitrumNetworkVisualization'
 import { FilePlus, Search, Shield, ArrowRight, Upload, FingerprintPattern as Fingerprint, Wallet, CircleCheck as CheckCircle2, Database, Layers, Sparkles, Zap, Eye, Link2, Cpu, Server, Pin, GitBranch } from 'lucide-react'
 import { SUPPORTED_FILES, CONTRACT_ADDRESS, ARBITRUM_SEPOLIA } from '../config'
 
@@ -144,6 +146,49 @@ export default function HomePage() {
             <BeamLine duration={3} />
           </div>
         </Card>
+      </section>
+
+      {/* ════ BLOCKCHAIN VISUALIZATION ════ */}
+      <section className="max-w-[1280px] mx-auto px-5 py-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Network Visualization */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+          >
+            <div className="mb-6">
+              <Badge variant="arb" className="mb-3">
+                <Layers size={12} /> Network Topology
+              </Badge>
+              <h3 className="text-2xl font-extrabold text-[var(--text)] mb-2">Arbitrum Validator Network</h3>
+              <p className="text-sm text-[var(--text-3)]">Content registered across distributed validators ensuring decentralized consensus</p>
+            </div>
+            <div className="flex justify-center">
+              <ArbitrumNetworkVisualization size="md" interactive />
+            </div>
+          </motion.div>
+
+          {/* Chain Simulation */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+          >
+            <div className="mb-6">
+              <Badge variant="success" className="mb-3">
+                <Zap size={12} /> Live Blocks
+              </Badge>
+              <h3 className="text-2xl font-extrabold text-[var(--text)] mb-2">On-Chain Block Stream</h3>
+              <p className="text-sm text-[var(--text-3)]">Real-time blockchain blocks with registered content anchored immutably</p>
+            </div>
+            <div className="p-6 rounded-xl bg-[var(--bg-2)] border border-[var(--border)]">
+              <ChainSimulation autoPlay blockCount={5} />
+            </div>
+          </motion.div>
+        </div>
       </section>
 
       {/* ════ FEATURE CARDS ════ */}

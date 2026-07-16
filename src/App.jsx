@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
+import { BlockchainBackground } from './components/blockchain/BlockchainBackground'
 import HomePage from './pages/HomePage'
 import RegisterPage from './pages/RegisterPage'
 import VerifyPage from './pages/VerifyPage'
@@ -10,8 +11,9 @@ import AboutPage from './pages/AboutPage'
 function App() {
   return (
     <>
+      <BlockchainBackground />
       <Navbar />
-      <main className="min-h-[calc(100vh-200px)] pb-8">
+      <main className="min-h-[calc(100vh-200px)] pb-8 relative z-0">
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/register" element={<RegisterPage />} />

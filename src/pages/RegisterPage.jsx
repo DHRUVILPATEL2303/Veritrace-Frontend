@@ -264,7 +264,7 @@ export default function RegisterPage() {
                           <Progress value={uploadProgress} />
                         </>
                       ) : (
-                        <div className="text-center py-4">
+                        <div className="flex flex-col items-center justify-center py-8">
                           <div className="relative w-16 h-16 flex items-center justify-center mb-3">
                             <div className="loading-orb-outer absolute inset-0 rounded-full" style={{ border: '2.5px solid var(--border)', borderTopColor: '#12AAFF', borderRightColor: '#12AAFF' }} />
                             <div className="loading-orb-inner absolute inset-1.5 rounded-full" style={{ border: '2.5px solid var(--border)', borderBottomColor: '#00D395', borderLeftColor: '#00D395' }} />
@@ -313,7 +313,7 @@ export default function RegisterPage() {
                   )}
 
                   {step === 3 && signing && (
-                    <motion.div key="signing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-center py-8">
+                    <motion.div key="signing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center justify-center py-8">
                       <div className="relative w-16 h-16 flex items-center justify-center mb-3">
                         <div className="loading-orb-outer absolute inset-0 rounded-full" style={{ border: '2.5px solid var(--border)', borderTopColor: '#12AAFF', borderRightColor: '#12AAFF' }} />
                         <div className="loading-orb-inner absolute inset-1.5 rounded-full" style={{ border: '2.5px solid var(--border)', borderBottomColor: '#00D395', borderLeftColor: '#00D395' }} />
