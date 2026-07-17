@@ -10,6 +10,7 @@ import { Badge } from '../components/ui/badge'
 import { CounterUp } from '../components/aceternity/CounterUp'
 import { ParticleField } from '../components/aceternity/ParticleField'
 import { AuroraBackground } from '../components/aceternity/AuroraBackground'
+import { FlowStreams } from '../components/aceternity/FlowStreams'
 import { SpotlightCard } from '../components/aceternity/SpotlightCard'
 import { TextReveal } from '../components/aceternity/TextReveal'
 import { BeamLine } from '../components/aceternity/BeamLine'
@@ -42,6 +43,7 @@ export default function HomePage() {
     <>
       {/* ════ HERO ════ */}
       <AuroraBackground className="home-hero pt-14 pb-24">
+        <FlowStreams className="opacity-95" />
         <div className="max-w-[1280px] mx-auto px-5 text-center relative z-10">
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>

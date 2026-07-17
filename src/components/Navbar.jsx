@@ -46,9 +46,9 @@ export default function Navbar() {
         )}
       >
         <div className={cn(
-          'flex items-center justify-between h-14 px-3 rounded-2xl transition-all duration-300',
-          '!border !border-[var(--border-2)] hover:!border-[#12AAFF]/40',
-          scrolled ? 'glass shadow-[0_8px_32px_rgba(0,0,0,0.12)]' : 'glass'
+          'flex items-center justify-between h-14 px-3 rounded-2xl transition-all duration-300 navbar-fixed',
+          '!border !border-[rgba(255,255,255,0.1)] hover:!border-[#12AAFF]/40',
+          scrolled ? 'shadow-[0_8px_32px_rgba(0,0,0,0.12)]' : ''
         )}>
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2.5 pl-1">

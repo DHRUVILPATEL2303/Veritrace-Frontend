@@ -296,6 +296,16 @@ body {
    GLASSMORPHISM & SURFACE UTILITIES
 ═══════════════════════════════════════ */
 
+/* Theme-independent navbar — identical in dark and light mode */
+.navbar-fixed {
+  background: rgba(8, 10, 16, 0.82) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color-scheme: dark;
+}
+.navbar-fixed, .navbar-fixed * { --text: #F5F7FC; --text-2: #C5CBD9; --text-3: #8A92AC; --text-4: #9CA3AF; --bg-2: rgba(255,255,255,0.06); --border: rgba(255,255,255,0.1); --border-2: rgba(255,255,255,0.1); }
+
 .glass {
   background: var(--navbar-bg);
   backdrop-filter: blur(20px) saturate(180%);
