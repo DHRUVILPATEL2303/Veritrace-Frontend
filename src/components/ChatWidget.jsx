@@ -280,90 +280,62 @@ export default function ChatWidget() {
       {/* Floating Toggle Button */}
       <button
         onClick={() => setIsOpen((prev) => !prev)}
-        className={`w-14 h-14 rounded-full flex items-center justify-center shadow-xl transition-all duration-300 active:scale-95 relative group ${
+        className={`w-16 h-16 rounded-full flex items-center justify-center shadow-[0_8px_30px_rgba(0,0,0,0.08)] transition-all duration-300 active:scale-95 relative group border border-[#e2e8f0] ${
           isOpen
-            ? 'bg-[var(--surface)] border border-[var(--border-2)] text-[var(--text-2)] hover:text-[var(--text)] hover:bg-[var(--bg-2)]'
-            : 'glass border border-[#12AAFF]/30 hover:border-[#12AAFF]/60 hover:shadow-[0_0_24px_rgba(18,170,255,0.25)]'
+            ? 'bg-[var(--surface)] text-[var(--text-2)] hover:text-[var(--text)] hover:bg-[var(--bg-2)]'
+            : 'bg-white hover:shadow-[0_8px_30px_rgba(59,130,246,0.12)] hover:scale-105'
         }`}
-        style={{
-          background: !isOpen 
-            ? 'linear-gradient(135deg, color-mix(in srgb, var(--surface-2) 65%, transparent), color-mix(in srgb, var(--surface) 90%, transparent))'
-            : undefined,
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-        }}
         aria-label="Toggle Help Chatbot"
       >
         {isOpen ? (
-          <X size={22} className="text-[var(--text-2)]" />
+          <X size={22} className="text-gray-500 hover:text-gray-700" />
         ) : (
-          <svg width="36" height="36" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="transition-transform duration-300 group-hover:scale-105">
-            <defs>
-              <linearGradient id="bot-head-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#8cd3ff" />
-                <stop offset="100%" stopColor="#1e52db" />
-              </linearGradient>
-              <linearGradient id="shield-chest-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#12AAFF" />
-                <stop offset="100%" stopColor="#1B4ADD" />
-              </linearGradient>
-            </defs>
+          <svg width="44" height="44" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            {/* Concentric circular rings around the mascot */}
+            <circle cx="50" cy="50" r="38" stroke="#add6ff" strokeWidth="1.2" strokeOpacity="0.85" />
+            <circle cx="50" cy="50" r="34" stroke="#add6ff" strokeWidth="1.2" strokeOpacity="0.45" />
 
-            {/* Outer glowing aura/ring (behind robot) */}
-            <circle cx="20" cy="20" r="17" fill="none" stroke="#12AAFF" strokeWidth="1" strokeOpacity="0.4" />
-            <circle cx="20" cy="20" r="15" fill="none" stroke="#12AAFF" strokeWidth="0.8" strokeOpacity="0.25" />
+            {/* Bear-like ears */}
+            <circle cx="34" cy="27" r="6.5" fill="#add6ff" opacity="0.6" />
+            <circle cx="66" cy="27" r="6.5" fill="#add6ff" opacity="0.6" />
 
-            {/* Robot Body / Collar */}
-            <path d="M12 28.5C12 26 14 24 16.5 24H23.5C26 24 28 26 28 28.5V31H12V28.5Z" fill="url(#bot-head-grad)" opacity="0.9" />
-
-            {/* Robot Shoulders / Collar accents */}
-            <path d="M11 26C11 26 13 24.5 16 24.5C19 24.5 20 26 20 26" stroke="#ffffff" strokeWidth="1.2" strokeLinecap="round" opacity="0.7" />
-            <path d="M29 26C29 26 27 24.5 24 24.5C21 24.5 20 26 20 26" stroke="#ffffff" strokeWidth="1.2" strokeLinecap="round" opacity="0.7" />
+            {/* Shoulders */}
+            <path d="M32 55 C29 60 29 66 33 69" fill="none" stroke="#2b66ff" strokeWidth="5.5" strokeLinecap="round" />
+            <path d="M68 55 C71 60 71 66 67 69" fill="none" stroke="#2b66ff" strokeWidth="5.5" strokeLinecap="round" />
 
             {/* Shield Chestplate (VeriTrace Signature Logo) */}
             <path
-              d="M20 23L25.5 25.2V29.5C25.5 32.5 23 34.8 20 35.5C17 34.8 14.5 32.5 14.5 29.5V25.2L20 23Z"
-              fill="url(#shield-chest-grad)"
+              d="M50 52 L61 54.5 V64 C61 70 57 74 50 76 C43 74 39 70 39 64 V54.5 Z"
+              fill="#2b66ff"
               stroke="#ffffff"
-              strokeWidth="1.2"
+              strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
             {/* Checkmark inside chest shield */}
-            <path d="M17.5 29.5L19.2 31.2L22.8 27.5" stroke="white" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M45.5 64.5 L48.5 67.5 L54.5 61.5" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
 
             {/* Robot Head */}
-            <rect x="10" y="8" width="20" height="15" rx="7.5" fill="url(#bot-head-grad)" stroke="#ffffff" strokeWidth="1.2" />
-
-            {/* Antennas */}
-            {/* Left Antenna */}
-            <path d="M12 9.5L9 6.5" stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round" />
-            <circle cx="8" cy="5.5" r="1.5" fill="#ffffff" />
-            <motion.circle cx="8" cy="5.5" r="3" fill="#12AAFF" fillOpacity="0.3" animate={{ scale: [1, 1.6, 1], opacity: [0.3, 0.7, 0.3] }} transition={{ repeat: Infinity, duration: 2 }} />
-
-            {/* Right Antenna */}
-            <path d="M28 9.5L31 6.5" stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round" />
-            <circle cx="32" cy="5.5" r="1.5" fill="#ffffff" />
-            <motion.circle cx="32" cy="5.5" r="3" fill="#12AAFF" fillOpacity="0.3" animate={{ scale: [1, 1.6, 1], opacity: [0.3, 0.7, 0.3] }} transition={{ repeat: Infinity, duration: 2, delay: 0.3 }} />
+            <rect x="29" y="26" width="42" height="26" rx="13" fill="#2b66ff" stroke="#ffffff" strokeWidth="1.2" />
 
             {/* Visor Area */}
-            <rect x="12" y="11" width="16" height="7" rx="3.5" fill="#0d1527" stroke="#ffffff" strokeWidth="0.8" />
-
-            {/* Visor details / Scanning lines */}
-            <line x1="14" y1="12.5" x2="26" y2="12.5" stroke="#12AAFF" strokeWidth="0.5" strokeDasharray="1,1.5" opacity="0.6" />
+            <rect x="35" y="31" width="30" height="13" rx="6.5" fill="#0c1424" stroke="#ffffff" strokeWidth="0.8" />
 
             {/* Glowing Eyes */}
-            <motion.circle cx="16" cy="14.5" r="1.5" fill="#00D395" animate={{ opacity: [0.6, 1, 0.6], scale: [0.9, 1.2, 0.9] }} transition={{ repeat: Infinity, duration: 1.8, ease: "easeInOut" }} />
-            <motion.circle cx="24" cy="14.5" r="1.5" fill="#00D395" animate={{ opacity: [0.6, 1, 0.6], scale: [0.9, 1.2, 0.9] }} transition={{ repeat: Infinity, duration: 1.8, ease: "easeInOut", delay: 0.2 }} />
+            <rect x="40" y="34.5" width="8" height="6" rx="3" fill="#00e699" />
+            <rect x="52" y="34.5" width="8" height="6" rx="3" fill="#00e699" />
+            {/* Inner glowing dots */}
+            <circle cx="44" cy="37.5" r="1" fill="#ffffff" />
+            <circle cx="56" cy="37.5" r="1" fill="#ffffff" />
 
             {/* Smile Mouth */}
-            <path d="M17.5 19.5C18.5 20.8 21.5 20.8 22.5 19.5" stroke="#ffffff" strokeWidth="1.2" strokeLinecap="round" />
+            <path d="M45 46 Q50 50 55 46" stroke="white" strokeWidth="1.8" strokeLinecap="round" />
           </svg>
         )}
         
         {/* Unread indicator */}
         {!isOpen && hasUnread && (
-          <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-[#00D395] border-2 border-[var(--bg)] rounded-full animate-pulse" />
+          <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-[#00D395] border-2 border-white rounded-full animate-pulse" />
         )}
       </button>
     </div>
