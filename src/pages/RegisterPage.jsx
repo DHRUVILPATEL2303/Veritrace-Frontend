@@ -194,6 +194,20 @@ export default function RegisterPage() {
     <section>
       <PageHero eyebrow="CREATE AN IMMUTABLE RECORD" title="Make ownership undeniable." description="Generate a durable proof for media or text, then anchor the evidence to Arbitrum. Your original stays identifiable wherever it goes." icon={FilePlus} />
       <div className="max-w-[1280px] mx-auto px-5 pt-7">
+
+      {/* Faucet notice — shown when wallet is connected */}
+      {isConnected && (
+        <div className="mb-5 flex items-center gap-3 px-4 py-3 rounded-2xl border border-[var(--arb-border)] bg-[var(--arb-bg)]">
+          <AlertTriangle size={15} className="text-[#12AAFF] flex-shrink-0" />
+          <p className="text-xs text-[var(--text-2)] leading-relaxed">
+            Registration requires a small amount of testnet ETH for gas.{' '}
+            <a href="https://faucet.lamprosdao.com/" target="_blank" rel="noopener noreferrer" className="text-[#12AAFF] font-semibold hover:underline inline-flex items-center gap-1">
+              Get free ETH from the Lampros DAO Faucet <ExternalLink size={10} />
+            </a>
+          </p>
+        </div>
+      )}
+
       <StepIndicator steps={['Upload File', 'Generate Hashes', 'Sign & Register', 'Confirmed']} currentStep={step} />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mt-6">

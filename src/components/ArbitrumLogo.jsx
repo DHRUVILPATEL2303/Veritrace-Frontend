@@ -17,49 +17,57 @@ export function ArbitrumLogo({ size = 24, className, animated = false }) {
   )
 }
 
-/** VeriTraceLogo — shield with checkmark */
+/** VeriTraceLogo — V-checkmark with digital pixel dispersion (matches brand image) */
 export function VeriTraceLogo({ size = 32, className }) {
+  // Unique ID per instance to avoid SVG gradient conflicts when multiple logos render
+  const uid = `vt-${size}-${Math.random().toString(36).slice(2, 6)}`
   return (
     <div className={`flex items-center justify-center ${className || ''}`}>
       <svg
         width={size}
         height={size}
-        viewBox="0 0 100 100"
+        viewBox="0 0 120 120"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        style={{ filter: 'drop-shadow(0 2px 10px rgba(18,170,255,0.22))' }}
+        style={{ filter: 'drop-shadow(0 2px 12px rgba(18,170,255,0.25))' }}
       >
         <defs>
-          <linearGradient id="vt-logo-grad" x1="100%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#58d5ff" />
-            <stop offset="50%" stopColor="#12AAFF" />
-            <stop offset="100%" stopColor="#1b4add" />
+          <linearGradient id={`${uid}-grad`} x1="85%" y1="5%" x2="15%" y2="95%">
+            <stop offset="0%" stopColor="#7dd3fc" />
+            <stop offset="35%" stopColor="#38bdf8" />
+            <stop offset="65%" stopColor="#12AAFF" />
+            <stop offset="100%" stopColor="#1d4ed8" />
           </linearGradient>
         </defs>
 
-        {/* Left Leg (White / CurrentColor) */}
-        <path
-          d="M26 26.5 H40 L47.5 56.5 H33.5 Z"
-          fill="currentColor"
-        />
+        {/* ── Left Leg of V (white / currentColor) ── */}
+        <path d="M28 24 L44 24 L52 64 L56 76 L40 76 L36 64 Z" fill="currentColor" />
 
-        {/* Right Leg / Checkmark (Blue Gradient) */}
-        <path
-          d="M38 42 H45 L48 54 L73 26.5 H61.5 L48 47.5 L38 42 Z"
-          fill="url(#vt-logo-grad)"
-        />
+        {/* ── Right Leg / Checkmark (blue gradient, overlaps left leg) ── */}
+        <path d="M36 56 L44 56 L56 76 L52 64 L88 24 L76 24 L48 60 Z" fill={`url(#${uid}-grad)`} />
 
-        {/* Floating Digital Pixel Dispersion */}
-        <rect x="66" y="24" width="3" height="3" fill="#58d5ff" />
-        <rect x="70" y="21" width="3" height="3" fill="#12AAFF" />
-        <rect x="74" y="25" width="2" height="2" fill="#58d5ff" />
-        <rect x="64" y="20" width="2" height="2" fill="#1B4ADD" opacity="0.8" />
-        <rect x="72" y="18" width="2.5" height="2.5" fill="#58d5ff" />
-        <rect x="67" y="28" width="2" height="2" fill="#12AAFF" />
-        <rect x="76" y="21" width="2" height="2" fill="#58d5ff" />
-        <rect x="69" y="16" width="1.5" height="1.5" fill="#12AAFF" />
-        <rect x="71" y="25" width="1.8" height="1.8" fill="#1B4ADD" />
-        <rect x="65" y="25" width="2" height="2" fill="#12AAFF" />
+        {/* ── Pixel Dispersion Trail — 3 size tiers for depth ── */}
+        {/* Large particles (foreground) */}
+        <rect x="82"  y="22" width="4" height="4" rx="0.6" fill="#38bdf8" opacity="0.95" />
+        <rect x="88"  y="18" width="3.5" height="3.5" rx="0.5" fill="#12AAFF" opacity="0.9" />
+        <rect x="84"  y="14" width="3.5" height="3.5" rx="0.5" fill="#7dd3fc" opacity="0.85" />
+        <rect x="78"  y="17" width="3" height="3" rx="0.4" fill="#1d4ed8" opacity="0.8" />
+
+        {/* Medium particles (mid-ground) */}
+        <rect x="92"  y="22" width="2.8" height="2.8" rx="0.4" fill="#38bdf8" opacity="0.75" />
+        <rect x="90"  y="14" width="2.5" height="2.5" rx="0.3" fill="#12AAFF" opacity="0.7" />
+        <rect x="86"  y="10" width="2.5" height="2.5" rx="0.3" fill="#7dd3fc" opacity="0.7" />
+        <rect x="80"  y="10" width="2.5" height="2.5" rx="0.3" fill="#1d4ed8" opacity="0.65" />
+        <rect x="94"  y="16" width="2.2" height="2.2" rx="0.3" fill="#38bdf8" opacity="0.6" />
+
+        {/* Small particles (background, fading) */}
+        <rect x="96"  y="20" width="1.8" height="1.8" rx="0.2" fill="#7dd3fc" opacity="0.5" />
+        <rect x="92"  y="10" width="1.6" height="1.6" rx="0.2" fill="#12AAFF" opacity="0.45" />
+        <rect x="88"  y="7"  width="1.8" height="1.8" rx="0.2" fill="#38bdf8" opacity="0.4" />
+        <rect x="84"  y="6"  width="1.4" height="1.4" rx="0.2" fill="#7dd3fc" opacity="0.35" />
+        <rect x="96"  y="12" width="1.5" height="1.5" rx="0.2" fill="#1d4ed8" opacity="0.35" />
+        <rect x="98"  y="16" width="1.2" height="1.2" rx="0.2" fill="#38bdf8" opacity="0.3" />
+        <rect x="90"  y="5"  width="1.2" height="1.2" rx="0.2" fill="#12AAFF" opacity="0.25" />
       </svg>
     </div>
   )
