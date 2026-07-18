@@ -8,6 +8,7 @@ import { ARBITRUM_SEPOLIA } from '../config'
 import { VeriTraceLogo, ArbitrumLogo } from './ArbitrumLogo'
 import { cn } from '@/lib/utils'
 import { useTheme } from './providers/ExperienceProvider'
+import ThemeToggle from './ThemeToggle'
 
 const navItems = [
   { path: '/', label: 'Home', icon: null },
@@ -91,23 +92,7 @@ export default function Navbar() {
           {/* Right side */}
           <div className="flex items-center gap-2">
             {/* Theme toggle */}
-            <button
-              onClick={toggleTheme}
-              className="w-9 h-9 rounded-xl flex items-center justify-center text-[var(--text-2)] hover:bg-[var(--bg-2)] hover:text-[var(--text)] active:scale-95 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#12AAFF] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg)]"
-              aria-label="Toggle theme"
-            >
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={theme}
-                  initial={{ rotate: -90, opacity: 0 }}
-                  animate={{ rotate: 0, opacity: 1 }}
-                  exit={{ rotate: 90, opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  {theme === 'dark' ? <Moon size={16} /> : <Sun size={16} />}
-                </motion.div>
-              </AnimatePresence>
-            </button>
+            <ThemeToggle />
 
             <WalletButton />
 
