@@ -259,6 +259,20 @@ export default function EnterprisePage() {
                               <span className="text-[var(--text-3)]">Platform Fee (5%)</span>
                               <span className="font-bold text-[#12AAFF]">${(datasetData.platform_fee / 1000000).toFixed(2)}</span>
                             </div>
+                            
+                            {datasetData.creators.length > 0 && (
+                              <div className="mt-3 p-3 rounded-lg bg-[var(--surface-3)] border border-[var(--border-2)]">
+                                <div className="text-[10px] font-semibold text-[var(--text-3)] uppercase tracking-wider mb-2">Creator Payouts</div>
+                                <div className="max-h-[100px] overflow-y-auto no-scrollbar flex flex-col gap-2">
+                                  {datasetData.creators.map((c, idx) => (
+                                    <div key={idx} className="flex justify-between items-center text-xs">
+                                      <span className="font-mono text-[var(--text-2)]">{c.slice(0, 8)}...{c.slice(-6)}</span>
+                                      <span className="font-semibold text-[#00D395]">${(Number(datasetData.amounts[idx]) / 1000000).toFixed(2)}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
                           </div>
 
                           <div className="flex justify-between items-end mb-1">
