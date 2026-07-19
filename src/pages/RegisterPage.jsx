@@ -105,6 +105,7 @@ export default function RegisterPage() {
         aiConfidenceScore: data.ai_confidence_score,
         semanticHash: data.semantic_hash || [], faceHashes: data.face_hashes || [],
         audioHashes: data.audio_hashes || [], keyframes: data.keyframes || [],
+        caption: data.caption || '',
       })
       setStep(2)
     } catch (err) { 
@@ -143,7 +144,7 @@ export default function RegisterPage() {
         allow_ai_training: allowAiTraining, webhook_url: webhookUrl, parent_sha256: '',
         media_type: hashes.mediaType || 'image', semantic_hash: hashes.semanticHash || [],
         face_hashes: hashes.faceHashes || [], audio_hashes: hashes.audioHashes || [],
-        keyframes: hashes.keyframes || [],
+        keyframes: hashes.keyframes || [], caption: hashes.caption || '',
       }
       const pinMetaRes = await fetch(`${CORE_BACKEND_API}/api/v1/pin`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(metadataPayload) })
       if (!pinMetaRes.ok) throw new Error(`Failed to pin metadata: ${pinMetaRes.statusText}`)

@@ -281,6 +281,46 @@ export default function EnterprisePage() {
                           </div>
                         </div>
 
+                        {datasetData.captions && Object.keys(datasetData.captions).length > 0 && (
+                          <div className="mb-4 p-4 rounded-xl bg-[var(--surface-3)] border border-[var(--border-2)] max-h-64 overflow-y-auto">
+                            <div className="text-[11px] font-semibold text-[var(--text-3)] uppercase tracking-wider mb-3">
+                              Dataset Human Previews
+                            </div>
+                            <div className="flex flex-col gap-2">
+                              {Object.entries(datasetData.captions).map(([hash, caption]) => (
+                                <div key={hash} className="text-sm p-3 rounded-lg bg-[var(--bg-2)] border border-[var(--border)]">
+                                  <span className="font-mono text-xs text-[#12AAFF] block mb-1">Hash: {hash.slice(0, 12)}...</span>
+                                  <span className="text-[var(--text)] italic">"{caption}"</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {datasetData.semantic_embeddings && Object.keys(datasetData.semantic_embeddings).length > 0 && (
+                          <div className="mb-4">
+                            <p className="text-xs text-[var(--text-3)] mb-2 leading-relaxed">
+                              You can download the raw 512-dimensional CLIP semantic embeddings to test the reliability and relevance of this dataset locally before executing the purchase.
+                            </p>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="w-full border-[#12AAFF]/30 hover:border-[#12AAFF] hover:bg-[#12AAFF]/10 text-[#12AAFF]" 
+                              onClick={() => {
+                                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(datasetData.semantic_embeddings, null, 2));
+                                const downloadAnchorNode = document.createElement('a');
+                                downloadAnchorNode.setAttribute("href", dataStr);
+                                downloadAnchorNode.setAttribute("download", "semantic_previews.json");
+                                document.body.appendChild(downloadAnchorNode);
+                                downloadAnchorNode.click();
+                                downloadAnchorNode.remove();
+                              }}
+                            >
+                              <Download size={14} className="mr-2" /> Download Semantic Previews
+                            </Button>
+                          </div>
+                        )}
+
                         <Button 
                           variant="success" 
                           size="lg" 
