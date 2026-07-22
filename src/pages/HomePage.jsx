@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { getContractEvents } from '@wagmi/core'
@@ -14,11 +14,70 @@ import { SpotlightCard } from '../components/aceternity/SpotlightCard'
 import { TextReveal } from '../components/aceternity/TextReveal'
 import { BeamLine } from '../components/aceternity/BeamLine'
 import { ArbitrumLogo, ArbitrumOrbit, AnimatedArbitrumBadge, AnimatedNetworkBadge } from '../components/ArbitrumLogo'
+import GradientBlinds from '../components/GradientBlinds'
+import { useTheme } from '../components/providers/ExperienceProvider'
 import { FilePlus, Search, Shield, ArrowRight, Upload, FingerprintPattern as Fingerprint, Wallet, CircleCheck as CheckCircle2, Database, Layers, Sparkles, Zap, Eye, Link2, Cpu, Server, Pin, GitBranch, ChevronRight, ChevronLeft, Image as ImageIcon, Video, FileText, Play, Radio } from 'lucide-react'
 import { SUPPORTED_FILES, CONTRACT_ADDRESS, ARBITRUM_SEPOLIA } from '../config'
 
+/* ── Theme-aware GradientBlinds config ───────────────────────────────────── */
+const BLINDS_DARK_IDLE = {
+  gradientColors: ['#0a0f1e', '#12AAFF', '#1B4ADD', '#00D395', '#0a0f1e'],
+  noise: 0.18,
+  blindCount: 14,
+  blindMinWidth: 55,
+  spotlightRadius: 0.52,
+  spotlightSoftness: 1.2,
+  spotlightOpacity: 0.85,
+  mouseDampening: 0.18,
+  distortAmount: 12,
+  angle: 8,
+  shineDirection: 'left',
+  mixBlendMode: 'screen',
+}
+const BLINDS_DARK_HOVER = {
+  ...BLINDS_DARK_IDLE,
+  gradientColors: ['#00071a', '#12AAFF', '#4DC3FF', '#00D395', '#1B4ADD'],
+  spotlightRadius: 0.42,
+  spotlightSoftness: 1.6,
+  spotlightOpacity: 1.1,
+  mouseDampening: 0.06,
+  distortAmount: 22,
+  blindCount: 18,
+}
+const BLINDS_LIGHT_IDLE = {
+  gradientColors: ['#e8f4ff', '#6366f1', '#0ea5e9', '#10b981', '#e8f4ff'],
+  noise: 0.12,
+  blindCount: 12,
+  blindMinWidth: 60,
+  spotlightRadius: 0.55,
+  spotlightSoftness: 0.9,
+  spotlightOpacity: 0.65,
+  mouseDampening: 0.2,
+  distortAmount: 8,
+  angle: 6,
+  shineDirection: 'left',
+  mixBlendMode: 'multiply',
+}
+const BLINDS_LIGHT_HOVER = {
+  ...BLINDS_LIGHT_IDLE,
+  gradientColors: ['#dbeafe', '#4f46e5', '#0284c7', '#059669', '#dbeafe'],
+  spotlightRadius: 0.44,
+  spotlightSoftness: 1.3,
+  spotlightOpacity: 0.9,
+  mouseDampening: 0.06,
+  distortAmount: 18,
+  blindCount: 16,
+}
+
 export default function HomePage() {
   const [stats, setStats] = useState({ registered: 0, verifications: 0, onchain: 0, loading: true })
+  const [heroHovered, setHeroHovered] = useState(false)
+  const { theme } = useTheme()
+
+  const isDark = theme === 'dark'
+  const blindsConfig = isDark
+    ? (heroHovered ? BLINDS_DARK_HOVER : BLINDS_DARK_IDLE)
+    : (heroHovered ? BLINDS_LIGHT_HOVER : BLINDS_LIGHT_IDLE)
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -41,7 +100,69 @@ export default function HomePage() {
   return (
     <>
       {/* ════ HERO ════ */}
-      <AuroraBackground className="home-hero pt-14 pb-24">
+      <div
+        className="home-hero pt-14 pb-24 relative overflow-hidden"
+        onMouseEnter={() => setHeroHovered(true)}
+        onMouseLeave={() => setHeroHovered(false)}
+      >
+        {/* GradientBlinds layer — sits behind everything */}
+        <div className="absolute inset-0 z-0 pointer-events-none">
+          <GradientBlinds
+            key={`${theme}-${heroHovered}`}
+            gradientColors={blindsConfig.gradientColors}
+            angle={blindsConfig.angle}
+            noise={blindsConfig.noise}
+            blindCount={blindsConfig.blindCount}
+            blindMinWidth={blindsConfig.blindMinWidth}
+            spotlightRadius={blindsConfig.spotlightRadius}
+            spotlightSoftness={blindsConfig.spotlightSoftness}
+            spotlightOpacity={blindsConfig.spotlightOpacity}
+            mouseDampening={blindsConfig.mouseDampening}
+            distortAmount={blindsConfig.distortAmount}
+            shineDirection={blindsConfig.shineDirection}
+            mixBlendMode={blindsConfig.mixBlendMode}
+          />
+
+          {/* Visible border ring — glows differently per theme */}
+          <div
+            className="absolute inset-0 pointer-events-none z-10 transition-all duration-700"
+            style={{
+              boxShadow: isDark
+                ? (heroHovered
+                    ? 'inset 0 0 0 1.5px rgba(18,170,255,0.55), inset 0 0 80px rgba(18,170,255,0.08)'
+                    : 'inset 0 0 0 1px rgba(18,170,255,0.22), inset 0 0 40px rgba(18,170,255,0.04)')
+                : (heroHovered
+                    ? 'inset 0 0 0 1.5px rgba(99,102,241,0.5), inset 0 0 80px rgba(99,102,241,0.07)'
+                    : 'inset 0 0 0 1px rgba(99,102,241,0.2), inset 0 0 40px rgba(99,102,241,0.04)'),
+              borderRadius: 0,
+            }}
+          />
+
+          {/* Bottom fade — seamless blend into page background */}
+          <div
+            className="absolute bottom-0 left-0 right-0 h-40 pointer-events-none z-10"
+            style={{
+              background: isDark
+                ? 'linear-gradient(to bottom, transparent 0%, var(--bg) 100%)'
+                : 'linear-gradient(to bottom, transparent 0%, var(--bg) 100%)',
+            }}
+          />
+
+          {/* Top fade — subtle, prevents hard top edge */}
+          <div
+            className="absolute top-0 left-0 right-0 h-20 pointer-events-none z-10"
+            style={{
+              background: isDark
+                ? 'linear-gradient(to top, transparent 0%, rgba(0,0,0,0.45) 100%)'
+                : 'linear-gradient(to top, transparent 0%, rgba(247,249,252,0.6) 100%)',
+            }}
+          />
+        </div>
+
+        {/* Aurora overlay for extra depth */}
+        <div className="absolute inset-0 z-0 pointer-events-none aurora opacity-20" />
+
+        {/* Content */}
         <div className="max-w-[1280px] mx-auto px-5 text-center relative z-10">
           <ParticleField density={40} />
 
@@ -93,7 +214,7 @@ export default function HomePage() {
             </div>
           </motion.div>
         </div>
-      </AuroraBackground>
+      </div>
 
       {/* ════ STATS ════ */}
       <section className="max-w-[1280px] mx-auto px-5 -mt-8 relative z-10">
