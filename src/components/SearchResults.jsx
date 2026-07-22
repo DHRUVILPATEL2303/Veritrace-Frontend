@@ -8,6 +8,7 @@ import { Spinner } from './ui/spinner'
 import { EmptyState } from './ui/empty-state'
 import { Modal, ModalHeader } from './ui/modal'
 import { toast } from 'sonner'
+import { downloadCertificate } from '../utils/generateCertificate'
 
 export default function SearchResults({ results, loading, uploadedFile }) {
   const [localPreviewUrl, setLocalPreviewUrl] = useState(null)
@@ -30,6 +31,23 @@ export default function SearchResults({ results, loading, uploadedFile }) {
     setShowFlagForm(false)
     setFlagReason('Voice-Cloned/Audio Deepfake')
   }, [comparisonMatch])
+
+  const handleDownloadCert = async () => {
+    if (!comparisonMatch) return
+    const txObj = {
+      sha256: comparisonMatch.sha256Hash || comparisonMatch.sha256_hash || comparisonMatch.sha256,
+      hash: comparisonMatch.onChainTxHash || comparisonMatch.on_chain_tx_hash || comparisonMatch.txHash,
+      mediaS3Url: comparisonMatch.mediaS3Url,
+      mediaIpfsUrl: comparisonMatch.mediaIpfsUrl
+    }
+    toast.loading('Generating cryptographic authenticity certificate...', { id: 'cert' })
+    try {
+      await downloadCertificate(txObj, comparisonMatch.creator || comparisonMatch.creatorAddress || comparisonMatch.creator_address || '0x70997970C51812dc3A010C7d01b50e0d17dc79C8', CORE_BACKEND_API)
+      toast.success('Certificate downloaded successfully!', { id: 'cert' })
+    } catch (e) {
+      toast.error('Failed to generate certificate: ' + e.message, { id: 'cert' })
+    }
+  }
 
   const submitDispute = async () => {
     if (!comparisonMatch) return
@@ -347,7 +365,14 @@ export default function SearchResults({ results, loading, uploadedFile }) {
               )}
 
             </div>
-            <div className="px-5 py-3 border-t border-[var(--border)] bg-[var(--bg-2)] flex justify-center"><Button variant="primary" onClick={() => { setComparisonMatch(null); setHeatmapBase64(null); setSyncResult(null) }}>Back to Results</Button></div>
+            <div className="px-5 py-3 border-t border-[var(--border)] bg-[var(--bg-2)] flex justify-center gap-3">
+              <Button variant="outline" className="border-[#12AAFF]/30 text-[#12AAFF] hover:bg-[#12AAFF]/10 hover:border-[#12AAFF]" onClick={handleDownloadCert}>
+                📥 Download Certificate
+              </Button>
+              <Button variant="primary" onClick={() => { setComparisonMatch(null); setHeatmapBase64(null); setSyncResult(null) }}>
+                Back to Results
+              </Button>
+            </div>
           </>
         )}
       </Modal>
