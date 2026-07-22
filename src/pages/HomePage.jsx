@@ -49,34 +49,34 @@ export default function HomePage() {
 
   return (
     <>
-      {/* ════ GRADIENT BLINDS BACKGROUND - PERSISTENT ════ */}
-      <div style={{ 
-        position: 'fixed', 
-        top: 0, 
-        left: 0, 
-        width: '100%', 
-        height: '100vh',
-        zIndex: 0,
-        pointerEvents: 'none'
-      }}>
-        <GradientBlinds
-          gradientColors={gradientColors}
-          angle={45}
-          noise={0.2}
-          blindCount={12}
-          blindMinWidth={50}
-          spotlightRadius={0.4}
-          spotlightSoftness={1.5}
-          spotlightOpacity={0.8}
-          mouseDampening={0.2}
-          distortAmount={0.3}
-          shineDirection="left"
-          mixBlendMode={theme === 'dark' ? 'lighten' : 'multiply'}
-        />
-      </div>
-
       {/* ════ HERO ════ */}
-      <AuroraBackground className="home-hero pt-14 pb-24">
+      <AuroraBackground className="home-hero pt-14 pb-24" style={{ position: 'relative', overflow: 'hidden' }}>
+        {/* GRADIENT BLINDS BACKGROUND - HERO SECTION ONLY */}
+        <div style={{ 
+          position: 'absolute', 
+          top: 0, 
+          left: 0, 
+          width: '100%', 
+          height: '100%',
+          zIndex: 0,
+          pointerEvents: 'none'
+        }}>
+          <GradientBlinds
+            gradientColors={gradientColors}
+            angle={45}
+            noise={0.2}
+            blindCount={12}
+            blindMinWidth={50}
+            spotlightRadius={0.4}
+            spotlightSoftness={1.5}
+            spotlightOpacity={0.8}
+            mouseDampening={0.2}
+            distortAmount={0.3}
+            shineDirection="left"
+            mixBlendMode={theme === 'dark' ? 'lighten' : 'multiply'}
+          />
+        </div>
+
         <div className="max-w-[1280px] mx-auto px-5 text-center relative z-10">
           <ParticleField density={40} />
 
