@@ -50,10 +50,9 @@ export default function Navbar() {
       >
         <div className={cn(
           'flex items-center justify-between h-14 px-4 rounded-2xl transition-all duration-300',
-          'border border-[var(--border-2)]',
           scrolled
-            ? 'glass shadow-[0_8px_32px_rgba(0,0,0,0.24)] border-[#12AAFF]/30'
-            : 'glass'
+            ? 'glass shadow-[0_8px_32px_rgba(0,0,0,0.32)] border border-[#12AAFF]/60 shadow-[0_0_0_1px_rgba(18,170,255,0.15)]'
+            : 'glass border border-[rgba(255,255,255,0.12)]'
         )}>
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2.5 pl-1">
