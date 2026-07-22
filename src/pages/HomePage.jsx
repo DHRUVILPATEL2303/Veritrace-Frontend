@@ -15,6 +15,7 @@ import { TextReveal } from '../components/aceternity/TextReveal'
 import { BeamLine } from '../components/aceternity/BeamLine'
 import { ArbitrumLogo, ArbitrumOrbit, AnimatedArbitrumBadge, AnimatedNetworkBadge } from '../components/ArbitrumLogo'
 import GradientBlinds from '../components/GradientBlinds'
+import { useTheme } from '../components/providers/ExperienceProvider'
 import { FilePlus, Search, Shield, ArrowRight, Upload, FingerprintPattern as Fingerprint, Wallet, CircleCheck as CheckCircle2, Database, Layers, Sparkles, Zap, Eye, Link2, Cpu, Server, Pin, GitBranch, ChevronRight, ChevronLeft, Image as ImageIcon, Video, FileText, Play, Radio } from 'lucide-react'
 import { SUPPORTED_FILES, CONTRACT_ADDRESS, ARBITRUM_SEPOLIA } from '../config'
 
@@ -39,28 +40,44 @@ export default function HomePage() {
     fetchStats()
   }, [])
 
+  const { theme } = useTheme()
+  
+  // Theme-aware gradient colors
+  const gradientColors = theme === 'dark' 
+    ? ['#12AAFF', '#5227FF', '#FF9FFC']  // Blue, Purple, Pink for dark mode
+    : ['#FF6B6B', '#FFA500', '#FFD700']  // Red, Orange, Gold for light mode
+
   return (
     <>
-      {/* ════ GRADIENT BLINDS ANIMATION ════ */}
-      <div style={{ width: '100%', height: '400px', position: 'relative', marginBottom: '2rem' }}>
-        <GradientBlinds
-          gradientColors={['#12AAFF', '#5227FF', '#FF9FFC']}
-          angle={45}
-          noise={0.2}
-          blindCount={12}
-          blindMinWidth={50}
-          spotlightRadius={0.4}
-          spotlightSoftness={1.5}
-          spotlightOpacity={0.8}
-          mouseDampening={0.2}
-          distortAmount={0.3}
-          shineDirection="left"
-          mixBlendMode="lighten"
-        />
-      </div>
-
       {/* ════ HERO ════ */}
       <AuroraBackground className="home-hero pt-14 pb-24">
+        {/* GRADIENT BLINDS BACKGROUND */}
+        <div style={{ 
+          position: 'absolute', 
+          top: 0, 
+          left: 0, 
+          right: 0, 
+          bottom: 0, 
+          width: '100%', 
+          height: '100%',
+          zIndex: 0,
+          opacity: 0.6
+        }}>
+          <GradientBlinds
+            gradientColors={gradientColors}
+            angle={45}
+            noise={0.2}
+            blindCount={12}
+            blindMinWidth={50}
+            spotlightRadius={0.4}
+            spotlightSoftness={1.5}
+            spotlightOpacity={0.8}
+            mouseDampening={0.2}
+            distortAmount={0.3}
+            shineDirection="left"
+            mixBlendMode={theme === 'dark' ? 'lighten' : 'multiply'}
+          />
+        </div>
         <div className="max-w-[1280px] mx-auto px-5 text-center relative z-10">
           <ParticleField density={40} />
 
