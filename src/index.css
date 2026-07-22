@@ -30,6 +30,7 @@
   --font-mono: 'JetBrains Mono', 'SF Mono', monospace;
 
   --animate-scroll: scroll var(--animation-duration, 40s) var(--animation-direction, forwards) linear infinite;
+  --animate-aurora: aurora-flow 60s linear infinite;
 }
 
 @keyframes scroll {
@@ -74,29 +75,29 @@
   --bg: #000000;
   --bg-2: #040405;
   --bg-3: #090a0e;
-  --surface: rgba(7, 8, 11, 0.94);
+  --surface: rgba(7, 8, 11, 0.96);
   --surface-2: #0a0b0e;
   --surface-3: #111318;
-  --border: rgba(255, 255, 255, 0.07);
-  --border-2: rgba(255, 255, 255, 0.12);
+  --border: rgba(255, 255, 255, 0.14);
+  --border-2: rgba(255, 255, 255, 0.22);
   --text: #F5F7FC;
   --text-2: #C5CBD9;
   --text-3: #8A92AC;
   --text-4: #525A78;
   --arb: #12AAFF;
   --arb-bg: rgba(18, 170, 255, 0.10);
-  --arb-border: rgba(18, 170, 255, 0.25);
+  --arb-border: rgba(18, 170, 255, 0.30);
   --success-bg: rgba(0, 211, 149, 0.10);
-  --success-border: rgba(0, 211, 149, 0.25);
+  --success-border: rgba(0, 211, 149, 0.30);
   --danger-bg: rgba(255, 77, 77, 0.10);
-  --danger-border: rgba(255, 77, 77, 0.25);
+  --danger-border: rgba(255, 77, 77, 0.30);
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5), 0 0 1px rgba(18, 170, 255, 0.04);
   --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.6), 0 0 1px rgba(18, 170, 255, 0.06);
   --shadow-lg: 0 20px 56px rgba(0, 0, 0, 0.7), 0 0 2px rgba(18, 170, 255, 0.08);
   --shadow-arb: 0 0 32px rgba(18, 170, 255, 0.28), 0 0 4px rgba(18, 170, 255, 0.1);
   --shadow-arb-lg: 0 0 100px rgba(18, 170, 255, 0.15);
-  --navbar-bg: rgba(0, 0, 0, 0.9);
-  --card-gradient: linear-gradient(135deg, rgba(6, 7, 10, .97), rgba(11, 13, 18, .9));
+  --navbar-bg: rgba(0, 0, 0, 0.92);
+  --card-gradient: linear-gradient(135deg, rgba(6, 7, 10, .98), rgba(11, 13, 18, .95));
   --glow-arb: rgba(18, 170, 255, 0.1);
 }
 
@@ -615,6 +616,16 @@ footer {
   animation: aurora 12s ease infinite;
 }
 
+/* Aurora-flow for the Aceternity AuroraBackground component */
+@keyframes aurora-flow {
+  0% {
+    background-position: 50% 50%, 50% 50%;
+  }
+  100% {
+    background-position: 350% 50%, 350% 50%;
+  }
+}
+
 /* Animated shimmer beam */
 @keyframes shimmer {
   0% {
@@ -830,16 +841,16 @@ footer {
 
 .glass {
   background: var(--navbar-bg);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid var(--border);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid var(--border-2);
 }
 
 .glass-card {
   background: var(--card-gradient);
-  backdrop-filter: blur(16px) saturate(160%);
-  -webkit-backdrop-filter: blur(16px) saturate(160%);
-  border: 1px solid var(--border);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid var(--border-2);
   box-shadow: var(--shadow-md);
 }
 
@@ -1568,4 +1579,39 @@ footer {
 
 .ray:nth-child(8) {
   transform: rotate(315deg) translateY(-15px);
+}
+
+/* ═══════════════════════════════════════
+   GLOBAL BORDER STRENGTHENING
+   Ensures all UI surfaces are clearly
+   delineated against the Aurora background
+═══════════════════════════════════════ */
+
+[data-theme="dark"] [data-card-surface],
+[data-theme="dark"] .glass,
+[data-theme="dark"] .glass-card {
+  border-color: var(--border-2);
+}
+
+/* Strengthen all divider borders (border-b, border-t, etc.) */
+[data-theme="dark"] .border-b,
+[data-theme="dark"] .border-t,
+[data-theme="dark"] .border-l,
+[data-theme="dark"] .border-r {
+  border-color: var(--border-2);
+}
+
+/* Page section cards and content containers */
+[data-theme="dark"] .page-hero {
+  border-bottom: 1px solid var(--border-2);
+}
+
+/* Step indicators and progress elements */
+[data-theme="dark"] .step-indicator {
+  border-color: var(--border-2);
+}
+
+/* Footer */
+[data-theme="dark"] footer {
+  border-top: 1px solid var(--border-2);
 }

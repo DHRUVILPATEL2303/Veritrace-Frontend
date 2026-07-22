@@ -15,6 +15,7 @@ import { Progress } from '../components/ui/progress'
 import { SpotlightCard } from '../components/aceternity/SpotlightCard'
 import { ArbitrumLogo } from '../components/ArbitrumLogo'
 import PageHero from '../components/PageHero'
+import { ScrollReveal } from '../components/ui/scroll-reveal'
 import { useUpload } from '../context/UploadContext'
 import { useIntegrityTone } from '../components/providers/ExperienceProvider'
 import { config } from '../wagmiConfig'
@@ -199,6 +200,7 @@ export default function VerifyPage() {
   return (
     <section>
       <PageHero eyebrow="AUTHENTICITY INTELLIGENCE" title="See the evidence behind a file." description="Compare content against public records and layered similarity signals to identify originals, likely derivatives, and high-risk alterations." icon={Search} />
+      <ScrollReveal variant="fade-up">
       <div className="max-w-[1280px] mx-auto px-5 pt-7">
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.5fr] gap-5">
         {/* LEFT */}
@@ -323,6 +325,7 @@ export default function VerifyPage() {
         </div>
       </div>
       </div>
+      </ScrollReveal>
     </section>
   )
 }

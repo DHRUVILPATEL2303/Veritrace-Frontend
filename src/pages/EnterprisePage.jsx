@@ -14,6 +14,7 @@ import { toast } from 'sonner'
 import { SpotlightCard } from '../components/aceternity/SpotlightCard'
 import { ArbitrumLogo } from '../components/ArbitrumLogo'
 import PageHero from '../components/PageHero'
+import { ScrollReveal } from '../components/ui/scroll-reveal'
 import { Database, Shield, CheckCircle2, AlertTriangle, ExternalLink, Download, Globe, Building, Check, FileText, Copy } from 'lucide-react'
 import { CORE_BACKEND_API, CONTRACT_ADDRESS, CONTRACT_ABI, ARBITRUM_SEPOLIA } from '../config'
 
@@ -229,6 +230,7 @@ export default function EnterprisePage() {
         description="Query registered datasets on Arbitrum. Pay creators directly via smart contract splits to instantly unlock high-resolution media." 
         icon={Database} 
       />
+      <ScrollReveal variant="fade-up">
       <div className="max-w-[1280px] mx-auto px-5 pt-7 pb-20">
         
         {isConnected && (
@@ -620,6 +622,7 @@ export default function EnterprisePage() {
           </div>
         )}
       </div>
+      </ScrollReveal>
     </section>
   )
 }
