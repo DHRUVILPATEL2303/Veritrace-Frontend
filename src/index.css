@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Map `dark:` variant to data-theme="dark" (project uses attribute, not .dark class) */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 /* ═══════════════════════════════════════
    VERITRACE — ARBITRUM-NATIVE DESIGN SYSTEM
    Dark / Light mode + Aceternity-inspired
@@ -1568,4 +1571,37 @@ footer {
 
 .ray:nth-child(8) {
   transform: rotate(315deg) translateY(-15px);
+}
+
+/* ═══ BackgroundRippleEffect ═══ */
+@keyframes cell-ripple {
+  0% {
+    scale: 1;
+    opacity: 0.4;
+  }
+  50% {
+    scale: 1.6;
+    opacity: 1;
+  }
+  100% {
+    scale: 1;
+    opacity: 0.4;
+  }
+}
+
+.animate-cell-ripple {
+  animation-name: cell-ripple;
+  animation-duration: var(--duration, 400ms);
+  animation-delay: var(--delay, 0ms);
+  animation-timing-function: ease-out;
+}
+
+.mask-radial-from-20\% {
+  -webkit-mask-image: radial-gradient(circle at 50% 0%, black 20%, transparent 80%);
+  mask-image: radial-gradient(circle at 50% 0%, black 20%, transparent 80%);
+}
+
+.mask-radial-at-top {
+  -webkit-mask-position: 50% 0%;
+  mask-position: 50% 0%;
 }
