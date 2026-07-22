@@ -109,10 +109,45 @@ export default function SearchResults({ results, loading, uploadedFile }) {
   if (!results) return <EmptyState icon={<Search size={28} />} title="Upload a file to search" description="We'll check for exact SHA-256 matches and visually similar content in the registry." />
   if (results.length === 0) return <EmptyState icon={<CheckCircle2 size={28} />} title="No matches found" description="This content hasn't been registered yet. You can be the first to register it!" />
 
+  // Identify the earliest registered match
+  let earliestMatchHash = null
+  if (results && results.length > 0) {
+    let earliestTime = Infinity
+    for (const r of results) {
+      if (r.registeredAt) {
+        const t = new Date(r.registeredAt).getTime()
+        if (!isNaN(t) && t < earliestTime) {
+          earliestTime = t
+          earliestMatchHash = r.sha256
+        }
+      }
+    }
+  }
+
+  // Check if matches belong to different creators (provenance dispute)
+  const uniqueCreators = new Set(results.map(r => r.creator?.toLowerCase()).filter(Boolean))
+  const isDisputed = uniqueCreators.size > 1
+
   return (
     <>
+      {isDisputed && (
+        <div className="mb-3 p-3 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl text-xs flex items-start gap-2.5 font-medium">
+          <AlertTriangle size={16} className="text-red-500 flex-shrink-0 mt-0.5" />
+          <div>
+            <strong className="text-red-400">Provenance Dispute Alert:</strong> Visually similar content has been registered by multiple different owner wallets. Check the timeline and registry dates below to identify the true original.
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-col gap-2">
-        {results.map((result, index) => <MatchCard key={index} result={result} onSelect={() => setComparisonMatch(result)} />)}
+        {results.map((result, index) => (
+          <MatchCard 
+            key={index} 
+            result={result} 
+            isEarliest={result.sha256 === earliestMatchHash}
+            onSelect={() => setComparisonMatch(result)} 
+          />
+        ))}
       </div>
 
       <Modal open={!!comparisonMatch} onClose={() => { setComparisonMatch(null); setHeatmapBase64(null); setSyncResult(null) }} maxWidth={resolvedOriginalUrl && resolvedMediaType === 'image' ? 'max-w-7xl' : 'max-w-5xl'}>
@@ -156,6 +191,9 @@ export default function SearchResults({ results, loading, uploadedFile }) {
                   <div className="font-semibold text-[var(--text-2)] mb-1">Asset Identification</div>
                   <div className="text-[var(--text-3)]">SHA-256 Slice: <span className="font-mono text-[#12AAFF]">{comparisonMatch.assetId}</span></div>
                   <div className="text-[var(--text-3)]">AI Model: {comparisonMatch.aiTool || 'None (Authentic Content)'}</div>
+                  {comparisonMatch.confidenceTier && (
+                    <div className="text-[var(--text-3)]">Confidence Score: <span className="font-semibold text-[#00D395]">{comparisonMatch.confidenceScore?.toFixed(0)}% ({comparisonMatch.confidenceTier})</span></div>
+                  )}
                 </div>
                 <div>
                   <div className="font-semibold text-[var(--text-2)] mb-1">On-Chain Record</div>
@@ -212,7 +250,7 @@ export default function SearchResults({ results, loading, uploadedFile }) {
   )
 }
 
-function MatchCard({ result, onSelect }) {
+function MatchCard({ result, onSelect, isEarliest }) {
   const isExact = result.matchType === 'exact'
   const isDeepfake = result.matchType === 'deepfake' || result.isDeepfake
   const isAudioDeepfake = result.isAudioDeepfake
@@ -228,9 +266,15 @@ function MatchCard({ result, onSelect }) {
         {!previewUrl ? <div className="w-[140px] h-[95px] rounded-lg border border-[var(--border)] bg-[var(--bg-2)] flex items-center justify-center text-[10px] text-[var(--text-3)] text-center p-2 leading-tight">{isLegacy ? 'No preview (Legacy)' : 'Click to compare'}</div> : <img src={previewUrl} alt="Match" className="w-[140px] h-[95px] object-cover rounded-lg border border-[var(--border)] bg-[var(--bg-2)]" onError={(e) => { if (result.assetId && e.target.src !== `https://s3.veritrace.dpkvtrading.online/veritrace/${result.assetId}`) { e.target.src = `https://s3.veritrace.dpkvtrading.online/veritrace/${result.assetId}` } else { e.target.style.display = 'none' } }} />}
       </div>
       <div className="flex-1 p-3.5 flex flex-col justify-center gap-1 min-w-0">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <Badge variant={isExact ? 'success' : isDeepfake ? 'danger' : 'warning'}>{isExact ? <><CheckCircle2 size={10} /> Exact Match</> : isDeepfake ? 'DEEPFAKE DETECTED' : '≈ Similar'}</Badge>
           {isAudioDeepfake && <Badge variant="danger" className="ml-1">AUDIO DEEPFAKE</Badge>}
+          {isEarliest && <Badge variant="success" className="ml-1 bg-[#12AAFF] hover:bg-[#12AAFF] text-white border-none">Earliest Registry</Badge>}
+          {result.confidenceTier && (
+            <Badge variant={result.confidenceTier === 'High' ? 'success' : result.confidenceTier === 'Medium' ? 'warning' : 'danger'} className="ml-1">
+              Confidence: {result.confidenceTier} ({result.confidenceScore?.toFixed(0)}%)
+            </Badge>
+          )}
           <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-3)]">{result.mediaType || 'unknown'}</span>
         </div>
         {result.assetId && <div className="text-xs"><span className="text-[var(--text-3)]">Asset: </span><span className="font-mono text-[#12AAFF]">{result.assetId}</span></div>}
