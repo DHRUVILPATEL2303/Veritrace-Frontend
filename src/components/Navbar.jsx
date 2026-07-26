@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
-import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { useState, useEffect, useRef } from 'react'
+import { motion, AnimatePresence, useScroll, useSpring } from 'framer-motion'
 import { useAccount, useConnect, useDisconnect, useSwitchChain } from 'wagmi'
 import { FilePlus, Search, Library, Info, Menu, X, ChevronDown, Wallet, Sun, Moon, Copy, LogOut, Check, User, Database } from 'lucide-react'
 import { toast } from 'sonner'
@@ -20,15 +20,28 @@ const navItems = [
   { path: '/enterprise', label: 'Enterprise', icon: Database },
 ]
 
+function ScrollProgress() {
+  const { scrollYProgress } = useScroll()
+  const scaleX = useSpring(scrollYProgress, { stiffness: 100, damping: 30, restDelta: 0.001 })
+  return (
+    <motion.div
+      className="absolute bottom-0 left-3 right-3 h-[2px] rounded-full bg-gradient-to-r from-[#12AAFF] via-[#00D395] to-[#1B4ADD] origin-left"
+      style={{ scaleX, opacity: 1 }}
+      aria-hidden="true"
+    />
+  )
+}
+
 export default function Navbar() {
   const location = useLocation()
   const [scrolled, setScrolled] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const { theme, toggleTheme } = useTheme()
+  const navRef = useRef(null)
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20)
-    window.addEventListener('scroll', handleScroll)
+    window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
@@ -40,30 +53,34 @@ export default function Navbar() {
     <>
       {/* Floating navbar */}
       <motion.nav
+        ref={navRef}
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.4, ease: 'easeOut' }}
         className={cn(
-          'fixed top-4 left-1/2 -translate-x-1/2 z-[999] transition-all duration-300',
-          'w-[calc(100%-2rem)] max-w-[1080px]'
+          'fixed top-4 left-1/2 -translate-x-1/2 z-[999]',
+          'w-[calc(100%-2rem)] max-w-[1200px]'
         )}
       >
         <div className={cn(
-          'flex items-center justify-between h-14 px-4 rounded-2xl transition-all duration-300',
+          'relative flex items-center justify-between h-14 px-4 rounded-2xl transition-all duration-500',
           scrolled
             ? 'glass shadow-[0_8px_32px_rgba(0,0,0,0.4)] border-2 border-[#12AAFF]'
             : 'glass border-2 border-white/20'
         )}>
+          {/* Scroll progress bar */}
+          {scrolled && <ScrollProgress />}
+
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2.5 pl-1">
+          <Link to="/" className="flex items-center gap-2.5 pl-1 flex-shrink-0 min-w-0">
             <VeriTraceLogo size={28} />
-            <span className="text-base font-extrabold tracking-tight">
+            <span className="text-base font-extrabold tracking-tight whitespace-nowrap">
               <span className="gradient-arb">Veri</span><span className="text-[var(--text)]">Trace</span><span className="hidden lg:inline ml-2 text-[9px] uppercase tracking-[.16em] text-[var(--text-4)]">Protocol</span>
             </span>
           </Link>
 
           {/* Desktop nav */}
-          <motion.div initial="hidden" animate="visible" variants={{ hidden: {}, visible: { transition: { staggerChildren: .045 } } }} className="hidden md:flex items-center gap-0.5">
+          <motion.div initial="hidden" animate="visible" variants={{ hidden: {}, visible: { transition: { staggerChildren: .045 } } }} className="hidden lg:flex items-center gap-0.5 flex-shrink min-w-0 overflow-hidden">
             {navItems.map((item) => {
               const Icon = item.icon
               return (
@@ -71,13 +88,13 @@ export default function Navbar() {
                 <Link
                   to={item.path}
                   className={cn(
-                    'flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-xl transition-all duration-200',
+                    'flex items-center gap-1.5 px-2.5 py-2 text-[13px] font-medium rounded-xl transition-all duration-200 whitespace-nowrap',
                     isActive(item.path)
                       ? 'text-[#12AAFF] bg-[var(--arb-bg)]'
                       : 'text-[var(--text-2)] hover:text-[var(--text)] hover:bg-[var(--bg-2)]'
                   )}
                 >
-                  {Icon && <Icon size={14} />}
+                  {Icon && <Icon size={13} />}
                   {item.label}
                   {isActive(item.path) && (
                     <motion.div
@@ -92,16 +109,13 @@ export default function Navbar() {
             })}
           </motion.div>
 
-          {/* Right side */}
-          <div className="flex items-center gap-2">
-            {/* Theme toggle */}
+          {/* Right side — flex-shrink-0 to prevent overflow */}
+          <div className="flex items-center gap-1.5 flex-shrink-0">
             <ThemeToggle />
-
             <WalletButton />
-
             {/* Mobile menu button */}
             <button
-              className="md:hidden w-9 h-9 rounded-xl flex items-center justify-center text-[var(--text-2)] hover:bg-[var(--bg-2)] active:scale-95 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#12AAFF]"
+              className="lg:hidden w-9 h-9 rounded-xl flex items-center justify-center text-[var(--text-2)] hover:bg-[var(--bg-2)] active:scale-95 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#12AAFF]"
               onClick={() => setMobileOpen(!mobileOpen)}
             >
               {mobileOpen ? <X size={18} /> : <Menu size={18} />}
@@ -116,26 +130,32 @@ export default function Navbar() {
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="md:hidden overflow-hidden glass mt-2 rounded-2xl"
+              transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
+              className="lg:hidden overflow-hidden glass mt-2 rounded-2xl"
             >
               <div className="px-3 py-3 flex flex-col gap-1">
-                {navItems.map((item) => {
+                {navItems.map((item, i) => {
                   const Icon = item.icon
                   return (
-                    <Link
+                    <motion.div
                       key={item.path}
-                      to={item.path}
-                      className={cn(
-                        'flex items-center gap-2.5 px-3 py-2.5 text-sm font-medium rounded-xl transition-colors',
-                        isActive(item.path)
-                          ? 'text-[#12AAFF] bg-[var(--arb-bg)]'
-                          : 'text-[var(--text-2)] hover:bg-[var(--bg-2)]'
-                      )}
+                      initial={{ opacity: 0, x: -12 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.04, duration: 0.25 }}
                     >
-                      {Icon && <Icon size={16} />}
-                      {item.label}
-                    </Link>
+                      <Link
+                        to={item.path}
+                        className={cn(
+                          'flex items-center gap-2.5 px-3 py-2.5 text-sm font-medium rounded-xl transition-colors',
+                          isActive(item.path)
+                            ? 'text-[#12AAFF] bg-[var(--arb-bg)]'
+                            : 'text-[var(--text-2)] hover:bg-[var(--bg-2)]'
+                        )}
+                      >
+                        {Icon && <Icon size={16} />}
+                        {item.label}
+                      </Link>
+                    </motion.div>
                   )
                 })}
               </div>
@@ -180,17 +200,17 @@ function WalletButton() {
 
   if (isConnected && address) {
     return (
-      <div className="relative">
+      <div className="relative flex-shrink-0">
         <button
           onClick={() => setShowDropdown(value => !value)}
-          className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-xl bg-[var(--surface)] border border-[var(--border)] text-[var(--text)] shadow-sm hover:border-[#12AAFF]/50 hover:shadow-md active:scale-[.98] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#12AAFF]"
+          className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-xl bg-[var(--surface)] border border-[var(--border)] text-[var(--text)] shadow-sm hover:border-[#12AAFF]/50 hover:shadow-md active:scale-[.98] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#12AAFF] whitespace-nowrap"
           aria-expanded={showDropdown}
           aria-label="Open wallet account menu"
         >
-          <span className="w-2 h-2 rounded-full bg-[#00D395] shadow-[0_0_8px_#00D395]" />
+          <span className="w-2 h-2 rounded-full bg-[#00D395] shadow-[0_0_8px_#00D395] flex-shrink-0" />
           <span className="font-mono font-medium text-[var(--text)] hidden sm:inline">{formatAddress(address)}</span>
           <ArbitrumLogo size={14} />
-          <ChevronDown size={12} className={cn('transition-transform text-[var(--text-3)]', showDropdown && 'rotate-180')} />
+          <ChevronDown size={12} className={cn('transition-transform text-[var(--text-3)] flex-shrink-0', showDropdown && 'rotate-180')} />
         </button>
 
         <AnimatePresence>
@@ -231,15 +251,15 @@ function WalletButton() {
   }
 
   return (
-    <div className="relative">
+    <div className="relative flex-shrink-0">
       <button
         onClick={() => setShowDropdown(!showDropdown)}
-        className="flex items-center gap-2 px-3 py-2 text-sm font-semibold rounded-xl text-white transition-all hover:shadow-lg"
+        className="flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-xl text-white transition-all hover:shadow-lg whitespace-nowrap"
         style={{ background: 'linear-gradient(135deg, #12AAFF, #1B4ADD)' }}
       >
         <Wallet size={14} />
         <span className="hidden sm:inline">Connect</span>
-        <ChevronDown size={12} className={cn('transition-transform', showDropdown && 'rotate-180')} />
+        <ChevronDown size={12} className={cn('transition-transform flex-shrink-0', showDropdown && 'rotate-180')} />
       </button>
 
       <AnimatePresence>
