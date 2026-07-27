@@ -7,7 +7,7 @@ export function Spinner({ size = 24, className }) {
       style={{
         width: size,
         height: size,
-        borderTopColor: '#12AAFF',
+        borderTopColor: 'var(--accent)',
       }}
     />
   )

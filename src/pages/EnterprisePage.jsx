@@ -235,7 +235,7 @@ export default function EnterprisePage() {
         
         {isConnected && (
           <div className="mb-5 flex items-center gap-3 px-4 py-3 rounded-2xl border border-[var(--arb-border)] bg-[var(--arb-bg)]">
-            <AlertTriangle size={15} className="text-[#12AAFF] flex-shrink-0" />
+            <AlertTriangle size={15} className="text-[var(--accent)] flex-shrink-0" />
             <p className="text-xs text-[var(--text-2)] leading-relaxed">
               Purchasing requires Sepolia USDC. This is a testnet demo. Ensure you have approved the VeriTrace registry to spend your test tokens.
             </p>
@@ -247,7 +247,7 @@ export default function EnterprisePage() {
             onClick={() => setActiveTab('dataset')}
             className={`py-3 px-6 text-sm font-semibold border-b-2 transition-all ${
               activeTab === 'dataset'
-                ? 'border-[#12AAFF] text-[#12AAFF] bg-[#12AAFF]/5 rounded-t-xl'
+                ? 'border-[var(--accent)] text-[var(--accent)] bg-[var(--accent)]/5 rounded-t-xl'
                 : 'border-transparent text-[var(--text-3)] hover:text-[var(--text-2)]'
             }`}
           >
@@ -257,7 +257,7 @@ export default function EnterprisePage() {
             onClick={() => setActiveTab('publisher')}
             className={`py-3 px-6 text-sm font-semibold border-b-2 transition-all ${
               activeTab === 'publisher'
-                ? 'border-[#12AAFF] text-[#12AAFF] bg-[#12AAFF]/5 rounded-t-xl'
+                ? 'border-[var(--accent)] text-[var(--accent)] bg-[var(--accent)]/5 rounded-t-xl'
                 : 'border-transparent text-[var(--text-3)] hover:text-[var(--text-2)]'
             }`}
           >
@@ -272,7 +272,7 @@ export default function EnterprisePage() {
             <SpotlightCard>
               <Card className="card-hover-glow">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2"><Database size={16} className="text-[#12AAFF]" /> Query Dataset</CardTitle>
+                  <CardTitle className="flex items-center gap-2"><Database size={16} className="text-[var(--accent)]" /> Query Dataset</CardTitle>
                 </CardHeader>
                 <CardBody className="flex flex-col gap-4">
                   <div>
@@ -289,7 +289,7 @@ export default function EnterprisePage() {
                       type="number" 
                       value={quantity} 
                       onChange={(e) => setQuantity(Number(e.target.value))}
-                      className="w-full px-3.5 py-2.5 text-sm rounded-xl bg-[var(--bg-2)] border border-[var(--border)] text-[var(--text)] outline-none focus:border-[#12AAFF]"
+                      className="w-full px-3.5 py-2.5 text-sm rounded-xl bg-[var(--bg-2)] border border-[var(--border)] text-[var(--text)] outline-none focus:border-[var(--accent)]"
                       min="1"
                     />
                   </div>
@@ -300,7 +300,7 @@ export default function EnterprisePage() {
                       value={searchQuery} 
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder='e.g. "cyberpunk cityscapes" or "rainy weather"'
-                      className="w-full px-3.5 py-2.5 text-sm rounded-xl bg-[var(--bg-2)] border border-[var(--border)] text-[var(--text)] outline-none focus:border-[#12AAFF]"
+                      className="w-full px-3.5 py-2.5 text-sm rounded-xl bg-[var(--bg-2)] border border-[var(--border)] text-[var(--text)] outline-none focus:border-[var(--accent)]"
                     />
                     <p className="text-[10px] text-[var(--text-3)] mt-1.5 leading-relaxed">
                       Powered by AI vector search. Leave blank to fetch a random selection.
@@ -322,7 +322,7 @@ export default function EnterprisePage() {
             <SpotlightCard>
               <Card className="card-hover-glow card-border-animate">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2"><Shield size={16} className="text-[#12AAFF]" /> Dataset Checkout</CardTitle>
+                  <CardTitle className="flex items-center gap-2"><Shield size={16} className="text-[var(--accent)]" /> Dataset Checkout</CardTitle>
                 </CardHeader>
                 <CardBody>
                   <AnimatePresence mode="wait">
@@ -359,7 +359,7 @@ export default function EnterprisePage() {
                             </div>
                             <div className="flex justify-between">
                               <span className="text-[var(--text-3)]">Platform Fee (5%)</span>
-                              <span className="font-bold text-[#12AAFF]">${(datasetData.platform_fee / 1000000).toFixed(2)}</span>
+                              <span className="font-bold text-[var(--accent)]">${(datasetData.platform_fee / 1000000).toFixed(2)}</span>
                             </div>
                             
                             {datasetData.creators.length > 0 && (
@@ -369,7 +369,7 @@ export default function EnterprisePage() {
                                   {datasetData.creators.map((c, idx) => (
                                     <div key={idx} className="flex justify-between items-center text-xs">
                                       <span className="font-mono text-[var(--text-2)]">{c.slice(0, 8)}...{c.slice(-6)}</span>
-                                      <span className="font-semibold text-[#00D395]">${(Number(datasetData.amounts[idx]) / 1000000).toFixed(2)}</span>
+                                      <span className="font-semibold text-[var(--success-text, #4CAF50)]">${(Number(datasetData.amounts[idx]) / 1000000).toFixed(2)}</span>
                                     </div>
                                   ))}
                                 </div>
@@ -379,7 +379,7 @@ export default function EnterprisePage() {
 
                           <div className="flex justify-between items-end mb-1">
                             <span className="text-[var(--text-3)] font-semibold">Total Cost</span>
-                            <span className="text-2xl font-bold text-[#00D395]">${(datasetData.total_usdc / 1000000).toFixed(2)} USDC</span>
+                            <span className="text-2xl font-bold text-[var(--success-text, #4CAF50)]">${(datasetData.total_usdc / 1000000).toFixed(2)} USDC</span>
                           </div>
                         </div>
 
@@ -391,7 +391,7 @@ export default function EnterprisePage() {
                             <div className="flex flex-col gap-2">
                               {Object.entries(datasetData.captions).map(([hash, caption]) => (
                                 <div key={hash} className="text-sm p-3 rounded-lg bg-[var(--bg-2)] border border-[var(--border)]">
-                                  <span className="font-mono text-xs text-[#12AAFF] block mb-1">Hash: {hash.slice(0, 12)}...</span>
+                                  <span className="font-mono text-xs text-[var(--accent)] block mb-1">Hash: {hash.slice(0, 12)}...</span>
                                   <span className="text-[var(--text)] italic">"{caption}"</span>
                                 </div>
                               ))}
@@ -407,7 +407,7 @@ export default function EnterprisePage() {
                             <Button 
                               variant="outline" 
                               size="sm" 
-                              className="w-full border-[#12AAFF]/30 hover:border-[#12AAFF] hover:bg-[#12AAFF]/10 text-[#12AAFF]" 
+                              className="w-full border-[var(--accent)]/30 hover:border-[var(--accent)] hover:bg-[var(--accent)]/10 text-[var(--accent)]" 
                               onClick={() => {
                                 const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(datasetData.semantic_embeddings, null, 2));
                                 const downloadAnchorNode = document.createElement('a');
@@ -437,7 +437,7 @@ export default function EnterprisePage() {
 
                     {purchaseSuccess && (
                       <motion.div key="success" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-4">
-                        <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.1, type: 'spring' }} className="w-14 h-14 rounded-full bg-[var(--success-bg)] text-[#00D395] flex items-center justify-center mx-auto mb-3">
+                        <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.1, type: 'spring' }} className="w-14 h-14 rounded-full bg-[var(--success-bg)] text-[var(--success-text, #4CAF50)] flex items-center justify-center mx-auto mb-3">
                           <CheckCircle2 size={28} />
                         </motion.div>
                         <div className="font-bold text-lg mb-1 text-[var(--text)]">Dataset Unlocked!</div>
@@ -446,13 +446,13 @@ export default function EnterprisePage() {
                         <div className="bg-[var(--bg-2)] rounded-xl p-4 border border-[var(--border)] text-left text-xs mb-4">
                           <div className="flex justify-between mb-2">
                             <span className="text-[var(--text-3)]">Tx Hash</span>
-                            <a href={`${ARBITRUM_SEPOLIA.explorer}/tx/${txHash}`} target="_blank" rel="noopener noreferrer" className="text-[#12AAFF] hover:opacity-80 font-mono">
+                            <a href={`${ARBITRUM_SEPOLIA.explorer}/tx/${txHash}`} target="_blank" rel="noopener noreferrer" className="text-[var(--accent)] hover:opacity-80 font-mono">
                               {txHash.slice(0, 10)}...{txHash.slice(-8)}
                             </a>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-[var(--text-3)]">Items Access</span>
-                            <span className="font-bold text-[#00D395]">{datasetData.total_items} High-Res Files</span>
+                            <span className="font-bold text-[var(--success-text, #4CAF50)]">{datasetData.total_items} High-Res Files</span>
                           </div>
                         </div>
 
@@ -498,7 +498,7 @@ export default function EnterprisePage() {
                 <Card className="card-hover-glow">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      <Globe size={18} className="text-[#12AAFF]" /> Organization Registration
+                      <Globe size={18} className="text-[var(--accent)]" /> Organization Registration
                     </CardTitle>
                   </CardHeader>
                   <CardBody className="flex flex-col gap-4">
@@ -510,7 +510,7 @@ export default function EnterprisePage() {
                           value={publisherOrg}
                           onChange={(e) => setPublisherOrg(e.target.value)}
                           placeholder='e.g. "Associated Press"'
-                          className="w-full px-3.5 py-2.5 text-sm rounded-xl bg-[var(--bg-2)] border border-[var(--border)] text-[var(--text)] outline-none focus:border-[#12AAFF]"
+                          className="w-full px-3.5 py-2.5 text-sm rounded-xl bg-[var(--bg-2)] border border-[var(--border)] text-[var(--text)] outline-none focus:border-[var(--accent)]"
                           required
                         />
                       </div>
@@ -521,7 +521,7 @@ export default function EnterprisePage() {
                           value={publisherDomain}
                           onChange={(e) => setPublisherDomain(e.target.value)}
                           placeholder='e.g. "apnews.com"'
-                          className="w-full px-3.5 py-2.5 text-sm rounded-xl bg-[var(--bg-2)] border border-[var(--border)] text-[var(--text)] outline-none focus:border-[#12AAFF]"
+                          className="w-full px-3.5 py-2.5 text-sm rounded-xl bg-[var(--bg-2)] border border-[var(--border)] text-[var(--text)] outline-none focus:border-[var(--accent)]"
                           required
                         />
                       </div>
@@ -544,9 +544,9 @@ export default function EnterprisePage() {
 
               {/* JSON Template Card */}
               <SpotlightCard>
-                <Card className="border-[#12AAFF]/20 bg-[#12AAFF]/5">
+                <Card className="border-[var(--accent)]/20 bg-[var(--accent)]/5">
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#12AAFF]">
+                    <CardTitle className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[var(--accent)]">
                       <FileText size={14} /> HTTPS DID Requirement
                     </CardTitle>
                   </CardHeader>
@@ -554,7 +554,7 @@ export default function EnterprisePage() {
                     <p>
                       Before clicking verify, you must host a JSON metadata file on your domain at:
                     </p>
-                    <div className="bg-[var(--bg-2)] p-2 rounded font-mono text-[10px] text-[#12AAFF] break-all border border-[var(--border)]">
+                    <div className="bg-[var(--bg-2)] p-2 rounded font-mono text-[10px] text-[var(--accent)] break-all border border-[var(--border)]">
                       https://{publisherDomain || "[your-domain]"}/.well-known/veritrace.json
                     </div>
                     <p>File content format:</p>
@@ -576,7 +576,7 @@ export default function EnterprisePage() {
                 <Card className="card-hover-glow">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      <Building size={18} className="text-[#12AAFF]" /> Verified Publisher Network
+                      <Building size={18} className="text-[var(--accent)]" /> Verified Publisher Network
                     </CardTitle>
                   </CardHeader>
                   <CardBody className="flex flex-col gap-4">
@@ -592,15 +592,15 @@ export default function EnterprisePage() {
                       <div className="flex flex-col gap-3">
                         {publishersList.map((pub) => (
                           <div key={pub.creator_address} className="p-4 rounded-2xl bg-[var(--surface-2)] border border-[var(--border)] flex flex-col gap-2 relative overflow-hidden group">
-                            <div className="absolute top-0 right-0 w-[4px] h-full bg-[#12AAFF]" />
+                            <div className="absolute top-0 right-0 w-[4px] h-full bg-[var(--accent)]" />
                             <div className="flex items-center justify-between">
                               <span className="font-bold text-sm text-[var(--text)] flex items-center gap-1.5">
                                 🏢 {pub.organization_name}
-                                <Badge variant="success" className="bg-[#12AAFF]/10 text-[#12AAFF] border-[#12AAFF]/20 text-[9px] py-0 px-1.5 flex items-center gap-0.5">
+                                <Badge variant="success" className="bg-[var(--accent)]/10 text-[var(--accent)] border-[var(--accent)]/20 text-[9px] py-0 px-1.5 flex items-center gap-0.5">
                                   ✓ DID Bound
                                 </Badge>
                               </span>
-                              <a href={`https://${pub.domain}`} target="_blank" rel="noopener noreferrer" className="text-xs text-[#12AAFF] hover:underline flex items-center gap-1">
+                              <a href={`https://${pub.domain}`} target="_blank" rel="noopener noreferrer" className="text-xs text-[var(--accent)] hover:underline flex items-center gap-1">
                                 {pub.domain} <ExternalLink size={10} />
                               </a>
                             </div>
@@ -609,7 +609,7 @@ export default function EnterprisePage() {
                             </div>
                             <div className="text-[9px] text-[var(--text-3)] flex items-center justify-between mt-1 border-t border-[var(--border)] pt-2">
                               <span>Verified: {new Date(pub.verified_at * 1000).toLocaleDateString()}</span>
-                              <span className="text-[#00D395] font-bold">✓ On-Chain Registry</span>
+                              <span className="text-[var(--success-text, #4CAF50)] font-bold">✓ On-Chain Registry</span>
                             </div>
                           </div>
                         ))}

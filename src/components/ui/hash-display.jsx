@@ -4,8 +4,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from './tooltip'
 
 export function HashDisplay({ label, hash, icon, variant = 'crypto', className }) {
   const colors = {
-    crypto: { bg: 'bg-[var(--arb-bg)]', text: 'text-[#12AAFF]', label: 'SHA', tooltip: 'Cryptographic hash used for byte-for-byte exact matches on the blockchain.' },
-    perceptual: { bg: 'bg-[var(--success-bg)]', text: 'text-[#00D395]', label: 'pHash', tooltip: 'Perceptual hash used to find visually similar content and detect modifications.' },
+    crypto: { bg: 'bg-[var(--arb-bg)]', text: 'text-[var(--accent)]', label: 'SHA', tooltip: 'Cryptographic hash used for byte-for-byte exact matches on the blockchain.' },
+    perceptual: { bg: 'bg-[var(--success-bg)]', text: 'text-[var(--success-text, #4CAF50)]', label: 'pHash', tooltip: 'Perceptual hash used to find visually similar content and detect modifications.' },
   }
   const v = colors[variant] || colors.crypto
 

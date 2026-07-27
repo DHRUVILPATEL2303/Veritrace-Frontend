@@ -12,26 +12,26 @@ import { InfiniteMovingCards } from '../components/aceternity/InfiniteMovingCard
 import { FilePlus, Search, FingerprintPattern as Fingerprint, Shield, Database, Server, Cpu, Bot, ArrowRight, ChevronDown, Upload, Pin, Check, Layers, Zap, Eye, TriangleAlert as AlertTriangle } from 'lucide-react'
 
 const REGISTER_STEPS = [
-  { num: '01', title: 'Upload Your File', desc: 'Drag and drop or select any image, video, or document on the Register page. The file is sent to the Hash Engine API.', icon: Upload, color: '#12AAFF' },
-  { num: '02', title: 'Fingerprint Extraction', desc: 'The Hash Engine computes a SHA-256 cryptographic hash, a 64-bit perceptual hash (pHash), semantic embeddings, ArcFace biometrics, and wav2vec2 audio vectors.', icon: Fingerprint, color: '#4DC3FF' },
-  { num: '03', title: 'Pin to IPFS & S3', desc: 'Your media file is pinned to IPFS via Pinata and backed up to S3. A metadata JSON containing all fingerprints is also pinned, giving you a permanent ipfsCid.', icon: Pin, color: '#1B4ADD' },
-  { num: '04', title: 'Sign Blockchain Transaction', desc: 'Connect MetaMask on Arbitrum Sepolia and call registerContent(sha256, phash, ipfsCid, aiTool) on the VeriTrace Registry smart contract.', icon: Shield, color: '#00D395' },
+  { num: '01', title: 'Upload Your File', desc: 'Drag and drop or select any image, video, or document on the Register page. The file is sent to the Hash Engine API.', icon: Upload, color: 'var(--accent)' },
+  { num: '02', title: 'Fingerprint Extraction', desc: 'The Hash Engine computes a SHA-256 cryptographic hash, a 64-bit perceptual hash (pHash), semantic embeddings, ArcFace biometrics, and wav2vec2 audio vectors.', icon: Fingerprint, color: 'var(--accent-2)' },
+  { num: '03', title: 'Pin to IPFS & S3', desc: 'Your media file is pinned to IPFS via Pinata and backed up to S3. A metadata JSON containing all fingerprints is also pinned, giving you a permanent ipfsCid.', icon: Pin, color: 'var(--accent-dark)' },
+  { num: '04', title: 'Sign Blockchain Transaction', desc: 'Connect MetaMask on Arbitrum Sepolia and call registerContent(sha256, phash, ipfsCid, aiTool) on the VeriTrace Registry smart contract.', icon: Shield, color: 'var(--success-text, #4CAF50)' },
   { num: '05', title: 'Indexed & Protected', desc: "The Go backend's EVM listener picks up the ContentRegistered event and indexes your asset in PostgreSQL, Redis, and Qdrant — ready for instant verification.", icon: Database, color: '#FF9B00' },
 ]
 
 const VERIFY_STEPS = [
-  { num: '01', title: 'Upload Suspect File', desc: "Go to the Verify page and drop in any file you want to check — whether it's an original, copy, or modified version.", icon: Upload, color: '#12AAFF' },
-  { num: '02', title: 'Exact Match Check', desc: 'The SHA-256 hash is compared against the registry. A hit means a 100% exact match — the file is byte-for-byte identical to a registered original.', icon: Check, color: '#4DC3FF' },
+  { num: '01', title: 'Upload Suspect File', desc: "Go to the Verify page and drop in any file you want to check — whether it's an original, copy, or modified version.", icon: Upload, color: 'var(--accent)' },
+  { num: '02', title: 'Exact Match Check', desc: 'The SHA-256 hash is compared against the registry. A hit means a 100% exact match — the file is byte-for-byte identical to a registered original.', icon: Check, color: 'var(--accent-2)' },
   { num: '03', title: 'Fuzzy / Segment Match', desc: 'If exact match fails, pHash Hamming distance search runs via Qdrant KNN. For videos, every keyframe is individually compared using Manhattan (L1) distance.', icon: Search, color: '#B388FF' },
   { num: '04', title: 'Deepfake Detection', desc: 'Face embeddings (ArcFace) and audio vectors (wav2vec2) are matched even when visual similarity is low — catching AI-generated deepfakes and voice clones.', icon: AlertTriangle, color: '#FF4D4D' },
-  { num: '05', title: 'Result & Certificate', desc: 'View Exact Match, Derivative Match (with similarity %), or Unregistered. Download a signed JSON verification certificate for legal proof.', icon: FilePlus, color: '#00D395' },
+  { num: '05', title: 'Result & Certificate', desc: 'View Exact Match, Derivative Match (with similarity %), or Unregistered. Download a signed JSON verification certificate for legal proof.', icon: FilePlus, color: 'var(--success-text, #4CAF50)' },
 ]
 
 const HASH_TYPES = [
-  { tag: 'SHA-256', color: '#12AAFF', title: 'Cryptographic Hash', desc: 'A deterministic 256-bit fingerprint of the raw file bytes. Any single changed byte produces a completely different hash. Used for exact-match detection.', use: 'Exact match • Duplicate detection • Blockchain registration' },
-  { tag: 'pHash', color: '#00D395', title: 'Perceptual Hash', desc: 'A 64-bit integer derived from the visual structure of an image or video frame (DCT-based). Similar images produce hashes with low Hamming distance.', use: 'Fuzzy image matching • Video keyframe comparison • Compression-resistant' },
+  { tag: 'SHA-256', color: 'var(--accent)', title: 'Cryptographic Hash', desc: 'A deterministic 256-bit fingerprint of the raw file bytes. Any single changed byte produces a completely different hash. Used for exact-match detection.', use: 'Exact match • Duplicate detection • Blockchain registration' },
+  { tag: 'pHash', color: 'var(--success-text, #4CAF50)', title: 'Perceptual Hash', desc: 'A 64-bit integer derived from the visual structure of an image or video frame (DCT-based). Similar images produce hashes with low Hamming distance.', use: 'Fuzzy image matching • Video keyframe comparison • Compression-resistant' },
   { tag: 'SEM', color: '#B388FF', title: 'Semantic Embedding', desc: 'A high-dimensional float vector encoding the semantic meaning of visual content, generated by a vision transformer model. Resists cropping, color shifts, and style transfers.', use: 'Semantic similarity • Style-transfer detection • Cross-modal search' },
-  { tag: 'FACE', color: '#00D395', title: 'ArcFace Biometric', desc: 'A 512-dimensional face identity embedding produced by the ArcFace model. Matches faces across lighting, age, pose, and cosmetic changes.', use: 'Deepfake detection • Face swap detection • Identity verification' },
+  { tag: 'FACE', color: 'var(--success-text, #4CAF50)', title: 'ArcFace Biometric', desc: 'A 512-dimensional face identity embedding produced by the ArcFace model. Matches faces across lighting, age, pose, and cosmetic changes.', use: 'Deepfake detection • Face swap detection • Identity verification' },
   { tag: 'AUD', color: '#FF9B00', title: 'wav2vec2 Voice Print', desc: "A 768-dimensional biometric vector of vocal frequencies and speech patterns from Facebook's wav2vec2-base model. Unique to each speaker.", use: 'Audio deepfake detection • Voice clone detection • Speaker verification' },
 ]
 
@@ -77,10 +77,10 @@ export default function AboutPage() {
           <p className="text-center text-sm text-[var(--text-3)] mb-10">Five purpose-built layers convert an upload into an enduring, verifiable proof.</p>
           <div className="flex items-stretch justify-center gap-0 flex-wrap overflow-x-auto">
             {[
-              { icon: Cpu, label: 'Hash Engine', sub: 'Port 8081', color: '#12AAFF' },
-              { icon: Pin, label: 'IPFS + S3', sub: 'Pinata / MinIO', color: '#4DC3FF' },
-              { icon: Shield, label: 'Arbitrum', sub: 'Smart Contract', color: '#1B4ADD' },
-              { icon: Server, label: 'Go Backend', sub: 'EVM Listener', color: '#00D395' },
+              { icon: Cpu, label: 'Hash Engine', sub: 'Port 8081', color: 'var(--accent)' },
+              { icon: Pin, label: 'IPFS + S3', sub: 'Pinata / MinIO', color: 'var(--accent-2)' },
+              { icon: Shield, label: 'Arbitrum', sub: 'Smart Contract', color: 'var(--accent-dark)' },
+              { icon: Server, label: 'Go Backend', sub: 'EVM Listener', color: 'var(--success-text, #4CAF50)' },
               { icon: Database, label: 'PG + Redis + Qdrant', sub: 'Storage Layer', color: '#FF9B00' },
             ].map((node, i, arr) => (
               <div key={i} className="flex items-center">
@@ -101,7 +101,7 @@ export default function AboutPage() {
         <section className="max-w-[1280px] mx-auto px-5 pb-16 space-y-10">
           <div>
             <div className="flex items-center gap-2.5 mb-4 px-2">
-              <span className="bg-[var(--arb-bg)] text-[#12AAFF] rounded-xl p-2"><FilePlus size={20} /></span>
+              <span className="bg-[var(--arb-bg)] text-[var(--accent)] rounded-xl p-2"><FilePlus size={20} /></span>
               <h2 className="text-2xl font-extrabold text-[var(--text)]">How to Register</h2>
             </div>
             <InfiniteMovingCards items={REGISTER_STEPS} speed="normal" direction="left" renderItem={(s) => (
@@ -113,7 +113,7 @@ export default function AboutPage() {
 
           <div>
             <div className="flex items-center gap-2.5 mb-4 px-2">
-              <span className="bg-[var(--success-bg)] text-[#00D395] rounded-xl p-2"><Search size={20} /></span>
+              <span className="bg-[var(--success-bg)] text-[var(--success-text, #4CAF50)] rounded-xl p-2"><Search size={20} /></span>
               <h2 className="text-2xl font-extrabold text-[var(--text)]">How to Verify</h2>
             </div>
             <InfiniteMovingCards items={VERIFY_STEPS} speed="normal" direction="left" renderItem={(s) => (
@@ -196,7 +196,7 @@ function StepCard({ num, title, desc, icon: Icon, color, delay }) {
 function FaqItem({ q, a, i }) {
   return (
     <AccordionItem value={`item-${i}`} className="bg-[var(--surface)] border-2 border-[var(--border)] rounded-2xl overflow-hidden hover:border-[var(--border-2)] transition-colors mb-3">
-      <AccordionTrigger className="p-4 font-semibold text-sm hover:no-underline text-[var(--text)] data-[state=open]:text-[#12AAFF] [&[data-state=open]>svg]:rotate-180">
+      <AccordionTrigger className="p-4 font-semibold text-sm hover:no-underline text-[var(--text)] data-[state=open]:text-[var(--accent)] [&[data-state=open]>svg]:rotate-180">
         {q}
       </AccordionTrigger>
       <AccordionContent className="px-4 pb-4 text-xs text-[var(--text-3)] leading-relaxed border-t border-[var(--border)] pt-3">

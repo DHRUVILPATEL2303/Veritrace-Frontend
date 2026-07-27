@@ -9,10 +9,10 @@ export function ArbitrumLogo({ size = 24, className, animated = false }) {
       viewBox="0 0 24 24"
       fill="none"
       className={className}
-      animate={animated ? { filter: ['drop-shadow(0 0 4px #12AAFF60)', 'drop-shadow(0 0 10px #12AAFF90)', 'drop-shadow(0 0 4px #12AAFF60)'] } : undefined}
+      animate={animated ? { filter: ['drop-shadow(0 0 4px var(--accent)60)', 'drop-shadow(0 0 10px var(--accent)90)', 'drop-shadow(0 0 4px var(--accent)60)'] } : undefined}
       transition={animated ? { duration: 2.5, repeat: Infinity, ease: 'easeInOut' } : undefined}
     >
-      <path d="M3.5 20.5L9.5 3.5H14.5L20.5 20.5H16.5L15.3 17H8.7L7.5 20.5H3.5ZM9.9 13.7H14.1L12 7.2L9.9 13.7Z" fill="#12AAFF" />
+      <path d="M3.5 20.5L9.5 3.5H14.5L20.5 20.5H16.5L15.3 17H8.7L7.5 20.5H3.5ZM9.9 13.7H14.1L12 7.2L9.9 13.7Z" fill="var(--accent)" />
     </motion.svg>
   )
 }
@@ -35,7 +35,7 @@ export function VeriTraceLogo({ size = 32, className }) {
           <linearGradient id={`${uid}-grad`} x1="85%" y1="5%" x2="15%" y2="95%">
             <stop offset="0%" stopColor="#7dd3fc" />
             <stop offset="35%" stopColor="#38bdf8" />
-            <stop offset="65%" stopColor="#12AAFF" />
+            <stop offset="65%" stopColor="var(--accent)" />
             <stop offset="100%" stopColor="#1d4ed8" />
           </linearGradient>
         </defs>
@@ -49,25 +49,25 @@ export function VeriTraceLogo({ size = 32, className }) {
         {/* ── Pixel Dispersion Trail — 3 size tiers for depth ── */}
         {/* Large particles (foreground) */}
         <rect x="82"  y="22" width="4" height="4" rx="0.6" fill="#38bdf8" opacity="0.95" />
-        <rect x="88"  y="18" width="3.5" height="3.5" rx="0.5" fill="#12AAFF" opacity="0.9" />
+        <rect x="88"  y="18" width="3.5" height="3.5" rx="0.5" fill="var(--accent)" opacity="0.9" />
         <rect x="84"  y="14" width="3.5" height="3.5" rx="0.5" fill="#7dd3fc" opacity="0.85" />
         <rect x="78"  y="17" width="3" height="3" rx="0.4" fill="#1d4ed8" opacity="0.8" />
 
         {/* Medium particles (mid-ground) */}
         <rect x="92"  y="22" width="2.8" height="2.8" rx="0.4" fill="#38bdf8" opacity="0.75" />
-        <rect x="90"  y="14" width="2.5" height="2.5" rx="0.3" fill="#12AAFF" opacity="0.7" />
+        <rect x="90"  y="14" width="2.5" height="2.5" rx="0.3" fill="var(--accent)" opacity="0.7" />
         <rect x="86"  y="10" width="2.5" height="2.5" rx="0.3" fill="#7dd3fc" opacity="0.7" />
         <rect x="80"  y="10" width="2.5" height="2.5" rx="0.3" fill="#1d4ed8" opacity="0.65" />
         <rect x="94"  y="16" width="2.2" height="2.2" rx="0.3" fill="#38bdf8" opacity="0.6" />
 
         {/* Small particles (background, fading) */}
         <rect x="96"  y="20" width="1.8" height="1.8" rx="0.2" fill="#7dd3fc" opacity="0.5" />
-        <rect x="92"  y="10" width="1.6" height="1.6" rx="0.2" fill="#12AAFF" opacity="0.45" />
+        <rect x="92"  y="10" width="1.6" height="1.6" rx="0.2" fill="var(--accent)" opacity="0.45" />
         <rect x="88"  y="7"  width="1.8" height="1.8" rx="0.2" fill="#38bdf8" opacity="0.4" />
         <rect x="84"  y="6"  width="1.4" height="1.4" rx="0.2" fill="#7dd3fc" opacity="0.35" />
         <rect x="96"  y="12" width="1.5" height="1.5" rx="0.2" fill="#1d4ed8" opacity="0.35" />
         <rect x="98"  y="16" width="1.2" height="1.2" rx="0.2" fill="#38bdf8" opacity="0.3" />
-        <rect x="90"  y="5"  width="1.2" height="1.2" rx="0.2" fill="#12AAFF" opacity="0.25" />
+        <rect x="90"  y="5"  width="1.2" height="1.2" rx="0.2" fill="var(--accent)" opacity="0.25" />
       </svg>
     </div>
   )
@@ -81,13 +81,13 @@ export function AnimatedArbitrumBadge({ text }) {
       <div className="relative w-5 h-5 flex items-center justify-center flex-shrink-0">
         <motion.div
           className="absolute inset-0 rounded-full"
-          style={{ border: '1.5px solid rgba(18,170,255,0.5)', borderTopColor: '#12AAFF', borderRightColor: 'transparent' }}
+          style={{ border: '1.5px solid rgba(18,170,255,0.5)', borderTopColor: 'var(--accent)', borderRightColor: 'transparent' }}
           animate={{ rotate: 360 }}
           transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
         />
         <ArbitrumLogo size={12} animated />
       </div>
-      <span style={{ color: '#12AAFF' }}>{text}</span>
+      <span style={{ color: 'var(--accent)' }}>{text}</span>
     </div>
   )
 }
@@ -104,9 +104,9 @@ export function AnimatedNetworkBadge({ text }) {
           animate={{ scale: [1, 1.8, 1], opacity: [0.6, 0, 0.6] }}
           transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
         />
-        <span className="w-2 h-2 rounded-full bg-[#00D395] shadow-[0_0_8px_#00D395] flex-shrink-0" />
+        <span className="w-2 h-2 rounded-full bg-[var(--success-text, #4CAF50)] shadow-[0_0_8px_var(--success-text, #4CAF50)] flex-shrink-0" />
       </div>
-      <span style={{ color: '#00D395' }}>{text}</span>
+      <span style={{ color: 'var(--success-text, #4CAF50)' }}>{text}</span>
     </div>
   )
 }

@@ -209,7 +209,7 @@ export default function VerifyPage() {
             <Card className="card-hover-glow">
               <CardHeader>
                 <CardTitle className="flex justify-between items-center">
-                  <span className="flex items-center gap-2"><Search size={16} className="text-[#12AAFF]" /> Forensic intake</span>
+                  <span className="flex items-center gap-2"><Search size={16} className="text-[var(--accent)]" /> Forensic intake</span>
                 </CardTitle>
               </CardHeader>
               <CardBody className="flex flex-col gap-4">
@@ -224,7 +224,7 @@ export default function VerifyPage() {
                   </TabsContent>
                   
                   <TabsContent value="text" className="flex flex-col gap-2 mt-0">
-                    <textarea className="w-full h-32 p-3 bg-[var(--bg-2)] border border-[var(--border)] rounded-xl text-sm focus:border-[#12AAFF] focus:outline-none resize-none" placeholder="Paste your article or text content here to check it against the registry..." value={textContent} onChange={(e) => setTextContent(e.target.value)} />
+                    <textarea className="w-full h-32 p-3 bg-[var(--bg-2)] border border-[var(--border)] rounded-xl text-sm focus:border-[var(--accent)] focus:outline-none resize-none" placeholder="Paste your article or text content here to check it against the registry..." value={textContent} onChange={(e) => setTextContent(e.target.value)} />
                     <div className="text-[10px] text-[var(--text-3)] text-right">{textContent.length} characters</div>
                     <Button onClick={() => handleFileSelected(file)} disabled={!textContent.trim()}>Run provenance check</Button>
                   </TabsContent>
@@ -252,7 +252,7 @@ export default function VerifyPage() {
           </AnimatePresence>
 
           <Card className="card-hover-glow">
-            <CardHeader><CardTitle><Info size={16} className="text-[#12AAFF]" /> Read the evidence</CardTitle></CardHeader>
+            <CardHeader><CardTitle><Info size={16} className="text-[var(--accent)]" /> Read the evidence</CardTitle></CardHeader>
             <CardBody className="text-xs flex flex-col gap-2.5">
               <div className="flex items-start gap-3"><Badge variant="success" className="flex-shrink-0 mt-0.5">100%</Badge><div><strong className="text-[var(--text)]">Exact match</strong> — The cryptographic fingerprints are identical: this is the registered file, byte for byte.</div></div>
               <div className="flex items-start gap-3"><Badge variant="warning" className="flex-shrink-0 mt-0.5">80-99%</Badge><div><strong className="text-[var(--text)]">Similar Content</strong> — Perceptual signatures match closely. May be compressed, resized, or cropped.</div></div>
@@ -268,7 +268,7 @@ export default function VerifyPage() {
               <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
                 <Card className={`card-hover-glow ${blockchainRecord ? 'border-[var(--success-border)]' : ''}`}>
                   <CardHeader className={blockchainRecord ? 'bg-[var(--success-bg)]' : ''}>
-                    <CardTitle className={blockchainRecord ? 'text-[#00D395]' : ''}><Shield size={16} /> Immutable registry record</CardTitle>
+                    <CardTitle className={blockchainRecord ? 'text-[var(--success-text, #4CAF50)]' : ''}><Shield size={16} /> Immutable registry record</CardTitle>
                     {blockchainRecord && <Badge variant="success">Proof located</Badge>}
                   </CardHeader>
                   <CardBody>
@@ -280,7 +280,7 @@ export default function VerifyPage() {
                       </div>
                     ) : (
                       <div className="flex flex-col gap-2 text-xs">
-                        <DataRow label="Registrant Wallet"><a href={`${ARBITRUM_SEPOLIA.explorer}/address/${blockchainRecord.creator}`} target="_blank" rel="noopener noreferrer" className="font-mono font-semibold text-[#12AAFF] hover:opacity-80">{blockchainRecord.creator.slice(0, 10)}...{blockchainRecord.creator.slice(-6)}</a></DataRow>
+                        <DataRow label="Registrant Wallet"><a href={`${ARBITRUM_SEPOLIA.explorer}/address/${blockchainRecord.creator}`} target="_blank" rel="noopener noreferrer" className="font-mono font-semibold text-[var(--accent)] hover:opacity-80">{blockchainRecord.creator.slice(0, 10)}...{blockchainRecord.creator.slice(-6)}</a></DataRow>
                         <DataRow label="Proof Committed At" value={new Date(blockchainRecord.timestamp * 1000).toLocaleString()} />
                         <DataRow label="AI Tool Attribution" value={blockchainRecord.aiTool || 'None'} bold />
                         {blockchainRecord.ipfsCid && <DataRow label="Metadata (IPFS)"><a href={`https://gateway.pinata.cloud/ipfs/${blockchainRecord.ipfsCid}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-3 py-1 bg-[var(--surface-3)] hover:bg-[var(--border)] text-[var(--text-2)] rounded-md text-[11px] font-bold border border-[var(--border)] transition-colors"><ExternalLink size={12} /> View JSON</a></DataRow>}
@@ -295,7 +295,7 @@ export default function VerifyPage() {
           <SpotlightCard>
             <Card className="card-hover-glow card-border-animate">
               <CardHeader>
-                <CardTitle><Database size={16} className="text-[#12AAFF]" /> Database Similarity Results</CardTitle>
+                <CardTitle><Database size={16} className="text-[var(--accent)]" /> Database Similarity Results</CardTitle>
                 {dbResults?.length > 0 && <Badge variant="arb">{dbResults.length} matches</Badge>}
               </CardHeader>
               <CardBody className="max-h-[520px] overflow-y-auto">
@@ -303,14 +303,14 @@ export default function VerifyPage() {
                   <div className="py-2">
                     {uploadProgress < 100 ? (
                       <>
-                        <div className="flex justify-between text-xs font-semibold mb-1.5"><span className="text-[var(--text-2)]">Uploading...</span><span className="text-[#12AAFF]">{uploadProgress}%</span></div>
+                        <div className="flex justify-between text-xs font-semibold mb-1.5"><span className="text-[var(--text-2)]">Uploading...</span><span className="text-[var(--accent)]">{uploadProgress}%</span></div>
                         <Progress value={uploadProgress} />
                       </>
                     ) : (
                       <div className="flex flex-col items-center py-4">
                         <div className="relative w-16 h-16 flex items-center justify-center mb-3">
-                          <div className="loading-orb-outer absolute inset-0 rounded-full" style={{ border: '2.5px solid var(--border)', borderTopColor: '#12AAFF', borderRightColor: '#12AAFF' }} />
-                          <div className="loading-orb-inner absolute inset-1.5 rounded-full" style={{ border: '2.5px solid var(--border)', borderBottomColor: '#00D395', borderLeftColor: '#00D395' }} />
+                          <div className="loading-orb-outer absolute inset-0 rounded-full" style={{ border: '2.5px solid var(--border)', borderTopColor: 'var(--accent)', borderRightColor: 'var(--accent)' }} />
+                          <div className="loading-orb-inner absolute inset-1.5 rounded-full" style={{ border: '2.5px solid var(--border)', borderBottomColor: 'var(--success-text, #4CAF50)', borderLeftColor: 'var(--success-text, #4CAF50)' }} />
                           <ArbitrumLogo size={20} animated />
                         </div>
                         <div className="font-semibold text-sm text-[var(--text)]">Searching similarity index...</div>

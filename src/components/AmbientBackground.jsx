@@ -27,10 +27,10 @@ function DotMatrix({ theme }) {
       const cx = canvas.width / 2
       const cy = canvas.height / 2
 
-      // Light mode: deep indigo dots, dark mode: blue dots
+      // Light mode: warm coffee dots, dark mode: purple dots
       const dotColor = theme === 'dark'
-        ? 'rgba(18, 170, 255, 0.13)'
-        : 'rgba(99, 102, 241, 0.10)'
+        ? 'rgba(155, 125, 255, 0.11)'
+        : 'rgba(111, 78, 55, 0.08)'
 
       for (let i = 0; i < cols; i++) {
         for (let j = 0; j < rows; j++) {
@@ -104,7 +104,7 @@ function MouseSpotlight({ theme }) {
         height: '520px',
         borderRadius: '50%',
         transform: 'translate3d(-100%, -100%, 0) translate(-50%, -50%)',
-        background: 'radial-gradient(circle, rgba(99,102,241,0.055) 0%, rgba(14,165,233,0.04) 35%, transparent 70%)',
+        background: 'radial-gradient(circle, rgba(196,154,108,0.06) 0%, rgba(111,78,55,0.035) 35%, transparent 70%)',
         opacity: 0,
         transition: 'opacity 0.4s ease',
         zIndex: 0,
@@ -118,23 +118,23 @@ function MouseSpotlight({ theme }) {
 function getOrbConfig(theme, integrityTone) {
   if (integrityTone === 'alert') {
     return {
-      one:   { bg: theme === 'dark' ? '#ff4d4d' : '#f97316', opacity: theme === 'dark' ? 0.08 : 0.18 },
-      two:   { bg: theme === 'dark' ? '#ff9b00' : '#ef4444', opacity: theme === 'dark' ? 0.065 : 0.13 },
-      three: { bg: theme === 'dark' ? '#ff4d4d' : '#f97316', opacity: theme === 'dark' ? 0.05 : 0.10 },
+      one:   { bg: theme === 'dark' ? '#E53935' : '#f97316', opacity: theme === 'dark' ? 0.08 : 0.18 },
+      two:   { bg: theme === 'dark' ? '#F4A023' : '#ef4444', opacity: theme === 'dark' ? 0.065 : 0.13 },
+      three: { bg: theme === 'dark' ? '#E53935' : '#f97316', opacity: theme === 'dark' ? 0.05 : 0.10 },
     }
   }
   if (theme === 'dark') {
     return {
-      one:   { bg: '#126cff', opacity: 0.045 },
-      two:   { bg: '#00d395', opacity: 0.025 },
-      three: { bg: '#5135d9', opacity: 0.055 },
+      one:   { bg: '#7C5CFC', opacity: 0.045 },
+      two:   { bg: '#9B7DFF', opacity: 0.030 },
+      three: { bg: '#5B3FBD', opacity: 0.055 },
     }
   }
-  // Light mode — premium indigo / sky / emerald
+  // Light mode — warm coffee / caramel / amber
   return {
-    one:   { bg: '#6366f1', opacity: 0.22 },   // indigo
-    two:   { bg: '#0ea5e9', opacity: 0.16 },   // sky
-    three: { bg: '#10b981', opacity: 0.12 },   // emerald
+    one:   { bg: '#A0785A', opacity: 0.18 },   // latte
+    two:   { bg: '#C49A6C', opacity: 0.14 },   // caramel
+    three: { bg: '#8B6914', opacity: 0.10 },   // golden roast
   }
 }
 
@@ -215,12 +215,12 @@ export default function AmbientBackground() {
         }}
       />
 
-      {/* Light mode: extra subtle vignette tint for depth */}
+      {/* Light mode: warm vignette for depth */}
       {isLight && (
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
-            background: 'radial-gradient(ellipse 80% 60% at 50% 0%, rgba(99,102,241,0.045) 0%, transparent 70%)',
+            background: 'radial-gradient(ellipse 80% 60% at 50% 0%, rgba(196,154,108,0.04) 0%, transparent 70%)',
             zIndex: 0,
           }}
         />

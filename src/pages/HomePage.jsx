@@ -68,8 +68,8 @@ function HeroMeshBackground() {
         0,
         w * 0.5, h * 0.5, w * 0.5
       )
-      grad1.addColorStop(0, 'rgba(18, 170, 255, 0.08)')
-      grad1.addColorStop(0.5, 'rgba(27, 74, 221, 0.04)')
+      grad1.addColorStop(0, 'rgba(var(--accent-rgb), 0.08)')
+      grad1.addColorStop(0.5, 'rgba(var(--accent-rgb), 0.04)')
       grad1.addColorStop(1, 'transparent')
       ctx.fillStyle = grad1
       ctx.fillRect(0, 0, w, h)
@@ -80,8 +80,8 @@ function HeroMeshBackground() {
         0,
         w * 0.6, h * 0.5, w * 0.4
       )
-      grad2.addColorStop(0, 'rgba(0, 211, 149, 0.06)')
-      grad2.addColorStop(0.6, 'rgba(18, 170, 255, 0.03)')
+      grad2.addColorStop(0, 'rgba(var(--accent-rgb), 0.06)')
+      grad2.addColorStop(0.6, 'rgba(var(--accent-rgb), 0.03)')
       grad2.addColorStop(1, 'transparent')
       ctx.fillStyle = grad2
       ctx.fillRect(0, 0, w, h)
@@ -91,8 +91,8 @@ function HeroMeshBackground() {
         mx * w, my * h, 0,
         mx * w, my * h, w * 0.3
       )
-      glowGrad.addColorStop(0, 'rgba(18, 170, 255, 0.07)')
-      glowGrad.addColorStop(0.4, 'rgba(18, 170, 255, 0.03)')
+      glowGrad.addColorStop(0, 'rgba(var(--accent-rgb), 0.07)')
+      glowGrad.addColorStop(0.4, 'rgba(var(--accent-rgb), 0.03)')
       glowGrad.addColorStop(1, 'transparent')
       ctx.fillStyle = glowGrad
       ctx.fillRect(0, 0, w, h)
@@ -119,7 +119,7 @@ function HeroMeshBackground() {
 
         ctx.beginPath()
         ctx.arc(px, py, node.r * (0.8 + pulse * 0.4), 0, Math.PI * 2)
-        ctx.fillStyle = `rgba(18, 170, 255, ${0.15 + pulse * 0.15})`
+        ctx.fillStyle = `rgba(var(--accent-rgb), ${0.15 + pulse * 0.15})`
         ctx.fill()
 
         // Connect nearby nodes
@@ -130,7 +130,7 @@ function HeroMeshBackground() {
             ctx.beginPath()
             ctx.moveTo(px, py)
             ctx.lineTo(other.x * w, other.y * h)
-            ctx.strokeStyle = `rgba(18, 170, 255, ${alpha})`
+            ctx.strokeStyle = `rgba(var(--accent-rgb), ${alpha})`
             ctx.lineWidth = 0.5
             ctx.stroke()
           }
@@ -177,7 +177,7 @@ function FloatingParticles() {
       {particles.map((p) => (
         <motion.div
           key={p.id}
-          className="absolute rounded-full bg-[#12AAFF]"
+          className="absolute rounded-full bg-[var(--accent)]"
           style={{
             width: p.size,
             height: p.size,
@@ -258,9 +258,9 @@ function SectionDivider() {
   return (
     <div className="max-w-[1280px] mx-auto px-5 py-2">
       <div className="relative h-px">
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#12AAFF]/20 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[var(--accent)]/20 to-transparent" />
         <motion.div
-          className="absolute top-1/2 -translate-y-1/2 w-20 h-[2px] bg-gradient-to-r from-transparent via-[#12AAFF] to-transparent"
+          className="absolute top-1/2 -translate-y-1/2 w-20 h-[2px] bg-gradient-to-r from-transparent via-[var(--accent)] to-transparent"
           animate={{ left: ['-10%', '110%'] }}
           transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
         />
@@ -345,7 +345,7 @@ export default function HomePage() {
             >
               <MagneticButton>
                 <Link to="/register">
-                  <Button variant="primary" size="lg" className="shadow-[0_0_30px_rgba(18,170,255,0.2)] hover:shadow-[0_0_40px_rgba(18,170,255,0.35)] transition-shadow duration-300">
+                  <Button variant="primary" size="lg" className="shadow-[0_0_30px_rgba(var(--accent-rgb),0.2)] hover:shadow-[0_0_40px_rgba(var(--accent-rgb),0.35)] transition-shadow duration-300">
                     <FilePlus size={18} /> Create a proof
                   </Button>
                 </Link>
@@ -366,7 +366,7 @@ export default function HomePage() {
               transition={{ duration: 0.6, delay: 0.7 }}
               className="w-full max-w-2xl mt-10"
             >
-              <div className="flex glass rounded-2xl overflow-hidden border border-[var(--border)] hover:border-[#12AAFF] transition-all duration-300 hover:shadow-[0_0_20px_rgba(18,170,255,0.1)]">
+              <div className="flex glass rounded-2xl overflow-hidden border border-[var(--border)] hover:border-[var(--accent)] transition-all duration-300 hover:shadow-[0_0_20px_rgba(var(--accent-rgb),0.1)]">
                 <select className="px-4 py-3.5 text-sm font-medium bg-transparent border-r border-[var(--border)] text-[var(--text-2)] outline-none cursor-pointer">
                   <option value="all">All Filters</option>
                   <option value="hash">By Hash</option>
@@ -390,9 +390,9 @@ export default function HomePage() {
           <SpotlightCard>
             <Card className="overflow-hidden card-hover-glow">
               <div className="grid grid-cols-1 sm:grid-cols-3">
-                <StatItem icon={<FilePlus size={20} />} color="#12AAFF" label="Proofs committed" value={stats.loading ? '...' : stats.registered} suffix="synced" />
-                <StatItem icon={<Eye size={20} />} color="#00D395" label="Inspections run" value={stats.loading ? '...' : stats.verifications} suffix="tracked" border />
-                <StatItem icon={<Shield size={20} />} color="#1B4ADD" label="Block anchors" value={stats.loading ? '...' : stats.onchain} suffix="confirmed" />
+                <StatItem icon={<FilePlus size={20} />} color="var(--accent)" label="Proofs committed" value={stats.loading ? '...' : stats.registered} suffix="synced" />
+                <StatItem icon={<Eye size={20} />} color="var(--success-text, #4CAF50)" label="Inspections run" value={stats.loading ? '...' : stats.verifications} suffix="tracked" border />
+                <StatItem icon={<Shield size={20} />} color="var(--accent-dark)" label="Block anchors" value={stats.loading ? '...' : stats.onchain} suffix="confirmed" />
               </div>
             </Card>
           </SpotlightCard>
@@ -405,14 +405,14 @@ export default function HomePage() {
           <Card className="integrity-readout card-hover-glow overflow-hidden">
             <CardBody className="p-0 grid grid-cols-1 lg:grid-cols-[1.2fr_2fr]">
               <div className="p-5 lg:p-6 border-b lg:border-b-0 lg:border-r border-[var(--border)]">
-                <div className="flex items-center gap-2 text-[#00D395] text-[11px] font-extrabold tracking-[.14em] uppercase"><span className="live-dot" /> Integrity dashboard</div>
+                <div className="flex items-center gap-2 text-[var(--success-text, #4CAF50)] text-[11px] font-extrabold tracking-[.14em] uppercase"><span className="live-dot" /> Integrity dashboard</div>
                 <div className="text-xl font-bold tracking-tight mt-2 text-[var(--text)]">Registry health: operational</div>
                 <p className="text-xs text-[var(--text-3)] mt-1.5 leading-relaxed">Forensic services, evidence storage, and block anchoring are available for proof creation and inspection.</p>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3">
-                <IntegritySignal icon={<Radio size={16} />} label="Registry listener" value="Synced" detail="Event index online" color="#12AAFF" />
-                <IntegritySignal icon={<Fingerprint size={16} />} label="Exact evidence" value="SHA-256" detail="Byte-level proof" color="#4DC3FF" />
-                <IntegritySignal icon={<CheckCircle2 size={16} />} label="Fuzzy evidence" value="pHash ready" detail="Derivative detection" color="#00D395" />
+                <IntegritySignal icon={<Radio size={16} />} label="Registry listener" value="Synced" detail="Event index online" color="var(--accent)" />
+                <IntegritySignal icon={<Fingerprint size={16} />} label="Exact evidence" value="SHA-256" detail="Byte-level proof" color="var(--accent-2)" />
+                <IntegritySignal icon={<CheckCircle2 size={16} />} label="Fuzzy evidence" value="pHash ready" detail="Derivative detection" color="var(--success-text, #4CAF50)" />
               </div>
             </CardBody>
           </Card>
@@ -438,25 +438,25 @@ export default function HomePage() {
           </div>
 
           <Card className="p-8 overflow-hidden relative card-hover-glow">
-            <ParticleField density={20} color="#12AAFF" />
+            <ParticleField density={20} />
 
             {/* Workflow nodes */}
             <div className="relative grid grid-cols-1 md:grid-cols-5 gap-4 md:gap-0">
-              <WorkflowNode icon={<Upload size={24} />} label="Upload" desc="File dropped" color="#12AAFF" step={1} />
+              <WorkflowNode icon={<Upload size={24} />} label="Upload" desc="File dropped" color="var(--accent)" step={1} />
               <WorkflowConnector />
-              <WorkflowNode icon={<Fingerprint size={24} />} label="Fingerprint" desc="SHA-256 + pHash" color="#4DC3FF" step={2} />
+              <WorkflowNode icon={<Fingerprint size={24} />} label="Fingerprint" desc="SHA-256 + pHash" color="var(--accent-2)" step={2} />
               <WorkflowConnector />
-              <WorkflowNode icon={<Pin size={24} />} label="Pin to IPFS" desc="Permanent storage" color="#1B4ADD" step={3} />
+              <WorkflowNode icon={<Pin size={24} />} label="Pin to IPFS" desc="Permanent storage" color="var(--accent-dark)" step={3} />
             </div>
 
             <div className="hidden md:block h-8" />
 
             <div className="relative grid grid-cols-1 md:grid-cols-5 gap-4 md:gap-0">
-              <WorkflowNode icon={<Wallet size={24} />} label="Sign Tx" desc="MetaMask confirm" color="#00D395" step={4} />
+              <WorkflowNode icon={<Wallet size={24} />} label="Sign Tx" desc="MetaMask confirm" color="var(--success-text, #4CAF50)" step={4} />
               <WorkflowConnector />
-              <WorkflowNode icon={<Globe size={24} />} label="Index" desc="Go backend" color="#00D395" step={5} />
+              <WorkflowNode icon={<Globe size={24} />} label="Index" desc="Go backend" color="var(--success-text, #4CAF50)" step={5} />
               <WorkflowConnector />
-              <WorkflowNode icon={<CheckCircle2 size={24} />} label="Verified" desc="On-chain proof" color="#00D395" step={6} />
+              <WorkflowNode icon={<CheckCircle2 size={24} />} label="Verified" desc="On-chain proof" color="var(--success-text, #4CAF50)" step={6} />
             </div>
 
             <div className="hidden md:block mt-6">
@@ -471,10 +471,10 @@ export default function HomePage() {
       {/* ════ FEATURE CARDS ════ */}
       <section className="max-w-[1280px] mx-auto px-5 py-12">
         <ScrollRevealGroup variant="fade-up" stagger={0.12}>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            <FeatureCard to="/register" icon={<FilePlus size={22} />} color="#12AAFF" title="Create a proof" description="Fingerprint your work and commit a clear ownership signal to Arbitrum in a single guided flow." cta="Start registration" />
-            <FeatureCard to="/verify" icon={<Search size={22} />} color="#00D395" title="Inspect authenticity" description="Check for exact matches, visual derivatives, and provenance signals before you trust a file." cta="Run verification" />
-            <FeatureCard href={`${ARBITRUM_SEPOLIA.explorer}/address/${CONTRACT_ADDRESS}`} icon={<Shield size={22} />} color="#1B4ADD" title="Public by design" description="Every registration is time-stamped and independently auditable through an on-chain registry." cta="View the contract" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-stretch">
+            <FeatureCard to="/register" icon={<FilePlus size={22} />} color="var(--accent)" title="Create a proof" description="Fingerprint your work and commit a clear ownership signal to Arbitrum in a single guided flow." cta="Start registration" />
+            <FeatureCard to="/verify" icon={<Search size={22} />} color="var(--success-text, #4CAF50)" title="Inspect authenticity" description="Check for exact matches, visual derivatives, and provenance signals before you trust a file." cta="Run verification" />
+            <FeatureCard href={`${ARBITRUM_SEPOLIA.explorer}/address/${CONTRACT_ADDRESS}`} icon={<Shield size={22} />} color="var(--accent-dark)" title="Public by design" description="Every registration is time-stamped and independently auditable through an on-chain registry." cta="View the contract" />
           </div>
         </ScrollRevealGroup>
       </section>
@@ -490,9 +490,9 @@ export default function HomePage() {
           </div>
         </ScrollReveal>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch">
           <ScrollReveal variant="fade-up" delay={0}>
-            <SpotlightCard className="md:col-span-2">
+            <SpotlightCard className="md:col-span-2 h-full">
               <Card hover className="h-full p-6 card-hover-glow">
                 <div className="flex items-center gap-2 mb-3">
                   <span className="arb-badge text-xs font-bold px-2 py-0.5 rounded">SHA-256</span>
@@ -505,10 +505,10 @@ export default function HomePage() {
           </ScrollReveal>
 
           <ScrollReveal variant="fade-up" delay={0.08}>
-            <SpotlightCard>
+            <SpotlightCard className="h-full">
               <Card hover className="h-full p-6 card-hover-glow">
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="bg-[var(--success-bg)] text-[#00D395] text-xs font-bold px-2 py-0.5 rounded border border-[var(--success-border)]">pHash</span>
+                  <span className="bg-[var(--success-bg)] text-[#4CAF50] text-xs font-bold px-2 py-0.5 rounded border border-[var(--success-border)]">pHash</span>
                   <span className="font-bold text-base text-[var(--text)]">Perceptual</span>
                 </div>
                 <p className="text-sm text-[var(--text-3)] leading-relaxed">64-bit DCT-based visual fingerprint. Resists compression, resize, and format changes.</p>
@@ -517,7 +517,7 @@ export default function HomePage() {
           </ScrollReveal>
 
           <ScrollReveal variant="fade-up" delay={0.16}>
-            <SpotlightCard>
+            <SpotlightCard className="h-full">
               <Card hover className="h-full p-6 card-hover-glow">
                 <div className="flex items-center gap-2 mb-3">
                   <span className="bg-[rgba(179,136,255,0.1)] text-[#B388FF] text-xs font-bold px-2 py-0.5 rounded border border-[rgba(179,136,255,0.25)]">SEM</span>
@@ -529,10 +529,10 @@ export default function HomePage() {
           </ScrollReveal>
 
           <ScrollReveal variant="fade-up" delay={0.24}>
-            <SpotlightCard>
+            <SpotlightCard className="h-full">
               <Card hover className="h-full p-6 card-hover-glow">
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="bg-[var(--success-bg)] text-[#00D395] text-xs font-bold px-2 py-0.5 rounded border border-[var(--success-border)]">FACE</span>
+                  <span className="bg-[var(--success-bg)] text-[#4CAF50] text-xs font-bold px-2 py-0.5 rounded border border-[var(--success-border)]">FACE</span>
                   <span className="font-bold text-base text-[var(--text)]">ArcFace</span>
                 </div>
                 <p className="text-sm text-[var(--text-3)] leading-relaxed">512-d face identity embedding. Matches across lighting, age, pose, and cosmetic changes.</p>
@@ -541,7 +541,7 @@ export default function HomePage() {
           </ScrollReveal>
 
           <ScrollReveal variant="fade-up" delay={0.32}>
-            <SpotlightCard>
+            <SpotlightCard className="h-full">
               <Card hover className="h-full p-6 card-hover-glow">
                 <div className="flex items-center gap-2 mb-3">
                   <span className="bg-[rgba(255,155,0,0.08)] text-[#FF9B00] text-xs font-bold px-2 py-0.5 rounded border border-[rgba(255,155,0,0.25)]">AUD</span>
@@ -561,7 +561,7 @@ export default function HomePage() {
         <section className="max-w-[1280px] mx-auto px-5 py-12">
           <Card className="card-hover-glow">
             <div className="px-5 py-4 border-b border-[var(--border)]">
-              <h2 className="text-sm font-bold flex items-center gap-2 text-[var(--text)]"><Database size={16} className="text-[#12AAFF]" /> Supported File Formats</h2>
+              <h2 className="text-sm font-bold flex items-center gap-2 text-[var(--text)]"><Database size={16} className="text-[var(--accent)]" /> Supported File Formats</h2>
             </div>
             <CardBody>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -587,9 +587,9 @@ export default function HomePage() {
       {/* ════ BOTTOM CTA ════ */}
       <ScrollReveal variant="zoom">
         <section className="max-w-[1280px] mx-auto px-5 pb-16">
-          <div className="relative overflow-hidden rounded-3xl border-2 border-[#12AAFF]/30 bg-gradient-to-br from-[#12AAFF]/10 via-[#1B4ADD]/5 to-[#00D395]/10 p-10 text-center">
+          <div className="relative overflow-hidden rounded-3xl border-2 border-[var(--accent)]/30 bg-gradient-to-br from-[var(--accent)]/10 via-[var(--accent-dark)]/5 to-[var(--success-bg)] p-10 text-center">
             <div className="absolute inset-0 opacity-30">
-              <ParticleField density={15} color="#12AAFF" />
+              <ParticleField density={15} />
             </div>
             <div className="relative z-10">
               <motion.div
@@ -603,7 +603,7 @@ export default function HomePage() {
                 <div className="flex gap-3 justify-center flex-wrap">
                   <MagneticButton>
                     <Link to="/register">
-                      <Button variant="primary" size="lg" className="shadow-[0_0_30px_rgba(18,170,255,0.25)]">
+                      <Button variant="primary" size="lg" className="shadow-[0_0_30px_rgba(var(--accent-rgb),0.25)]">
                         <Sparkles size={18} /> Get started
                       </Button>
                     </Link>
@@ -676,8 +676,8 @@ function StatItem({ icon, color, label, value, suffix, border }) {
 function IntegritySignal({ icon, label, value, detail, color }) {
   return (
     <motion.div
-      className="integrity-signal px-5 py-5 border-b sm:border-b-0 sm:border-r last:border-r-0 border-[var(--border)]"
-      whileHover={{ backgroundColor: `rgba(18,170,255,0.05)` }}
+      className="integrity-signal px-5 py-5 border-b sm:border-b-0 sm:border-r last:border-r-0 border-[var(--border)] h-full flex flex-col justify-center"
+      whileHover={{ backgroundColor: `rgba(var(--accent-rgb),0.05)` }}
       transition={{ duration: 0.2 }}
     >
       <div className="flex items-center gap-2 text-[var(--text-3)] text-[11px] font-semibold uppercase tracking-wider"><span style={{ color }}>{icon}</span>{label}</div>
@@ -690,20 +690,20 @@ function IntegritySignal({ icon, label, value, detail, color }) {
 function FeatureCard({ to, href, icon, color, title, description, cta }) {
   const content = (
     <SpotlightCard className="h-full">
-      <Card hover className="h-full cursor-pointer group card-hover-glow card-border-animate">
-        <CardBody className="p-6">
+      <Card hover className="h-full cursor-pointer group card-hover-glow card-border-animate flex flex-col">
+        <CardBody className="p-6 flex-1 flex flex-col">
           <motion.div
             className="w-11 h-11 rounded-xl flex items-center justify-center mb-3"
-            style={{ background: `${color}15`, color }}
+            style={{ background: `color-mix(in srgb, ${color} 15%, transparent)`, color }}
             whileHover={{ scale: 1.1, rotate: 5 }}
             transition={{ type: 'spring', stiffness: 400, damping: 15 }}
           >
             {icon}
           </motion.div>
           <h3 className="text-base font-bold mb-2 text-[var(--text)]">{title}</h3>
-          <p className="text-sm text-[var(--text-3)] leading-relaxed">{description}</p>
+          <p className="text-sm text-[var(--text-3)] leading-relaxed flex-1">{description}</p>
         </CardBody>
-        <CardFooter className="text-[#12AAFF] group-hover:bg-[var(--arb-bg)] transition-colors">
+        <CardFooter className="text-[var(--accent)] group-hover:bg-[var(--arb-bg)] transition-colors mt-auto">
           {cta} <ArrowRight size={14} className="ml-1 group-hover:translate-x-1 transition-transform" />
         </CardFooter>
       </Card>
@@ -727,8 +727,8 @@ function WorkflowNode({ icon, label, desc, color, step }) {
       <div className="relative">
         <motion.div
           className="w-14 h-14 rounded-2xl flex items-center justify-center glow-pulse"
-          style={{ background: `${color}15`, color, border: `1px solid ${color}40` }}
-          whileHover={{ boxShadow: `0 0 24px ${color}50` }}
+          style={{ background: `color-mix(in srgb, ${color} 15%, transparent)`, color, border: `1px solid color-mix(in srgb, ${color} 40%, transparent)` }}
+          whileHover={{ boxShadow: `0 0 24px color-mix(in srgb, ${color} 50%, transparent)` }}
         >
           {icon}
         </motion.div>
@@ -755,7 +755,7 @@ function WorkflowConnector({ reverse }) {
       <div className="w-full relative flex items-center">
         <div className="w-full h-0 border-t-2 border-dashed border-[var(--border)]" />
         <motion.div
-          className="absolute top-1/2 -translate-y-1/2 text-[#12AAFF]"
+          className="absolute top-1/2 -translate-y-1/2 text-[var(--accent)]"
           initial={reverse ? { left: '100%', opacity: 0 } : { left: '0%', opacity: 0 }}
           animate={
             reverse

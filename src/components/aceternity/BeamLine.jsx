@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils'
 /**
  * BeamLine — Animated horizontal beam (data flowing left to right)
  */
-export function BeamLine({ className, color = '#12AAFF', duration = 2.5, delay = 0 }) {
+export function BeamLine({ className, color = 'var(--accent)', duration = 2.5, delay = 0 }) {
   return (
     <div className={cn('relative h-px w-full overflow-hidden', className)} style={{ background: 'var(--border)' }}>
       <motion.div
@@ -25,7 +25,7 @@ export function BeamLine({ className, color = '#12AAFF', duration = 2.5, delay =
 /**
  * AnimatedBeam — Vertical beam connecting nodes
  */
-export function AnimatedBeam({ className, color = '#12AAFF', duration = 2 }) {
+export function AnimatedBeam({ className, color = 'var(--accent)', duration = 2 }) {
   return (
     <div className={cn('relative w-px flex-1 overflow-hidden', className)} style={{ background: 'var(--border)' }}>
       <motion.div
