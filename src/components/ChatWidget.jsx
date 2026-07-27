@@ -143,7 +143,7 @@ export default function ChatWidget() {
       const isHash = /0x[a-fA-F0-9]{40,64}/.test(content) || /[a-fA-F0-9]{64}/.test(content)
 
       const renderedLine = (
-        <span className={isHash ? 'font-mono text-xs select-all bg-[var(--bg-3)] px-1.5 py-0.5 rounded border border-[var(--border-2)] text-[#38b9ff]' : ''}>
+        <span className={isHash ? 'font-mono text-xs select-all bg-[var(--bg-3)] px-1.5 py-0.5 rounded border border-[var(--border-2)] text-[var(--accent-light)]' : ''}>
           {parts.length > 0 ? parts : content}
         </span>
       )
@@ -179,17 +179,17 @@ export default function ChatWidget() {
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border-2)] bg-[var(--bg-2)]/60">
               <div className="flex items-center gap-2.5">
-                <div className="relative w-8 h-8 rounded-lg bg-[#12AAFF]/10 flex items-center justify-center text-[#12AAFF] border border-[#12AAFF]/20 shadow-[0_0_12px_rgba(18,170,255,0.15)]">
+                <div className="relative w-8 h-8 rounded-lg bg-[var(--accent)]/10 flex items-center justify-center text-[var(--accent)] border border-[var(--accent)]/20 shadow-[0_0_12px_rgba(var(--accent-rgb),0.15)]">
                   <Bot size={16} />
-                  <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-[#00D395] border-2 border-[var(--bg)]" />
+                  <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-[#4CAF50] border-2 border-[var(--bg)]" />
                 </div>
                 <div>
                   <div className="text-xs font-bold text-[var(--text)] flex items-center gap-1.5">
                     VeriTrace Assistant
-                    <span className="flex items-center gap-0.5 text-[8px] font-semibold text-[#00D395] uppercase bg-[#00D395]/10 px-1 rounded">RAG</span>
+                    <span className="flex items-center gap-0.5 text-[8px] font-semibold text-[var(--success-text, #4CAF50)] uppercase bg-[var(--success-text, #4CAF50)]/10 px-1 rounded">RAG</span>
                   </div>
                   <div className="text-[10px] text-[var(--text-3)] flex items-center gap-1">
-                    <Sparkles size={8} className="text-[#12AAFF]" />
+                    <Sparkles size={8} className="text-[var(--accent)]" />
                     <span>Gemini-Grounded Knowledge</span>
                   </div>
                 </div>
@@ -212,14 +212,14 @@ export default function ChatWidget() {
                     className={`flex ${isUser ? 'justify-end' : 'justify-start'} items-start gap-2`}
                   >
                     {!isUser && (
-                      <div className="w-6 h-6 rounded-md bg-[#12AAFF]/10 border border-[#12AAFF]/20 flex items-center justify-center text-[#12AAFF] shrink-0 mt-0.5">
+                      <div className="w-6 h-6 rounded-md bg-[var(--accent)]/10 border border-[var(--accent)]/20 flex items-center justify-center text-[var(--accent)] shrink-0 mt-0.5">
                         <Bot size={12} />
                       </div>
                     )}
                     <div
                       className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-xs shadow-sm ${
                         isUser
-                          ? 'bg-gradient-to-br from-[#12AAFF] to-[#1B4ADD] text-white rounded-tr-none'
+                          ? 'bg-gradient-to-br from-[var(--accent)] to-[var(--accent-dark)] text-white rounded-tr-none'
                           : msg.isError
                           ? 'bg-red-500/10 border border-red-500/20 text-red-400 rounded-tl-none'
                           : 'bg-[var(--surface-2)] border border-[var(--border)] text-[var(--text-2)] rounded-tl-none'
@@ -238,14 +238,14 @@ export default function ChatWidget() {
               {/* Bouncing Loader */}
               {isLoading && (
                 <div className="flex justify-start items-start gap-2">
-                  <div className="w-6 h-6 rounded-md bg-[#12AAFF]/10 border border-[#12AAFF]/20 flex items-center justify-center text-[#12AAFF] shrink-0">
+                  <div className="w-6 h-6 rounded-md bg-[var(--accent)]/10 border border-[var(--accent)]/20 flex items-center justify-center text-[var(--accent)] shrink-0">
                     <Bot size={12} />
                   </div>
                   <div className="bg-[var(--surface-2)] border border-[var(--border)] rounded-2xl rounded-tl-none px-4 py-3">
                     <div className="flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#12AAFF] animate-bounce" style={{ animationDelay: '0ms' }} />
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#12AAFF] animate-bounce" style={{ animationDelay: '150ms' }} />
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#12AAFF] animate-bounce" style={{ animationDelay: '300ms' }} />
+                      <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] animate-bounce" style={{ animationDelay: '0ms' }} />
+                      <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] animate-bounce" style={{ animationDelay: '150ms' }} />
+                      <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] animate-bounce" style={{ animationDelay: '300ms' }} />
                     </div>
                   </div>
                 </div>
@@ -263,12 +263,12 @@ export default function ChatWidget() {
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 placeholder="Ask about thresholds, duplicates..."
-                className="flex-1 bg-[var(--bg)] border border-[var(--border-2)] focus:border-[#12AAFF]/50 rounded-xl px-3 py-2 text-xs text-[var(--text)] placeholder-[var(--text-4)] focus:outline-none transition-all"
+                className="flex-1 bg-[var(--bg)] border border-[var(--border-2)] focus:border-[var(--accent)]/50 rounded-xl px-3 py-2 text-xs text-[var(--text)] placeholder-[var(--text-4)] focus:outline-none transition-all"
               />
               <button
                 type="submit"
                 disabled={!inputValue.trim() || isLoading}
-                className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#12AAFF] to-[#1B4ADD] text-white flex items-center justify-center shadow-lg active:scale-95 disabled:opacity-50 disabled:scale-100 disabled:pointer-events-none transition-all hover:brightness-110"
+                className="w-8 h-8 rounded-xl bg-gradient-to-br from-[var(--accent)] to-[var(--accent-dark)] text-white flex items-center justify-center shadow-lg active:scale-95 disabled:opacity-50 disabled:scale-100 disabled:pointer-events-none transition-all hover:brightness-110"
               >
                 <Send size={12} />
               </button>
@@ -283,7 +283,7 @@ export default function ChatWidget() {
         className={`w-16 h-16 rounded-full flex items-center justify-center shadow-[0_8px_30px_rgba(0,0,0,0.08)] transition-all duration-300 active:scale-95 relative group border border-[#e2e8f0] ${
           isOpen
             ? 'bg-[var(--surface)] text-[var(--text-2)] hover:text-[var(--text)] hover:bg-[var(--bg-2)]'
-            : 'bg-white hover:shadow-[0_8px_30px_rgba(59,130,246,0.12)] hover:scale-105'
+            : 'bg-white hover:shadow-[0_8px_30px_rgba(var(--accent-rgb),0.12)] hover:scale-105'
         }`}
         aria-label="Toggle Help Chatbot"
       >
@@ -335,7 +335,7 @@ export default function ChatWidget() {
         
         {/* Unread indicator */}
         {!isOpen && hasUnread && (
-          <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-[#00D395] border-2 border-white rounded-full animate-pulse" />
+          <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-[var(--success-text, #4CAF50)] border-2 border-white rounded-full animate-pulse" />
         )}
       </button>
     </div>

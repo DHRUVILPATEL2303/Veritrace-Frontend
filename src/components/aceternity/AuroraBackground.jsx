@@ -17,7 +17,7 @@ export function AuroraBackground({ children, className }) {
 /**
  * GlowCard — Card with animated glowing border
  */
-export function GlowCard({ children, className, color = '#12AAFF' }) {
+export function GlowCard({ children, className, color = 'var(--accent)' }) {
   return (
     <div className={cn('animated-border', className)}>
       <div className="relative z-10 h-full">{children}</div>

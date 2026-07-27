@@ -25,8 +25,8 @@ function ScrollProgress() {
   const scaleX = useSpring(scrollYProgress, { stiffness: 100, damping: 30, restDelta: 0.001 })
   return (
     <motion.div
-      className="absolute bottom-0 left-3 right-3 h-[2px] rounded-full bg-gradient-to-r from-[#12AAFF] via-[#00D395] to-[#1B4ADD] origin-left"
-      style={{ scaleX, opacity: 1 }}
+      className="absolute bottom-0 left-3 right-3 h-[2px] rounded-full origin-left"
+      style={{ scaleX, opacity: 1, background: 'linear-gradient(to right, var(--accent), var(--success-bg), var(--accent-dark))' }}
       aria-hidden="true"
     />
   )
@@ -65,7 +65,7 @@ export default function Navbar() {
         <div className={cn(
           'relative flex items-center justify-between h-14 px-4 rounded-2xl transition-all duration-500',
           scrolled
-            ? 'glass shadow-[0_8px_32px_rgba(0,0,0,0.4)] border-2 border-[#12AAFF]'
+            ? 'glass shadow-[0_8px_32px_rgba(0,0,0,0.4)] border-2 border-[var(--accent)]'
             : 'glass border-2 border-white/20'
         )}>
           {/* Scroll progress bar */}
@@ -90,7 +90,7 @@ export default function Navbar() {
                   className={cn(
                     'flex items-center gap-1.5 px-2.5 py-2 text-[13px] font-medium rounded-xl transition-all duration-200 whitespace-nowrap',
                     isActive(item.path)
-                      ? 'text-[#12AAFF] bg-[var(--arb-bg)]'
+                      ? 'text-[var(--accent)] bg-[var(--arb-bg)]'
                       : 'text-[var(--text-2)] hover:text-[var(--text)] hover:bg-[var(--bg-2)]'
                   )}
                 >
@@ -99,7 +99,7 @@ export default function Navbar() {
                   {isActive(item.path) && (
                     <motion.div
                       layoutId="nav-active"
-                      className="absolute bottom-0 left-2 right-2 h-0.5 rounded-full bg-[#12AAFF]"
+                      className="absolute bottom-0 left-2 right-2 h-0.5 rounded-full bg-[var(--accent)]"
                       style={{ position: 'relative', marginTop: '2px' }}
                     />
                   )}
@@ -115,7 +115,7 @@ export default function Navbar() {
             <WalletButton />
             {/* Mobile menu button */}
             <button
-              className="lg:hidden w-9 h-9 rounded-xl flex items-center justify-center text-[var(--text-2)] hover:bg-[var(--bg-2)] active:scale-95 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#12AAFF]"
+              className="lg:hidden w-9 h-9 rounded-xl flex items-center justify-center text-[var(--text-2)] hover:bg-[var(--bg-2)] active:scale-95 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
               onClick={() => setMobileOpen(!mobileOpen)}
             >
               {mobileOpen ? <X size={18} /> : <Menu size={18} />}
@@ -148,7 +148,7 @@ export default function Navbar() {
                         className={cn(
                           'flex items-center gap-2.5 px-3 py-2.5 text-sm font-medium rounded-xl transition-colors',
                           isActive(item.path)
-                            ? 'text-[#12AAFF] bg-[var(--arb-bg)]'
+                            ? 'text-[var(--accent)] bg-[var(--arb-bg)]'
                             : 'text-[var(--text-2)] hover:bg-[var(--bg-2)]'
                         )}
                       >
@@ -203,11 +203,11 @@ function WalletButton() {
       <div className="relative flex-shrink-0">
         <button
           onClick={() => setShowDropdown(value => !value)}
-          className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-xl bg-[var(--surface)] border border-[var(--border)] text-[var(--text)] shadow-sm hover:border-[#12AAFF]/50 hover:shadow-md active:scale-[.98] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#12AAFF] whitespace-nowrap"
+          className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-xl bg-[var(--surface)] border border-[var(--border)] text-[var(--text)] shadow-sm hover:border-[var(--accent)]/50 hover:shadow-md active:scale-[.98] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] whitespace-nowrap"
           aria-expanded={showDropdown}
           aria-label="Open wallet account menu"
         >
-          <span className="w-2 h-2 rounded-full bg-[#00D395] shadow-[0_0_8px_#00D395] flex-shrink-0" />
+          <span className="w-2 h-2 rounded-full bg-[var(--success-text, #4CAF50)] shadow-[0_0_8px_var(--success-text, #4CAF50)] flex-shrink-0" />
           <span className="font-mono font-medium text-[var(--text)] hidden sm:inline">{formatAddress(address)}</span>
           <ArbitrumLogo size={14} />
           <ChevronDown size={12} className={cn('transition-transform text-[var(--text-3)] flex-shrink-0', showDropdown && 'rotate-180')} />
@@ -231,13 +231,13 @@ function WalletButton() {
                 <Link
                   to="/profile"
                   onClick={() => setShowDropdown(false)}
-                  className="w-full mt-1.5 flex items-center gap-2 px-3 py-2.5 rounded-xl text-left text-sm font-medium text-[var(--text-2)] hover:text-[var(--text)] hover:bg-[var(--bg-2)] active:scale-[.98] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#12AAFF]"
+                  className="w-full mt-1.5 flex items-center gap-2 px-3 py-2.5 rounded-xl text-left text-sm font-medium text-[var(--text-2)] hover:text-[var(--text)] hover:bg-[var(--bg-2)] active:scale-[.98] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                 >
                   <User size={15} /> View profile
                 </Link>
-                <button onClick={copyAddress} className="w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl text-left text-sm font-medium text-[var(--text-2)] hover:text-[var(--text)] hover:bg-[var(--bg-2)] active:scale-[.98] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#12AAFF]">
+                <button onClick={copyAddress} className="w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl text-left text-sm font-medium text-[var(--text-2)] hover:text-[var(--text)] hover:bg-[var(--bg-2)] active:scale-[.98] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]">
                   <span className="flex items-center gap-2"><Copy size={15} /> Copy address</span>
-                  {copied ? <Check size={15} className="text-[#00D395]" /> : <span className="text-[10px] font-mono text-[var(--text-4)]">{formatAddress(address)}</span>}
+                  {copied ? <Check size={15} className="text-[var(--success-text, #4CAF50)]" /> : <span className="text-[10px] font-mono text-[var(--text-4)]">{formatAddress(address)}</span>}
                 </button>
                 <button onClick={() => { disconnect(); setShowDropdown(false) }} className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-left text-sm font-medium text-[#FF6B6B] hover:bg-[var(--danger-bg)] active:scale-[.98] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF4D4D]">
                   <LogOut size={15} /> Disconnect wallet
@@ -255,7 +255,7 @@ function WalletButton() {
       <button
         onClick={() => setShowDropdown(!showDropdown)}
         className="flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-xl text-white transition-all hover:shadow-lg whitespace-nowrap"
-        style={{ background: 'linear-gradient(135deg, #12AAFF, #1B4ADD)' }}
+        style={{ background: 'linear-gradient(135deg, var(--accent), var(--accent-dark))' }}
       >
         <Wallet size={14} />
         <span className="hidden sm:inline">Connect</span>

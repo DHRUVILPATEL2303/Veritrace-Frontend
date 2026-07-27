@@ -201,10 +201,10 @@ export default function RegisterPage() {
       {/* Faucet notice — shown when wallet is connected */}
       {isConnected && (
         <div className="mb-5 flex items-center gap-3 px-4 py-3 rounded-2xl border border-[var(--arb-border)] bg-[var(--arb-bg)]">
-          <AlertTriangle size={15} className="text-[#12AAFF] flex-shrink-0" />
+          <AlertTriangle size={15} className="text-[var(--accent)] flex-shrink-0" />
           <p className="text-xs text-[var(--text-2)] leading-relaxed">
             Registration requires a small amount of testnet ETH for gas.{' '}
-            <a href="https://faucet.lamprosdao.com/" target="_blank" rel="noopener noreferrer" className="text-[#12AAFF] font-semibold hover:underline inline-flex items-center gap-1">
+            <a href="https://faucet.lamprosdao.com/" target="_blank" rel="noopener noreferrer" className="text-[var(--accent)] font-semibold hover:underline inline-flex items-center gap-1">
               Get free ETH from the Lampros DAO Faucet <ExternalLink size={10} />
             </a>
           </p>
@@ -219,7 +219,7 @@ export default function RegisterPage() {
             <Card className="card-hover-glow">
               <CardHeader>
                 <CardTitle className="flex justify-between items-center">
-                  <span className="flex items-center gap-2"><Upload size={16} className="text-[#12AAFF]" /> Provide Content</span>
+                  <span className="flex items-center gap-2"><Upload size={16} className="text-[var(--accent)]" /> Provide Content</span>
                 </CardTitle>
               </CardHeader>
               <CardBody className="flex flex-col gap-4">
@@ -234,7 +234,7 @@ export default function RegisterPage() {
                   </TabsContent>
                   
                   <TabsContent value="text" className="flex flex-col gap-2 mt-0">
-                    <textarea className="w-full h-32 p-3 bg-[var(--bg-2)] border border-[var(--border)] rounded-xl text-sm focus:border-[#12AAFF] focus:outline-none resize-none" placeholder="Paste your article or text content here to register it on the blockchain..." value={textContent} onChange={(e) => setTextContent(e.target.value)} />
+                    <textarea className="w-full h-32 p-3 bg-[var(--bg-2)] border border-[var(--border)] rounded-xl text-sm focus:border-[var(--accent)] focus:outline-none resize-none" placeholder="Paste your article or text content here to register it on the blockchain..." value={textContent} onChange={(e) => setTextContent(e.target.value)} />
                     <div className="text-[10px] text-[var(--text-3)] text-right">{textContent.length} characters</div>
                     <Button onClick={() => handleFileSelected(file)} disabled={!textContent.trim()}>Generate Hash</Button>
                   </TabsContent>
@@ -248,7 +248,7 @@ export default function RegisterPage() {
               <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
                 <Card className="card-hover-glow">
                   <CardHeader>
-                    <CardTitle><Fingerprint size={16} className="text-[#12AAFF]" /> Content Fingerprints</CardTitle>
+                    <CardTitle><Fingerprint size={16} className="text-[var(--accent)]" /> Content Fingerprints</CardTitle>
                     {processing && <Badge variant="arb">Computing...</Badge>}
                   </CardHeader>
                   <CardBody className="flex flex-col gap-3">
@@ -266,14 +266,14 @@ export default function RegisterPage() {
                           <Meta label="Type" value={hashes.mediaType} />
                           <Meta label="Hash Units" value={hashes.hashCount} />
                           {hashes.aiConfidenceScore !== undefined && hashes.aiConfidenceScore !== null && (
-                            <Meta label="AI Score" value={`${Math.round(maxConf * 100)}%`} color={maxConf > 0.75 ? 'text-[#FF4D4D]' : maxConf > 0.3 ? 'text-[#FF9B00]' : 'text-[#00D395]'} bold />
+                            <Meta label="AI Score" value={`${Math.round(maxConf * 100)}%`} color={maxConf > 0.75 ? 'text-[#FF4D4D]' : maxConf > 0.3 ? 'text-[#FF9B00]' : 'text-[var(--success-text, #4CAF50)]'} bold />
                           )}
                         </div>
                         {hashes.keyframes?.length > 0 && (
                           <div className="border-t border-[var(--border)] pt-3">
                             <div className="flex items-center justify-between mb-1.5">
                               <span className="text-xs font-semibold text-[var(--text-3)]">Extracted Keyframes ({hashes.keyframes.length})</span>
-                              <button onClick={() => setShowAllKeyframes(!showAllKeyframes)} className="text-xs text-[#12AAFF] hover:opacity-80">{showAllKeyframes ? 'Show Less' : 'Show All'}</button>
+                              <button onClick={() => setShowAllKeyframes(!showAllKeyframes)} className="text-xs text-[var(--accent)] hover:opacity-80">{showAllKeyframes ? 'Show Less' : 'Show All'}</button>
                             </div>
                             <div className="max-h-[220px] overflow-y-auto p-2 rounded-lg bg-[var(--bg-2)] border border-[var(--border)] flex flex-col gap-1 font-mono text-xs">
                               {(showAllKeyframes ? hashes.keyframes : hashes.keyframes.slice(0, 2)).map((kf, i) => {
@@ -283,7 +283,7 @@ export default function RegisterPage() {
                                   <div key={i} className="flex flex-col gap-0.5 pb-1 border-b border-[var(--border)] last:border-0">
                                     <div className="flex justify-between">
                                       <span className="text-[var(--text-3)]">⏱️ {offset}ms</span>
-                                      <span className="text-[#12AAFF]">🔑 {phash}</span>
+                                      <span className="text-[var(--accent)]">🔑 {phash}</span>
                                     </div>
                                   </div>
                                 )
@@ -305,7 +305,7 @@ export default function RegisterPage() {
           <SpotlightCard>
             <Card className="card-hover-glow card-border-animate">
               <CardHeader>
-                <CardTitle><Shield size={16} className="text-[#12AAFF]" /> Blockchain Registration</CardTitle>
+                <CardTitle><Shield size={16} className="text-[var(--accent)]" /> Blockchain Registration</CardTitle>
               </CardHeader>
               <CardBody>
                 <AnimatePresence mode="wait">
@@ -321,15 +321,15 @@ export default function RegisterPage() {
                         <>
                           <div className="flex justify-between text-xs font-semibold mb-1.5">
                             <span className="text-[var(--text-2)]">Uploading Media File...</span>
-                            <span className="text-[#12AAFF]">{uploadProgress}%</span>
+                            <span className="text-[var(--accent)]">{uploadProgress}%</span>
                           </div>
                           <Progress value={uploadProgress} />
                         </>
                       ) : (
                         <div className="text-center py-4">
                           <div className="relative w-16 h-16 mx-auto flex items-center justify-center mb-3">
-                            <div className="loading-orb-outer absolute inset-0 rounded-full" style={{ border: '2.5px solid var(--border)', borderTopColor: '#12AAFF', borderRightColor: '#12AAFF' }} />
-                            <div className="loading-orb-inner absolute inset-1.5 rounded-full" style={{ border: '2.5px solid var(--border)', borderBottomColor: '#00D395', borderLeftColor: '#00D395' }} />
+                            <div className="loading-orb-outer absolute inset-0 rounded-full" style={{ border: '2.5px solid var(--border)', borderTopColor: 'var(--accent)', borderRightColor: 'var(--accent)' }} />
+                            <div className="loading-orb-inner absolute inset-1.5 rounded-full" style={{ border: '2.5px solid var(--border)', borderBottomColor: 'var(--success-text, #4CAF50)', borderLeftColor: 'var(--success-text, #4CAF50)' }} />
                             <ArbitrumLogo size={20} animated />
                           </div>
                           <div className="font-semibold text-sm text-[var(--text)]">Extracting & Hashing...</div>
@@ -349,14 +349,14 @@ export default function RegisterPage() {
                           {AI_MODELS.map(m => <option key={m} value={m}>{m}</option>)}
                         </Select>
                         {showAiRequirement && <div className="text-xs text-[#FF4D4D] mt-1.5 font-medium flex items-center gap-1"><AlertTriangle size={12} /> AI detected ({Math.round(maxConf * 100)}%). You must declare the AI model.</div>}
-                        {aiCategory === 'Other (Custom Input)' && <input type="text" value={aiTool} onChange={(e) => setAiTool(e.target.value)} placeholder="Enter custom AI model name" className="w-full mt-2 px-3.5 py-2.5 text-sm rounded-xl bg-[var(--bg-2)] border border-[var(--border)] text-[var(--text)] outline-none focus:border-[#12AAFF]" />}
+                        {aiCategory === 'Other (Custom Input)' && <input type="text" value={aiTool} onChange={(e) => setAiTool(e.target.value)} placeholder="Enter custom AI model name" className="w-full mt-2 px-3.5 py-2.5 text-sm rounded-xl bg-[var(--bg-2)] border border-[var(--border)] text-[var(--text)] outline-none focus:border-[var(--accent)]" />}
                       </div>
 
-                      <label className="flex items-center gap-2 text-xs cursor-pointer text-[var(--text-2)]"><input type="checkbox" checked={allowAiTraining} onChange={(e) => setAllowAiTraining(e.target.checked)} className="accent-[#12AAFF]" /> Allow AI models to use this content for training</label>
+                      <label className="flex items-center gap-2 text-xs cursor-pointer text-[var(--text-2)]"><input type="checkbox" checked={allowAiTraining} onChange={(e) => setAllowAiTraining(e.target.checked)} className="accent-[var(--accent)]" /> Allow AI models to use this content for training</label>
 
                       <div>
                         <label className="text-xs font-semibold text-[var(--text-3)] block mb-1.5 flex items-center gap-1"><Webhook size={12} /> Webhook URL (Optional)</label>
-                        <input type="url" value={webhookUrl} onChange={(e) => setWebhookUrl(e.target.value)} placeholder="e.g. Discord, Slack webhook" className="w-full px-3.5 py-2.5 text-sm rounded-xl bg-[var(--bg-2)] border border-[var(--border)] text-[var(--text)] outline-none focus:border-[#12AAFF]" />
+                        <input type="url" value={webhookUrl} onChange={(e) => setWebhookUrl(e.target.value)} placeholder="e.g. Discord, Slack webhook" className="w-full px-3.5 py-2.5 text-sm rounded-xl bg-[var(--bg-2)] border border-[var(--border)] text-[var(--text)] outline-none focus:border-[var(--accent)]" />
                       </div>
 
                       <div className="bg-[var(--bg-2)] rounded-xl p-4 border border-[var(--border)]">
@@ -378,8 +378,8 @@ export default function RegisterPage() {
                   {step === 3 && signing && (
                     <motion.div key="signing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-center py-8">
                       <div className="relative w-16 h-16 mx-auto flex items-center justify-center mb-3">
-                        <div className="loading-orb-outer absolute inset-0 rounded-full" style={{ border: '2.5px solid var(--border)', borderTopColor: '#12AAFF', borderRightColor: '#12AAFF' }} />
-                        <div className="loading-orb-inner absolute inset-1.5 rounded-full" style={{ border: '2.5px solid var(--border)', borderBottomColor: '#00D395', borderLeftColor: '#00D395' }} />
+                        <div className="loading-orb-outer absolute inset-0 rounded-full" style={{ border: '2.5px solid var(--border)', borderTopColor: 'var(--accent)', borderRightColor: 'var(--accent)' }} />
+                        <div className="loading-orb-inner absolute inset-1.5 rounded-full" style={{ border: '2.5px solid var(--border)', borderBottomColor: 'var(--success-text, #4CAF50)', borderLeftColor: 'var(--success-text, #4CAF50)' }} />
                         <ArbitrumLogo size={20} animated />
                       </div>
                       <div className="font-semibold text-sm text-[var(--text)]">Waiting for confirmation...</div>
@@ -389,19 +389,19 @@ export default function RegisterPage() {
 
                   {step === 4 && txResult && (
                     <motion.div key="success" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-4">
-                      <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.1, type: 'spring' }} className="w-14 h-14 rounded-full bg-[var(--success-bg)] text-[#00D395] flex items-center justify-center mx-auto mb-3">
+                      <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.1, type: 'spring' }} className="w-14 h-14 rounded-full bg-[var(--success-bg)] text-[var(--success-text, #4CAF50)] flex items-center justify-center mx-auto mb-3">
                         <CheckCircle2 size={28} />
                       </motion.div>
                       <div className="font-bold text-lg mb-1 text-[var(--text)]">Successfully Registered!</div>
                       <div className="text-xs text-[var(--text-3)] mb-4">Your content has been anchored on Arbitrum Sepolia</div>
 
                       <div className="bg-[var(--bg-2)] rounded-xl p-4 border border-[var(--border)] text-left text-xs mb-4">
-                        <TxRow label="Tx Hash"><a href={`${ARBITRUM_SEPOLIA.explorer}/tx/${txResult.hash}`} target="_blank" rel="noopener noreferrer" className="text-[#12AAFF] hover:opacity-80 font-mono">{txResult.hash.slice(0, 16)}...{txResult.hash.slice(-8)}</a></TxRow>
+                        <TxRow label="Tx Hash"><a href={`${ARBITRUM_SEPOLIA.explorer}/tx/${txResult.hash}`} target="_blank" rel="noopener noreferrer" className="text-[var(--accent)] hover:opacity-80 font-mono">{txResult.hash.slice(0, 16)}...{txResult.hash.slice(-8)}</a></TxRow>
                         <TxRow label="Block" value={txResult.blockNumber?.toString()} />
                         <TxRow label="Status"><Badge variant="success">Confirmed</Badge></TxRow>
                         <div className="flex flex-wrap items-center gap-2 mt-3 pt-3 border-t border-[var(--border)]">
-                          {txResult.mediaS3Url && <a href={txResult.mediaS3Url?.startsWith('ipfs://') ? `https://gateway.pinata.cloud/ipfs/${txResult.mediaS3Url.slice(7)}` : txResult.mediaS3Url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 bg-[#00D395]/10 hover:bg-[#00D395]/20 text-[#00D395] rounded-md text-[11px] font-bold border border-[#00D395]/20 transition-colors"><ExternalLink size={12} /> S3 Media</a>}
-                          {txResult.mediaIpfsUrl && <a href={txResult.mediaIpfsUrl?.startsWith('ipfs://') ? `https://gateway.pinata.cloud/ipfs/${txResult.mediaIpfsUrl.slice(7)}` : txResult.mediaIpfsUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 bg-[#12AAFF]/10 hover:bg-[#12AAFF]/20 text-[#12AAFF] rounded-md text-[11px] font-bold border border-[#12AAFF]/20 transition-colors"><ExternalLink size={12} /> IPFS Media</a>}
+                          {txResult.mediaS3Url && <a href={txResult.mediaS3Url?.startsWith('ipfs://') ? `https://gateway.pinata.cloud/ipfs/${txResult.mediaS3Url.slice(7)}` : txResult.mediaS3Url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--success-text, #4CAF50)]/10 hover:bg-[var(--success-text, #4CAF50)]/20 text-[var(--success-text, #4CAF50)] rounded-md text-[11px] font-bold border border-[var(--success-text, #4CAF50)]/20 transition-colors"><ExternalLink size={12} /> S3 Media</a>}
+                          {txResult.mediaIpfsUrl && <a href={txResult.mediaIpfsUrl?.startsWith('ipfs://') ? `https://gateway.pinata.cloud/ipfs/${txResult.mediaIpfsUrl.slice(7)}` : txResult.mediaIpfsUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--accent)]/10 hover:bg-[var(--accent)]/20 text-[var(--accent)] rounded-md text-[11px] font-bold border border-[var(--accent)]/20 transition-colors"><ExternalLink size={12} /> IPFS Media</a>}
                           {txResult.ipfsCid && <a href={`https://gateway.pinata.cloud/ipfs/${txResult.ipfsCid}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--surface-3)] hover:bg-[var(--border)] text-[var(--text-2)] rounded-md text-[11px] font-bold border border-[var(--border)] transition-colors"><ExternalLink size={12} /> IPFS JSON</a>}
                         </div>
                       </div>
@@ -424,9 +424,9 @@ export default function RegisterPage() {
               <CardHeader><CardTitle>Where your proof lives</CardTitle></CardHeader>
             <CardBody className="text-xs leading-relaxed text-[var(--text-2)]">
               <div className="flex flex-col gap-3">
-                <InfoRow label="On-Chain" color="#12AAFF" items={['SHA-256 hash (bytes32)', 'Wallet address (msg.sender)', 'Block timestamp', 'AI tool attribution']} />
-                <InfoRow label="Hash Engine (BoltDB)" color="#4DC3FF" items={['SHA-256 hash', 'Perceptual hash units', 'File content (for verification)', 'Asset metadata']} />
-                <InfoRow label="Backend (Postgres/Qdrant)" color="#00D395" items={['Event-sourced metadata', 'pHash vectors (64-dim)', 'Redis exact-match cache']} />
+                <InfoRow label="On-Chain" color="var(--accent)" items={['SHA-256 hash (bytes32)', 'Wallet address (msg.sender)', 'Block timestamp', 'AI tool attribution']} />
+                <InfoRow label="Hash Engine (BoltDB)" color="var(--accent-2)" items={['SHA-256 hash', 'Perceptual hash units', 'File content (for verification)', 'Asset metadata']} />
+                <InfoRow label="Backend (Postgres/Qdrant)" color="var(--success-text, #4CAF50)" items={['Event-sourced metadata', 'pHash vectors (64-dim)', 'Redis exact-match cache']} />
               </div>
             </CardBody>
           </Card>
@@ -439,11 +439,11 @@ export default function RegisterPage() {
 }
 
 function Meta({ label, value, mono, color, bold }) {
-  return <div><span className="text-[var(--text-3)]">{label}: </span><span className={`${mono ? 'font-mono text-[#12AAFF]' : ''} ${color || ''} ${bold ? 'font-bold' : ''}`}>{value}</span></div>
+  return <div><span className="text-[var(--text-3)]">{label}: </span><span className={`${mono ? 'font-mono text-[var(--accent)]' : ''} ${color || ''} ${bold ? 'font-bold' : ''}`}>{value}</span></div>
 }
 
 function TxRow({ label, value, accent, mono, children }) {
-  return <div className="flex justify-between items-center mb-1"><span className="text-[var(--text-3)]">{label}</span>{children || <span className={`${accent ? 'text-[#12AAFF]' : ''} ${mono ? 'font-mono' : ''}`}>{value}</span>}</div>
+  return <div className="flex justify-between items-center mb-1"><span className="text-[var(--text-3)]">{label}</span>{children || <span className={`${accent ? 'text-[var(--accent)]' : ''} ${mono ? 'font-mono' : ''}`}>{value}</span>}</div>
 }
 
 function InfoRow({ label, items, color }) {

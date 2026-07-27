@@ -27,11 +27,11 @@ const buttonVariants = cva(
 )
 
 const variantStyles = {
-  primary: { background: 'linear-gradient(135deg, #12AAFF, #1B4ADD)' },
-  success: { background: 'linear-gradient(135deg, #00D395, #00F5A8)' },
+  primary: { background: 'linear-gradient(135deg, var(--accent), var(--accent-dark))' },
+  success: { background: 'linear-gradient(135deg, var(--success-bg), var(--success-border))' },
   outline: { borderColor: 'var(--border-2)', color: 'var(--text-2)' },
   ghost: { color: 'var(--text-2)' },
-  danger: { background: 'linear-gradient(135deg, #FF4D4D, #FF6B6B)' },
+  danger: { background: 'linear-gradient(135deg, #E53935, #FF6B6B)' },
   glass: { color: 'var(--text)' },
 }
 

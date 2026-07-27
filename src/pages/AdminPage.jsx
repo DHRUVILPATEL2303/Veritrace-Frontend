@@ -107,7 +107,7 @@ export default function AdminPage() {
         
         {!isConnected && (
           <div className="mb-5 flex items-center gap-3 px-4 py-3 rounded-2xl border border-[var(--arb-border)] bg-[var(--arb-bg)]">
-            <AlertTriangle size={15} className="text-[#12AAFF] flex-shrink-0" />
+            <AlertTriangle size={15} className="text-[var(--accent)] flex-shrink-0" />
             <p className="text-xs text-[var(--text-2)] leading-relaxed">
               Connect your wallet to access the owner portal. Only the initialized owner can withdraw funds.
             </p>
@@ -117,13 +117,13 @@ export default function AdminPage() {
         <SpotlightCard>
           <Card className="card-hover-glow">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2"><Shield size={16} className="text-[#12AAFF]" /> Platform Treasury</CardTitle>
+              <CardTitle className="flex items-center gap-2"><Shield size={16} className="text-[var(--accent)]" /> Platform Treasury</CardTitle>
             </CardHeader>
             <CardBody className="flex flex-col gap-6 text-center py-6">
               
               <div>
                 <div className="text-sm font-semibold text-[var(--text-3)] mb-2 uppercase tracking-wider">Current Accumulated Fees</div>
-                <div className="text-5xl font-bold text-[#00D395]">${balanceUsdc} USDC</div>
+                <div className="text-5xl font-bold text-[var(--success-text, #4CAF50)]">${balanceUsdc} USDC</div>
               </div>
 
               <div className="mx-auto w-full max-w-sm">
@@ -137,7 +137,7 @@ export default function AdminPage() {
                   {withdrawing ? <Spinner size="md" /> : <span className="flex items-center gap-2"><Download size={20} /> Withdraw Treasury to Owner</span>}
                 </Button>
                 <div className="text-xs text-[var(--text-4)] mt-3">
-                  This transaction calls <span className="font-mono bg-[var(--bg-2)] px-1 py-0.5 rounded text-[#12AAFF]">withdrawTreasury</span> on the registry.
+                  This transaction calls <span className="font-mono bg-[var(--bg-2)] px-1 py-0.5 rounded text-[var(--accent)]">withdrawTreasury</span> on the registry.
                 </div>
               </div>
 

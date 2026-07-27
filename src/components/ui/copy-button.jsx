@@ -18,12 +18,12 @@ export function CopyButton({ text, className, size = 14 }) {
     <button
       onClick={handleCopy}
       className={cn(
-        'flex-shrink-0 w-7 h-7 rounded-lg border border-[var(--border)] bg-[var(--bg-2)] flex items-center justify-center text-[var(--text-3)] transition-all hover:border-[#12AAFF] hover:text-[#12AAFF]',
+        'flex-shrink-0 w-7 h-7 rounded-lg border border-[var(--border)] bg-[var(--bg-2)] flex items-center justify-center text-[var(--text-3)] transition-all hover:border-[var(--accent)] hover:text-[var(--accent)]',
         className
       )}
       title="Copy to clipboard"
     >
-      {copied ? <Check size={size} className="text-[#00D395]" /> : <Copy size={size} />}
+      {copied ? <Check size={size} className="text-[var(--success-text, #4CAF50)]" /> : <Copy size={size} />}
     </button>
   )
 }

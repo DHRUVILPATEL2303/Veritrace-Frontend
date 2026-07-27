@@ -1,5 +1,4 @@
 import { useTheme } from './providers/ExperienceProvider'
-import { Sun, Moon } from 'lucide-react'
 
 export default function ThemeToggle() {
   const { theme, toggleTheme } = useTheme()
@@ -7,14 +6,23 @@ export default function ThemeToggle() {
   return (
     <button 
       onClick={toggleTheme}
-      className="p-2 rounded-xl border border-[var(--border)] bg-[var(--bg-2)] hover:bg-[var(--bg-3)] text-[var(--text-1)] hover:text-[#12AAFF] transition-all duration-200 flex items-center justify-center shadow-sm"
+      className={`theme-toggle-btn ${theme === 'dark' ? 'dark' : ''}`}
       aria-label="Toggle theme"
     >
-      {theme === 'dark' ? (
-        <Sun className="w-4 h-4 text-amber-400" />
-      ) : (
-        <Moon className="w-4 h-4 text-slate-700" />
-      )}
+      <div className="theme-toggle-track">
+        <div className="theme-toggle-clouds"></div>
+        <div className="star star-1"></div>
+        <div className="star star-2"></div>
+        <div className="star star-3"></div>
+      </div>
+      <div className="theme-toggle-thumb">
+        <div className="thumb-shape"></div>
+        <div className="sun-rays">
+          <div className="ray"></div><div className="ray"></div><div className="ray"></div>
+          <div className="ray"></div><div className="ray"></div><div className="ray"></div>
+          <div className="ray"></div><div className="ray"></div>
+        </div>
+      </div>
     </button>
   )
 }

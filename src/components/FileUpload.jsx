@@ -74,14 +74,14 @@ export default function FileUpload({ onFileSelected, accept, label }) {
       <div
         className={cn(
           'border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all duration-200',
-          dragover ? 'border-[#12AAFF] bg-[var(--arb-bg)] scale-[1.01]' : 'border-[var(--border-2)] bg-[var(--bg-2)] hover:border-[#12AAFF] hover:bg-[var(--arb-bg)]'
+          dragover ? 'border-[var(--accent)] bg-[var(--arb-bg)] scale-[1.01]' : 'border-[var(--border-2)] bg-[var(--bg-2)] hover:border-[var(--accent)] hover:bg-[var(--arb-bg)]'
         )}
         onDrop={handleDrop}
         onDragOver={(e) => { e.preventDefault(); setDragover(true) }}
         onDragLeave={() => setDragover(false)}
         onClick={() => inputRef.current?.click()}
       >
-        <motion.div animate={dragover ? { y: -4 } : { y: 0 }} className="w-14 h-14 rounded-full bg-[var(--arb-bg)] text-[#12AAFF] flex items-center justify-center mx-auto mb-4">
+        <motion.div animate={dragover ? { y: -4 } : { y: 0 }} className="w-14 h-14 rounded-full bg-[var(--arb-bg)] text-[var(--accent)] flex items-center justify-center mx-auto mb-4">
           <UploadCloud size={26} />
         </motion.div>
         <div className="font-semibold text-sm mb-1.5 text-[var(--text)]">{label || 'Drop your file here, or click to browse'}</div>
