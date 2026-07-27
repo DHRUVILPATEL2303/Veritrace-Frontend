@@ -26,13 +26,13 @@ export default function Footer() {
           <div>
             <h3 className="text-sm font-bold text-[var(--text)] mb-4">Pages</h3>
             <ul className="flex flex-col gap-2.5">
-              <li><Link to="/" className="text-sm text-[var(--text-3)] hover:text-[#12AAFF] transition-colors">Home</Link></li>
-              <li><Link to="/register" className="text-sm text-[var(--text-3)] hover:text-[#12AAFF] transition-colors">Register</Link></li>
-              <li><Link to="/verify" className="text-sm text-[var(--text-3)] hover:text-[#12AAFF] transition-colors">Verify</Link></li>
-              <li><Link to="/library" className="text-sm text-[var(--text-3)] hover:text-[#12AAFF] transition-colors">Library</Link></li>
-              <li><Link to="/about" className="text-sm text-[var(--text-3)] hover:text-[#12AAFF] transition-colors">About</Link></li>
-              <li><Link to="/profile" className="text-sm text-[var(--text-3)] hover:text-[#12AAFF] transition-colors">Profile</Link></li>
-              <li><Link to="/enterprise" className="text-sm text-[var(--text-3)] hover:text-[#12AAFF] transition-colors">Enterprise</Link></li>
+              <li><Link to="/" className="text-sm text-[var(--text-3)] hover:text-[var(--accent)] transition-colors">Home</Link></li>
+              <li><Link to="/register" className="text-sm text-[var(--text-3)] hover:text-[var(--accent)] transition-colors">Register</Link></li>
+              <li><Link to="/verify" className="text-sm text-[var(--text-3)] hover:text-[var(--accent)] transition-colors">Verify</Link></li>
+              <li><Link to="/library" className="text-sm text-[var(--text-3)] hover:text-[var(--accent)] transition-colors">Library</Link></li>
+              <li><Link to="/about" className="text-sm text-[var(--text-3)] hover:text-[var(--accent)] transition-colors">About</Link></li>
+              <li><Link to="/profile" className="text-sm text-[var(--text-3)] hover:text-[var(--accent)] transition-colors">Profile</Link></li>
+              <li><Link to="/enterprise" className="text-sm text-[var(--text-3)] hover:text-[var(--accent)] transition-colors">Enterprise</Link></li>
             </ul>
           </div>
 
@@ -45,7 +45,7 @@ export default function Footer() {
                   href={`${ARBITRUM_SEPOLIA.explorer}/address/${CONTRACT_ADDRESS}`} 
                   target="_blank" 
                   rel="noopener noreferrer" 
-                  className="text-sm text-[var(--text-3)] hover:text-[#12AAFF] transition-colors inline-flex items-center gap-1.5"
+                  className="text-sm text-[var(--text-3)] hover:text-[var(--accent)] transition-colors inline-flex items-center gap-1.5"
                 >
                   <ExternalLink size={14} /> Contract on Arbiscan
                 </a>
@@ -55,7 +55,7 @@ export default function Footer() {
                   href="https://www.arbitrum.io/" 
                   target="_blank" 
                   rel="noopener noreferrer" 
-                  className="text-sm text-[var(--text-3)] hover:text-[#12AAFF] transition-colors inline-flex items-center gap-1.5"
+                  className="text-sm text-[var(--text-3)] hover:text-[var(--accent)] transition-colors inline-flex items-center gap-1.5"
                 >
                   <ExternalLink size={14} /> Arbitrum.io
                 </a>
@@ -79,7 +79,7 @@ export default function Footer() {
                 href="https://x.com/veritrace_arb"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-[#12AAFF] transition-colors hover:scale-110 duration-200"
+                className="hover:text-[var(--accent)] transition-colors hover:scale-110 duration-200"
                 aria-label="X (formerly Twitter)"
               >
                 <TwitterIcon size={20} />
@@ -108,7 +108,7 @@ export default function Footer() {
           className={cn(
             "text-[15vw] font-black leading-[0.75] tracking-tighter transition-all duration-700 ease-out select-none",
             isHighlighted 
-              ? "text-[#12AAFF] [text-shadow:0_0_30px_rgba(18,170,255,0.75),0_0_60px_rgba(18,170,255,0.4)] opacity-100" 
+              ? "text-[var(--accent)] [text-shadow:0_0_30px_rgba(var(--accent-rgb),0.75),0_0_60px_rgba(var(--accent-rgb),0.4)] opacity-100" 
               : "text-[var(--text-4)] dark:text-[#161b22] opacity-20 hover:opacity-40"
           )}
         >

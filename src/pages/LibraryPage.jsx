@@ -84,7 +84,7 @@ export default function LibraryPage() {
         <Card className="card-hover-glow card-border-animate">
           <CardHeader>
             <CardTitle>
-              <span className="flex items-center gap-2"><LibraryIcon size={16} className="text-[#12AAFF]" /> Evidence ledger <span className="text-[var(--text-4)]">({registrations.length})</span></span>
+              <span className="flex items-center gap-2"><LibraryIcon size={16} className="text-[var(--accent)]" /> Evidence ledger <span className="text-[var(--text-4)]">({registrations.length})</span></span>
             </CardTitle>
             <Badge variant="arb"><ArbitrumLogo size={12} /> Arbitrum Sepolia</Badge>
           </CardHeader>
@@ -93,8 +93,8 @@ export default function LibraryPage() {
             <div className="flex flex-col items-center justify-center py-20">
               {/* Dual-ring animated loader with Arbitrum logo */}
               <div className="relative w-24 h-24 flex items-center justify-center mb-6">
-                <div className="loading-orb-outer absolute inset-0 rounded-full" style={{ border: '3px solid var(--border)', borderTopColor: '#12AAFF', borderRightColor: '#12AAFF' }} />
-                <div className="loading-orb-inner absolute inset-2 rounded-full" style={{ border: '3px solid var(--border)', borderBottomColor: '#00D395', borderLeftColor: '#00D395' }} />
+                <div className="loading-orb-outer absolute inset-0 rounded-full" style={{ border: '3px solid var(--border)', borderTopColor: 'var(--accent)', borderRightColor: 'var(--accent)' }} />
+                <div className="loading-orb-inner absolute inset-2 rounded-full" style={{ border: '3px solid var(--border)', borderBottomColor: 'var(--success-text, #4CAF50)', borderLeftColor: 'var(--success-text, #4CAF50)' }} />
                 <div className="absolute inset-0 flex items-center justify-center">
                   <ArbitrumLogo size={28} animated />
                 </div>
@@ -123,9 +123,9 @@ export default function LibraryPage() {
                 <tbody>
                   {registrations.map((item, idx) => (
                     <motion.tr key={idx} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: idx * 0.03 }}>
-                      <td><span className="font-mono text-xs text-[#12AAFF]" title={item.sha256}>{item.sha256?.slice(0, 10)}...{item.sha256?.slice(-8)}</span></td>
+                      <td><span className="font-mono text-xs text-[var(--accent)]" title={item.sha256}>{item.sha256?.slice(0, 10)}...{item.sha256?.slice(-8)}</span></td>
                       <td><span className="font-mono text-xs text-[var(--text)]">{item.phash !== '0' ? item.phash : <span className="text-[var(--text-4)] italic">None</span>}</span></td>
-                      <td><a href={`${ARBITRUM_SEPOLIA.explorer}/address/${item.creator}`} target="_blank" rel="noopener noreferrer" className="font-mono text-xs text-[#12AAFF] hover:opacity-80">{formatAddress(item.creator)}</a></td>
+                      <td><a href={`${ARBITRUM_SEPOLIA.explorer}/address/${item.creator}`} target="_blank" rel="noopener noreferrer" className="font-mono text-xs text-[var(--accent)] hover:opacity-80">{formatAddress(item.creator)}</a></td>
                       <td>{item.aiTool ? <Badge variant="info">{item.aiTool}</Badge> : <Badge variant="success">Authentic</Badge>}</td>
                       <td><span className="text-xs text-[var(--text-2)]">{new Date(item.timestamp * 1000).toLocaleString()}</span></td>
                       <td>
@@ -146,7 +146,7 @@ export default function LibraryPage() {
       <Modal open={!!selectedAsset} onClose={() => setSelectedAsset(null)} maxWidth="max-w-2xl">
         {selectedAsset && (
           <>
-            <ModalHeader title="Registered Asset Details" onClose={() => setSelectedAsset(null)} icon={<Shield size={18} className="text-[#00D395]" />} />
+            <ModalHeader title="Registered Asset Details" onClose={() => setSelectedAsset(null)} icon={<Shield size={18} className="text-[var(--success-text, #4CAF50)]" />} />
             <div className="p-5 flex flex-col gap-4">
               <div className="relative w-full h-72 bg-[var(--bg-2)] rounded-xl overflow-hidden flex items-center justify-center border border-[var(--border)]" onContextMenu={(e) => e.preventDefault()}>
                 {modalLoading ? (
@@ -167,7 +167,7 @@ export default function LibraryPage() {
                 <DataRow label="Visual Perceptual Hash" value={selectedAsset.phash !== '0' ? selectedAsset.phash : 'None'} mono />
                 <DataRow label="Anchored Date" value={new Date(selectedAsset.timestamp * 1000).toLocaleString()} />
                 <DataRow label="AI Model" value={selectedAsset.aiTool || 'Authentic Content'} />
-                <DataRow label="Registrant Address"><a href={`${ARBITRUM_SEPOLIA.explorer}/address/${selectedAsset.creator}`} target="_blank" rel="noopener noreferrer" className="font-mono text-[#12AAFF] hover:opacity-80">{selectedAsset.creator}</a></DataRow>
+                <DataRow label="Registrant Address"><a href={`${ARBITRUM_SEPOLIA.explorer}/address/${selectedAsset.creator}`} target="_blank" rel="noopener noreferrer" className="font-mono text-[var(--accent)] hover:opacity-80">{selectedAsset.creator}</a></DataRow>
               </div>
             </div>
             <div className="px-5 py-3 border-t border-[var(--border)] bg-[var(--bg-2)] flex gap-3">

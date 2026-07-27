@@ -22,7 +22,7 @@ export const AuroraBackground = ({
             height: "200%",
             backgroundImage: [
               "repeating-linear-gradient(100deg, #000 0%, #000 7%, transparent 10%, transparent 12%, #000 16%)",
-              "repeating-linear-gradient(100deg, #12AAFF 10%, #00D395 15%, #5135d9 20%, #12AAFF 25%, #AE48FF 30%)",
+              "repeating-linear-gradient(100deg, var(--accent) 10%, var(--accent-light) 15%, var(--accent-2) 20%, var(--accent) 25%, var(--accent-deep) 30%)",
             ].join(", "),
             backgroundSize: "300% 200%",
             backgroundPosition: "50% 50%",
@@ -49,7 +49,7 @@ export const AuroraBackground = ({
             height: "200%",
             backgroundImage: [
               "repeating-linear-gradient(100deg, #000 0%, #000 7%, transparent 10%, transparent 12%, #000 16%)",
-              "repeating-linear-gradient(100deg, #12AAFF 10%, #00D395 15%, #5135d9 20%, #12AAFF 25%, #AE48FF 30%)",
+              "repeating-linear-gradient(100deg, var(--accent) 10%, var(--accent-light) 15%, var(--accent-2) 20%, var(--accent) 25%, var(--accent-deep) 30%)",
             ].join(", "),
             backgroundSize: "200% 100%",
             opacity: 0.12,

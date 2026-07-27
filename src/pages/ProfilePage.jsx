@@ -58,8 +58,8 @@ function getGatewayUrl(url) {
 }
 
 function fileTypeIcon(ipfsCid, aiTool) {
-  if (aiTool?.toLowerCase().includes('video')) return <Video size={14} className="text-[#12AAFF]" />
-  if (aiTool?.toLowerCase().includes('pdf') || aiTool?.toLowerCase().includes('doc')) return <FileText size={14} className="text-[#00D395]" />
+  if (aiTool?.toLowerCase().includes('video')) return <Video size={14} className="text-[var(--accent)]" />
+  if (aiTool?.toLowerCase().includes('pdf') || aiTool?.toLowerCase().includes('doc')) return <FileText size={14} className="text-[var(--success-text, #4CAF50)]" />
   return <ImageIcon size={14} className="text-violet-500" />
 }
 
@@ -91,7 +91,7 @@ async function generateCertificate(item, displayName, address) {
   const corners = [[32,32],[1168,32],[32,768],[1168,768]]
   const dirs = [[1,1],[-1,1],[1,-1],[-1,-1]]
   corners.forEach(([cx,cy],[dx,dy]) => {
-    ctx.strokeStyle = '#12AAFF'
+    ctx.strokeStyle = 'var(--accent)'
     ctx.lineWidth = 2
     ctx.beginPath(); ctx.moveTo(cx, cy + dy*22); ctx.lineTo(cx, cy); ctx.lineTo(cx + dx*22, cy); ctx.stroke()
   })
@@ -99,7 +99,7 @@ async function generateCertificate(item, displayName, address) {
   // Logo area
   ctx.fillStyle = 'rgba(18,170,255,0.08)'
   ctx.beginPath(); ctx.roundRect(56, 56, 220, 56, 12); ctx.fill()
-  ctx.fillStyle = '#12AAFF'
+  ctx.fillStyle = 'var(--accent)'
   ctx.font = 'bold 22px Inter, sans-serif'
   ctx.fillText('VeriTrace', 72, 90)
   ctx.fillStyle = 'rgba(255,255,255,0.4)'
@@ -160,7 +160,7 @@ async function generateCertificate(item, displayName, address) {
   ctx.strokeStyle = 'rgba(18,170,255,0.6)'
   ctx.lineWidth = 1.5
   ctx.beginPath(); ctx.arc(600, 700, 44, 0, Math.PI * 2); ctx.stroke()
-  ctx.fillStyle = '#12AAFF'
+  ctx.fillStyle = 'var(--accent)'
   ctx.font = 'bold 11px Inter, sans-serif'
   ctx.fillText('VERIFIED ON-CHAIN', 600, 695)
   ctx.fillStyle = 'rgba(255,255,255,0.5)'
@@ -185,7 +185,7 @@ async function generateCertificate(item, displayName, address) {
 
 // ─── Stat Card ───────────────────────────────────────────────────────────────
 
-function StatCard({ icon: Icon, label, value, color = '#12AAFF' }) {
+function StatCard({ icon: Icon, label, value, color = 'var(--accent)' }) {
   return (
     <motion.div
       whileHover={{ y: -3, scale: 1.02 }}
@@ -243,7 +243,7 @@ function AssetRow({ item, index, onDownloadCert, onView, address }) {
           <Calendar size={9} />
           {formatTs(item.timestamp)}
           {item.aiTool && (
-            <span className="bg-[var(--arb-bg)] text-[#12AAFF] px-1.5 py-0.5 rounded text-[9px] font-semibold uppercase tracking-wide">
+            <span className="bg-[var(--arb-bg)] text-[var(--accent)] px-1.5 py-0.5 rounded text-[9px] font-semibold uppercase tracking-wide">
               {item.aiTool}
             </span>
           )}
@@ -262,13 +262,13 @@ function AssetRow({ item, index, onDownloadCert, onView, address }) {
           className="w-7 h-7 rounded-lg flex items-center justify-center text-[var(--text-3)] hover:text-[var(--text)] hover:bg-[var(--bg-2)] transition-all"
           title="Copy hash"
         >
-          {copied ? <Check size={13} className="text-[#00D395]" /> : <Copy size={13} />}
+          {copied ? <Check size={13} className="text-[var(--success-text, #4CAF50)]" /> : <Copy size={13} />}
         </button>
         {item.txHash && (
           <a
             href={`${ARBITRUM_SEPOLIA.explorer}/tx/${item.txHash}`}
             target="_blank" rel="noopener noreferrer"
-            className="w-7 h-7 rounded-lg flex items-center justify-center text-[var(--text-3)] hover:text-[#12AAFF] hover:bg-[var(--arb-bg)] transition-all"
+            className="w-7 h-7 rounded-lg flex items-center justify-center text-[var(--text-3)] hover:text-[var(--accent)] hover:bg-[var(--arb-bg)] transition-all"
             title="View on Arbiscan"
           >
             <ExternalLink size={13} />
@@ -284,7 +284,7 @@ function AssetRow({ item, index, onDownloadCert, onView, address }) {
         <button
           onClick={handleCert}
           disabled={downloading}
-          className="w-7 h-7 rounded-lg flex items-center justify-center text-[var(--text-3)] hover:text-[#00D395] hover:bg-[var(--success-bg)] transition-all disabled:opacity-40"
+          className="w-7 h-7 rounded-lg flex items-center justify-center text-[var(--text-3)] hover:text-[var(--success-text, #4CAF50)] hover:bg-[var(--success-bg)] transition-all disabled:opacity-40"
           title="Download certificate"
         >
           {downloading ? <Spinner size="xs" /> : <Download size={13} />}
@@ -320,7 +320,7 @@ function AvatarUpload({ avatar, onAvatarChange }) {
       <div className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
         <Camera size={18} className="text-white" />
       </div>
-      <div className="absolute -bottom-0.5 -right-0.5 w-7 h-7 rounded-full bg-[#12AAFF] border-2 border-[var(--bg)] flex items-center justify-center">
+      <div className="absolute -bottom-0.5 -right-0.5 w-7 h-7 rounded-full bg-[var(--accent)] border-2 border-[var(--bg)] flex items-center justify-center">
         <Camera size={12} className="text-white" />
       </div>
       <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
@@ -507,8 +507,8 @@ export default function ProfilePage() {
   }, [profile.displayName, address])
 
   const stats = [
-    { icon: Layers, label: 'Total Registrations', value: myUploads.length, color: '#12AAFF' },
-    { icon: Award, label: 'Certificates Available', value: myUploads.length, color: '#00D395' },
+    { icon: Layers, label: 'Total Registrations', value: myUploads.length, color: 'var(--accent)' },
+    { icon: Award, label: 'Certificates Available', value: myUploads.length, color: 'var(--success-text, #4CAF50)' },
     { icon: Clock, label: 'First Registration', value: myUploads.length ? formatTs(myUploads[myUploads.length - 1]?.timestamp) : '—', color: '#6366f1' },
     { icon: TrendingUp, label: 'On-Chain Records', value: registrations.length, color: '#f59e0b' },
   ]
@@ -530,7 +530,7 @@ export default function ProfilePage() {
           className="text-center max-w-sm"
         >
           <div className="w-16 h-16 rounded-2xl bg-[var(--arb-bg)] border border-[var(--arb-border)] flex items-center justify-center mx-auto mb-5">
-            <Wallet size={28} className="text-[#12AAFF]" />
+            <Wallet size={28} className="text-[var(--accent)]" />
           </div>
           <h2 className="text-xl font-extrabold text-[var(--text)] mb-2">Connect your wallet</h2>
           <p className="text-sm text-[var(--text-3)] leading-relaxed">
@@ -573,9 +573,9 @@ export default function ProfilePage() {
                       onChange={e => setNameInput(e.target.value)}
                       onKeyDown={e => { if (e.key === 'Enter') saveName(); if (e.key === 'Escape') setEditingName(false) }}
                       placeholder="Display name…"
-                      className="bg-[var(--bg-2)] border border-[var(--border-2)] rounded-xl px-3 py-1.5 text-sm text-[var(--text)] outline-none focus:border-[#12AAFF] w-full max-w-xs"
+                      className="bg-[var(--bg-2)] border border-[var(--border-2)] rounded-xl px-3 py-1.5 text-sm text-[var(--text)] outline-none focus:border-[var(--accent)] w-full max-w-xs"
                     />
-                    <button onClick={saveName} className="w-7 h-7 rounded-lg bg-[#00D395]/15 text-[#00D395] flex items-center justify-center hover:bg-[#00D395]/25 transition-colors"><Save size={13} /></button>
+                    <button onClick={saveName} className="w-7 h-7 rounded-lg bg-[var(--success-text, #4CAF50)]/15 text-[var(--success-text, #4CAF50)] flex items-center justify-center hover:bg-[var(--success-text, #4CAF50)]/25 transition-colors"><Save size={13} /></button>
                     <button onClick={() => setEditingName(false)} className="w-7 h-7 rounded-lg bg-[var(--bg-2)] text-[var(--text-3)] flex items-center justify-center hover:bg-[var(--bg-3)] transition-colors"><X size={13} /></button>
                   </div>
                 ) : (
@@ -626,7 +626,7 @@ export default function ProfilePage() {
         <Card>
           <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <CardTitle className="flex items-center gap-2">
-              <Shield size={16} className="text-[#12AAFF]" />
+              <Shield size={16} className="text-[var(--accent)]" />
               Content Library
             </CardTitle>
 
@@ -646,7 +646,7 @@ export default function ProfilePage() {
                   {t.label}
                   <span className={cn(
                     'px-1.5 py-0.5 rounded-full text-[10px] font-bold',
-                    activeTab === t.id ? 'bg-[#12AAFF]/15 text-[#12AAFF]' : 'bg-[var(--bg-3)] text-[var(--text-4)]'
+                    activeTab === t.id ? 'bg-[var(--accent)]/15 text-[var(--accent)]' : 'bg-[var(--bg-3)] text-[var(--text-4)]'
                   )}>
                     {loading ? '…' : t.count}
                   </span>
@@ -706,7 +706,7 @@ export default function ProfilePage() {
             className="fixed bottom-24 right-6 z-40"
           >
             <div className="glass rounded-2xl px-4 py-3 flex items-center gap-3 shadow-lg border border-[var(--border-2)]">
-              <Shield size={15} className="text-[#00D395]" />
+              <Shield size={15} className="text-[var(--success-text, #4CAF50)]" />
               <span className="text-xs text-[var(--text-2)] font-medium">{myUploads.length} verified assets</span>
               <Button
                 size="sm"

@@ -55,7 +55,7 @@ export const TracingBeam = ({ children, className }) => {
               transition={{ duration: 0.2, delay: 0.5 }}
               animate={{
                 backgroundColor:
-                  scrollYProgress.get() > 0 ? "var(--bg-3)" : "#12AAFF",
+                  scrollYProgress.get() > 0 ? "var(--bg-3)" : "var(--accent)",
               }}
               className="h-2 w-2 rounded-full bg-[var(--bg-3)]"
             />
@@ -95,9 +95,9 @@ export const TracingBeam = ({ children, className }) => {
                 y1={y1}
                 y2={y2}
               >
-                <stop stopColor="#12AAFF" stopOpacity="0" />
-                <stop stopColor="#12AAFF" />
-                <stop offset="0.4" stopColor="#00D395" />
+                <stop stopColor="var(--accent)" stopOpacity="0" />
+                <stop stopColor="var(--accent)" />
+                <stop offset="0.4" stopColor="var(--success-text, #4CAF50)" />
                 <stop offset="1" stopColor="#AE48FF" stopOpacity="0" />
               </motion.linearGradient>
             </defs>

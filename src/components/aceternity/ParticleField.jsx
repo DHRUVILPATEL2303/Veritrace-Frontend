@@ -7,7 +7,7 @@ import { useTheme } from '../providers/ExperienceProvider'
  * Highly optimized: uses useTheme hook to avoid DOM queries in the render loop,
  * pre-parses colors to integers once, and uses rgba string template to avoid hex conversion GC pressure.
  */
-export function ParticleField({ className, density = 50, color = '#12AAFF' }) {
+export function ParticleField({ className, density = 50, color = '' }) {
   const canvasRef = useRef(null)
   const { theme } = useTheme()
 
@@ -18,11 +18,10 @@ export function ParticleField({ className, density = 50, color = '#12AAFF' }) {
     let raf
     let particles = []
 
-    // Pre-parse hex color to RGB integers
-    const hex = color.replace('#', '')
-    const r = parseInt(hex.substring(0, 2), 16) || 18
-    const g = parseInt(hex.substring(2, 4), 16) || 170
-    const b = parseInt(hex.substring(4, 6), 16) || 255
+    // Use theme colors
+    const r = theme === 'dark' ? 155 : 111
+    const g = theme === 'dark' ? 125 : 78
+    const b = theme === 'dark' ? 255 : 55
     const opacityBase = theme === 'dark' ? 0.5 : 0.25
     const fillStyleStr = `rgba(${r}, ${g}, ${b}, ${theme === 'dark' ? '0.37' : '0.25'})`
 
