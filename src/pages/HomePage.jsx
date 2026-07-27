@@ -13,9 +13,9 @@ import { SpotlightCard } from '../components/aceternity/SpotlightCard'
 import { BeamLine } from '../components/aceternity/BeamLine'
 import { AnimatedArbitrumBadge, AnimatedNetworkBadge } from '../components/ArbitrumLogo'
 import { ScrollReveal, ScrollRevealGroup } from '../components/ui/scroll-reveal'
-import SplitText from '../components/ui/SplitText'
 import { FilePlus, Search, Shield, ArrowRight, Upload, FingerprintPattern as Fingerprint, Wallet, CircleCheck as CheckCircle2, Database, Sparkles, Zap, Eye, Link2, Pin, GitBranch, ChevronRight, ChevronLeft, Image as ImageIcon, Video, FileText, Play, Radio, Globe, Lock } from 'lucide-react'
 import { SUPPORTED_FILES, CONTRACT_ADDRESS, ARBITRUM_SEPOLIA } from '../config'
+import ShazamHero3DCarousel from '../components/ShazamHero3DCarousel'
 
 /* ─── Custom animated mesh background for hero ─── */
 function HeroMeshBackground() {
@@ -416,6 +416,13 @@ export default function HomePage() {
               </div>
             </CardBody>
           </Card>
+        </section>
+      </ScrollReveal>
+
+      {/* ════ SHAZAM-INSPIRED 3D PERSPECTIVE CAROUSEL & AMBIENT GLOW ════ */}
+      <ScrollReveal variant="fade-up">
+        <section className="my-8">
+          <ShazamHero3DCarousel />
         </section>
       </ScrollReveal>
 

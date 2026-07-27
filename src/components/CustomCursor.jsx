@@ -90,14 +90,14 @@ export default function CustomCursor() {
             borderWidth: '1.5px',
             borderStyle: 'solid',
             borderColor: isDark
-              ? (isHovered ? 'var(--accent)' : 'rgba(18, 170, 255, 0.45)')
-              : (isHovered ? '#6366f1' : 'rgba(99, 102, 241, 0.5)'),
+              ? (isHovered ? 'var(--accent)' : 'rgba(155, 81, 224, 0.5)')
+              : (isHovered ? 'var(--accent)' : 'rgba(111, 78, 55, 0.45)'),
             backgroundColor: isDark
-              ? (isHovered ? 'rgba(18, 170, 255, 0.12)' : 'rgba(18, 170, 255, 0.03)')
-              : (isHovered ? 'rgba(99, 102, 241, 0.12)' : 'rgba(99, 102, 241, 0.04)'),
+              ? (isHovered ? 'rgba(18, 170, 255, 0.15)' : 'rgba(155, 81, 224, 0.04)')
+              : (isHovered ? 'rgba(111, 78, 55, 0.12)' : 'rgba(111, 78, 55, 0.04)'),
             boxShadow: isDark
-              ? (isHovered ? '0 0 22px rgba(18, 170, 255, 0.55), inset 0 0 10px rgba(18, 170, 255, 0.2)' : '0 0 8px rgba(18, 170, 255, 0.15)')
-              : (isHovered ? '0 0 22px rgba(99, 102, 241, 0.45), inset 0 0 10px rgba(99, 102, 241, 0.18)' : '0 0 8px rgba(99, 102, 241, 0.12)'),
+              ? (isHovered ? '0 0 22px rgba(18, 170, 255, 0.55), inset 0 0 10px rgba(155, 81, 224, 0.3)' : '0 0 8px rgba(155, 81, 224, 0.2)')
+              : (isHovered ? '0 0 22px rgba(111, 78, 55, 0.45), inset 0 0 10px rgba(111, 78, 55, 0.18)' : '0 0 8px rgba(111, 78, 55, 0.15)'),
           }}
         />
 
@@ -109,8 +109,8 @@ export default function CustomCursor() {
             exit={{ opacity: 0, scale: 0.4 }}
             className="absolute w-2 h-2 rounded-full pointer-events-none"
             style={{
-              backgroundColor: isDark ? 'var(--accent)' : '#6366f1',
-              boxShadow: isDark ? '0 0 10px var(--accent)' : '0 0 10px #6366f1',
+              backgroundColor: 'var(--accent)',
+              boxShadow: isDark ? '0 0 10px var(--accent)' : '0 0 10px rgba(111, 78, 55, 0.7)',
             }}
           />
         )}
@@ -123,10 +123,10 @@ export default function CustomCursor() {
           y: mouseY,
           translateX: '-50%',
           translateY: '-50%',
-          backgroundColor: isDark ? 'var(--accent)' : '#6366f1',
+          backgroundColor: 'var(--accent)',
           boxShadow: isDark
             ? '0 0 8px var(--accent), 0 0 16px rgba(18, 170, 255, 0.8)'
-            : '0 0 8px #6366f1, 0 0 16px rgba(99, 102, 241, 0.6)',
+            : '0 0 8px var(--accent), 0 0 16px rgba(111, 78, 55, 0.5)',
         }}
         animate={{
           scale: isClicked ? 0.5 : isHovered ? 0 : 1,
