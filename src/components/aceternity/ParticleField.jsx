@@ -6,6 +6,7 @@ import { useTheme } from '../providers/ExperienceProvider'
  * ParticleField — Canvas-based animated particle network
  * Highly optimized: uses useTheme hook to avoid DOM queries in the render loop,
  * pre-parses colors to integers once, and uses rgba string template to avoid hex conversion GC pressure.
+ * Uses IntersectionObserver to pause animation when off-screen.
  */
 export function ParticleField({ className, density = 50, color = '' }) {
   const canvasRef = useRef(null)
@@ -15,7 +16,7 @@ export function ParticleField({ className, density = 50, color = '' }) {
     const canvas = canvasRef.current
     if (!canvas) return
     const ctx = canvas.getContext('2d')
-    let raf
+    let raf = null
     let particles = []
 
     // Use theme colors
@@ -72,10 +73,24 @@ export function ParticleField({ className, density = 50, color = '' }) {
     }
 
     resize()
-    draw()
+
+    // Only run the animation loop when the canvas is visible
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        if (!raf) draw()
+      } else {
+        if (raf) {
+          cancelAnimationFrame(raf)
+          raf = null
+        }
+      }
+    }, { threshold: 0.05 })
+
+    observer.observe(canvas)
     window.addEventListener('resize', resize)
     return () => {
-      cancelAnimationFrame(raf)
+      if (raf) cancelAnimationFrame(raf)
+      observer.disconnect()
       window.removeEventListener('resize', resize)
     }
   }, [density, color, theme])
@@ -84,6 +99,7 @@ export function ParticleField({ className, density = 50, color = '' }) {
     <canvas
       ref={canvasRef}
       className={cn('absolute inset-0 pointer-events-none', className)}
+      style={{ transform: 'translateZ(0)' }}
     />
   )
 }

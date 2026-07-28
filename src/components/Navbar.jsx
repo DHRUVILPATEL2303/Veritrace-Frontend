@@ -56,14 +56,15 @@ export default function Navbar() {
         ref={navRef}
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.4, ease: 'easeOut' }}
+        transition={{ type: 'spring', stiffness: 300, damping: 28 }}
         className={cn(
           'fixed top-4 left-1/2 -translate-x-1/2 z-[999]',
-          'w-[calc(100%-2rem)] max-w-[1200px]'
+          'w-[calc(100vw-2rem)] max-w-[1200px]'
         )}
+        style={{ willChange: 'transform, opacity' }}
       >
         <div className={cn(
-          'relative flex items-center justify-between h-14 px-4 rounded-2xl transition-all duration-500',
+          'relative flex items-center justify-between h-14 px-2 sm:px-4 rounded-2xl transition-all duration-500',
           scrolled
             ? 'glass shadow-[0_8px_32px_rgba(0,0,0,0.4)] border-2 border-[var(--accent)]'
             : 'glass border-2 border-white/20'
@@ -80,7 +81,7 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop nav */}
-          <motion.div initial="hidden" animate="visible" variants={{ hidden: {}, visible: { transition: { staggerChildren: .045 } } }} className="hidden lg:flex items-center gap-0.5 flex-shrink min-w-0 overflow-hidden">
+          <motion.div initial="hidden" animate="visible" variants={{ hidden: {}, visible: { transition: { staggerChildren: .04, delayChildren: 0.1 } } }} className="hidden lg:flex items-center gap-0.5 flex-shrink min-w-0 overflow-hidden">
             {navItems.map((item) => {
               const Icon = item.icon
               return (
@@ -130,8 +131,8 @@ export default function Navbar() {
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
-              className="lg:hidden overflow-hidden glass mt-2 rounded-2xl"
+              transition={{ type: 'spring', stiffness: 350, damping: 30 }}
+              className="lg:hidden overflow-hidden glass mt-2 rounded-2xl transform-gpu"
             >
               <div className="px-3 py-3 flex flex-col gap-1">
                 {navItems.map((item, i) => {
@@ -221,8 +222,8 @@ function WalletButton() {
                 initial={{ opacity: 0, y: -8, scale: .98 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -8, scale: .98 }}
-                transition={{ type: 'spring', stiffness: 260, damping: 22 }}
-                className="absolute top-full right-0 mt-2 w-72 glass rounded-2xl shadow-2xl p-2 z-50"
+                transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                className="absolute top-full right-0 mt-2 w-[calc(100vw-2rem)] max-w-[280px] sm:w-72 glass rounded-2xl shadow-2xl p-2 z-50 origin-top-right transform-gpu"
               >
                 <div className="px-3 py-2.5 border-b border-[var(--border)]">
                   <div className="text-[10px] uppercase tracking-[.14em] font-bold text-[var(--text-4)]">Connected wallet</div>
@@ -270,8 +271,8 @@ function WalletButton() {
               initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.15 }}
-              className="absolute top-full right-0 mt-2 w-56 glass rounded-xl shadow-xl p-2 z-50"
+              transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+              className="absolute top-full right-0 mt-2 w-[calc(100vw-3rem)] max-w-[220px] sm:w-56 glass rounded-xl shadow-xl p-2 z-50 origin-top-right transform-gpu"
             >
               {connectors.length > 0 ? (
                 connectors.map((connector) => (

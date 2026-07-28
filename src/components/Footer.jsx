@@ -18,34 +18,34 @@ export default function Footer() {
   const [isHighlighted, setIsHighlighted] = useState(false)
 
   return (
-    <footer className="border-t border-[var(--border)] bg-[#090a0f] backdrop-blur-xl mt-16 overflow-hidden">
+    <footer className="border-t-0 bg-[#2C1E12] dark:bg-[var(--accent)] mt-16 overflow-hidden">
       <div className="max-w-[1280px] mx-auto px-6 pt-16 pb-10">
         {/* Responsive grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
           {/* Column 1: Pages */}
           <div>
-            <h3 className="text-sm font-bold text-[var(--text)] mb-4">Pages</h3>
+            <h3 className="text-sm font-bold text-white mb-4">Pages</h3>
             <ul className="flex flex-col gap-2.5">
-              <li><Link to="/" className="text-sm text-[var(--text-3)] hover:text-[var(--accent)] transition-colors">Home</Link></li>
-              <li><Link to="/register" className="text-sm text-[var(--text-3)] hover:text-[var(--accent)] transition-colors">Register</Link></li>
-              <li><Link to="/verify" className="text-sm text-[var(--text-3)] hover:text-[var(--accent)] transition-colors">Verify</Link></li>
-              <li><Link to="/library" className="text-sm text-[var(--text-3)] hover:text-[var(--accent)] transition-colors">Library</Link></li>
-              <li><Link to="/about" className="text-sm text-[var(--text-3)] hover:text-[var(--accent)] transition-colors">About</Link></li>
-              <li><Link to="/profile" className="text-sm text-[var(--text-3)] hover:text-[var(--accent)] transition-colors">Profile</Link></li>
-              <li><Link to="/enterprise" className="text-sm text-[var(--text-3)] hover:text-[var(--accent)] transition-colors">Enterprise</Link></li>
+              <li><Link to="/" className="text-sm text-white/70 hover:text-white transition-colors">Home</Link></li>
+              <li><Link to="/register" className="text-sm text-white/70 hover:text-white transition-colors">Register</Link></li>
+              <li><Link to="/verify" className="text-sm text-white/70 hover:text-white transition-colors">Verify</Link></li>
+              <li><Link to="/library" className="text-sm text-white/70 hover:text-white transition-colors">Library</Link></li>
+              <li><Link to="/about" className="text-sm text-white/70 hover:text-white transition-colors">About</Link></li>
+              <li><Link to="/profile" className="text-sm text-white/70 hover:text-white transition-colors">Profile</Link></li>
+              <li><Link to="/enterprise" className="text-sm text-white/70 hover:text-white transition-colors">Enterprise</Link></li>
             </ul>
           </div>
 
           {/* Column 2: Resources */}
           <div>
-            <h3 className="text-sm font-bold text-[var(--text)] mb-4">Resources</h3>
+            <h3 className="text-sm font-bold text-white mb-4">Resources</h3>
             <ul className="flex flex-col gap-2.5">
               <li>
                 <a 
                   href={`${ARBITRUM_SEPOLIA.explorer}/address/${CONTRACT_ADDRESS}`} 
                   target="_blank" 
                   rel="noopener noreferrer" 
-                  className="text-sm text-[var(--text-3)] hover:text-[var(--accent)] transition-colors inline-flex items-center gap-1.5"
+                  className="text-sm text-white/70 hover:text-white transition-colors inline-flex items-center gap-1.5"
                 >
                   <ExternalLink size={14} /> Contract on Arbiscan
                 </a>
@@ -55,7 +55,7 @@ export default function Footer() {
                   href="https://www.arbitrum.io/" 
                   target="_blank" 
                   rel="noopener noreferrer" 
-                  className="text-sm text-[var(--text-3)] hover:text-[var(--accent)] transition-colors inline-flex items-center gap-1.5"
+                  className="text-sm text-white/70 hover:text-white transition-colors inline-flex items-center gap-1.5"
                 >
                   <ExternalLink size={14} /> Arbitrum.io
                 </a>
@@ -71,15 +71,15 @@ export default function Footer() {
               </div>
               <span className="text-lg font-bold text-white tracking-tight">VeriTrace</span>
             </div>
-            <p className="text-sm text-[var(--text-3)] mb-6 leading-relaxed max-w-[280px]">
+            <p className="text-sm text-white/70 mb-6 leading-relaxed max-w-[280px]">
               Decentralized authenticity verification and multi-modal digital fingerprinting. Built on Arbitrum.
             </p>
-            <div className="flex items-center gap-4 text-[var(--text-3)]">
+            <div className="flex items-center gap-4 text-white/70">
               <a
                 href="https://x.com/veritrace_arb"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-[var(--accent)] transition-colors hover:scale-110 duration-200"
+                className="hover:text-white transition-colors hover:scale-110 duration-200"
                 aria-label="X (formerly Twitter)"
               >
                 <TwitterIcon size={20} />
@@ -89,11 +89,11 @@ export default function Footer() {
         </div>
 
         {/* Center copyright & contract */}
-        <div className="mt-12 pt-8 border-t border-[var(--border)] flex flex-col items-center gap-2 text-center">
-          <p className="text-sm text-[var(--text-3)]">
+        <div className="mt-12 pt-8 border-t border-white/10 flex flex-col items-center gap-2 text-center">
+          <p className="text-sm text-white/70">
             © {new Date().getFullYear()} VeriTrace. All rights reserved.
           </p>
-          <p className="text-[10px] font-mono text-[var(--text-4)] break-all max-w-lg">
+          <p className="text-[10px] font-mono text-white/40 break-all max-w-lg">
             Contract: {CONTRACT_ADDRESS}
           </p>
         </div>
@@ -102,14 +102,14 @@ export default function Footer() {
       {/* Giant Bottom Highlight Brand Title */}
       <div 
         onClick={() => setIsHighlighted(!isHighlighted)}
-        className="w-full flex justify-center overflow-hidden h-[9vw] cursor-pointer select-none mt-8 border-t border-[var(--border)] pt-8 relative animate-duration-500"
+        className="w-full flex justify-center overflow-hidden h-[9vw] cursor-pointer select-none mt-8 border-t border-white/10 pt-8 relative animate-duration-500"
       >
         <div 
           className={cn(
             "text-[15vw] font-black leading-[0.75] tracking-tighter transition-all duration-700 ease-out select-none",
             isHighlighted 
-              ? "text-[var(--accent)] [text-shadow:0_0_30px_rgba(var(--accent-rgb),0.75),0_0_60px_rgba(var(--accent-rgb),0.4)] opacity-100" 
-              : "text-[var(--text-4)] dark:text-[#161b22] opacity-20 hover:opacity-40"
+              ? "text-white [text-shadow:0_0_30px_rgba(255,255,255,0.75),0_0_60px_rgba(255,255,255,0.4)] opacity-100" 
+              : "text-white opacity-10 hover:opacity-20"
           )}
         >
           VERITRACE
