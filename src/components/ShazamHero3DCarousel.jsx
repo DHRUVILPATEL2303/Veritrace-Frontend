@@ -89,20 +89,30 @@ export default function ShazamHero3DCarousel() {
     setActiveIndex((prev) => getCircularIndex(prev - 1))
   }, [getCircularIndex])
 
-  // Drag-to-swipe tracking: require holding left click (e.buttons === 1) to scrub across 3D stack cards
-  const handleMouseMoveOverStack = useCallback((e) => {
-    if (e.buttons !== 1 || !stackContainerRef.current) return
+  // Drag/Touch tracking to scrub across 3D stack cards
+  const handleScrubAtX = useCallback((clientX) => {
+    if (!stackContainerRef.current) return
     const rect = stackContainerRef.current.getBoundingClientRect()
-    const relativeX = e.clientX - rect.left
+    const relativeX = clientX - rect.left
     const normalizedX = relativeX / rect.width // 0.0 (left) to 1.0 (right)
 
-    // Map horizontal position across container width to nearest card index
     const count = CAROUSEL_CARDS.length
     const targetIdx = Math.min(count - 1, Math.max(0, Math.floor(normalizedX * count)))
     if (targetIdx !== activeIndex) {
       setActiveIndex(targetIdx)
     }
   }, [activeIndex])
+
+  const handleMouseMoveOverStack = useCallback((e) => {
+    if (e.buttons !== 1) return
+    handleScrubAtX(e.clientX)
+  }, [handleScrubAtX])
+
+  const handleTouchMoveOverStack = useCallback((e) => {
+    if (e.touches && e.touches[0]) {
+      handleScrubAtX(e.touches[0].clientX)
+    }
+  }, [handleScrubAtX])
 
   const activeCard = CAROUSEL_CARDS[activeIndex]
 
@@ -186,11 +196,13 @@ export default function ShazamHero3DCarousel() {
           </div>
         </div>
 
-        {/* ── Right 3D Perspective Card Carousel Stack (Cursor Hover Responsive) ── */}
+        {/* ── Right 3D Perspective Card Carousel Stack (Cursor & Touch Responsive) ── */}
         <div
           ref={stackContainerRef}
           onMouseMove={handleMouseMoveOverStack}
-          className="relative h-[410px] w-full flex items-center justify-center perspective-[1200px] cursor-pointer"
+          onTouchMove={handleTouchMoveOverStack}
+          onTouchStart={handleTouchMoveOverStack}
+          className="relative h-[390px] sm:h-[410px] w-full flex items-center justify-center perspective-[1000px] sm:perspective-[1200px] cursor-pointer touch-pan-y"
         >
           {CAROUSEL_CARDS.map((card, idx) => {
             // Calculate relative offset from active index
@@ -208,10 +220,11 @@ export default function ShazamHero3DCarousel() {
             const isActive = diff === 0
             const Icon = card.icon
 
-            // Calculate 3D perspective transforms
-            const rotateY = diff * -18
-            const translateX = diff * 115
-            const translateZ = isActive ? 0 : -Math.abs(diff) * 120
+            // Calculate 3D perspective transforms (responsive spacing for mobile vs desktop)
+            const isMobile = typeof window !== 'undefined' && window.innerWidth < 640
+            const rotateY = diff * (isMobile ? -12 : -18)
+            const translateX = diff * (isMobile ? 65 : 115)
+            const translateZ = isActive ? 0 : -Math.abs(diff) * (isMobile ? 70 : 120)
             const scale = isActive ? 1 : 0.84 - Math.abs(diff) * 0.08
             const opacity = isActive ? 1 : 0.45 - Math.abs(diff) * 0.15
 
@@ -219,7 +232,7 @@ export default function ShazamHero3DCarousel() {
               <motion.div
                 key={card.id}
                 onClick={() => setActiveIndex(idx)}
-                className="absolute top-0 w-[300px] sm:w-[340px] h-[395px] rounded-3xl p-6 select-none transition-all duration-500 ease-out border flex flex-col justify-between"
+                className="absolute top-0 w-[270px] sm:w-[340px] h-[375px] sm:h-[395px] rounded-3xl p-5 sm:p-6 select-none transition-all duration-500 ease-out border flex flex-col justify-between transform-gpu"
                 style={{
                   background: card.cardBg,
                   borderColor: isActive ? card.badgeColor : 'rgba(255,255,255,0.12)',

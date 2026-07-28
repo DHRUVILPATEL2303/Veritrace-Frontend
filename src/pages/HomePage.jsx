@@ -140,10 +140,24 @@ function HeroMeshBackground() {
       animRef.current = requestAnimationFrame(draw)
     }
 
-    draw()
+    // Only draw if the canvas is within the camera viewport
+    const intersectionObserver = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        if (!animRef.current) draw()
+      } else {
+        if (animRef.current) {
+          cancelAnimationFrame(animRef.current)
+          animRef.current = null
+        }
+      }
+    }, { threshold: 0.05 })
+    
+    intersectionObserver.observe(canvas)
     window.addEventListener('resize', resize)
+    
     return () => {
       cancelAnimationFrame(animRef.current)
+      intersectionObserver.disconnect()
       window.removeEventListener('mousemove', handleMouse)
       window.removeEventListener('resize', resize)
     }
@@ -212,7 +226,7 @@ function ParallaxSection({ children, speed = 0.15, className = '' }) {
   const y = useTransform(scrollYProgress, [0, 1], [speed * 100, -speed * 100])
 
   return (
-    <motion.div ref={ref} style={{ y }} className={className}>
+    <motion.div ref={ref} style={{ y, willChange: 'transform' }} className={className}>
       {children}
     </motion.div>
   )
@@ -261,8 +275,9 @@ function SectionDivider() {
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[var(--accent)]/20 to-transparent" />
         <motion.div
           className="absolute top-1/2 -translate-y-1/2 w-20 h-[2px] bg-gradient-to-r from-transparent via-[var(--accent)] to-transparent"
-          animate={{ left: ['-10%', '110%'] }}
-          transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+          style={{ willChange: 'transform' }}
+          animate={{ x: ['-100vw', '100vw'] }}
+          transition={{ duration: 5, repeat: Infinity, ease: 'linear' }}
         />
       </div>
     </div>
@@ -294,7 +309,7 @@ export default function HomePage() {
   return (
     <>
       {/* ════ HERO ════ */}
-      <section ref={heroRef} className="home-proof-hero relative">
+      <section ref={heroRef} className="home-proof-hero relative z-0">
 
         <motion.div
           className="max-w-[720px] mx-auto px-5 relative z-10 text-center"
@@ -304,17 +319,19 @@ export default function HomePage() {
             <div className="flex items-center justify-center gap-3 flex-wrap mb-8">
               <motion.div
                 className="badge-float"
-                initial={{ opacity: 0, scale: 0.8, y: 10 }}
+                initial={{ opacity: 0, scale: 0.8, y: 12 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
+                transition={{ type: 'spring', stiffness: 350, damping: 25, delay: 0.15 }}
+                style={{ willChange: 'transform, opacity' }}
               >
                 <AnimatedArbitrumBadge text="Powered by Arbitrum Stylus" />
               </motion.div>
               <motion.div
                 className="badge-float-delayed"
-                initial={{ opacity: 0, scale: 0.8, y: 10 }}
+                initial={{ opacity: 0, scale: 0.8, y: 12 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.35 }}
+                transition={{ type: 'spring', stiffness: 350, damping: 25, delay: 0.25 }}
+                style={{ willChange: 'transform, opacity' }}
               >
                 <AnimatedNetworkBadge text="Arbitrum Sepolia Testnet" />
               </motion.div>
@@ -380,27 +397,23 @@ export default function HomePage() {
           </motion.div>
         </motion.div>
 
-        {/* Bottom fade gradient */}
-        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[var(--bg)] to-transparent pointer-events-none z-10" />
       </section>
 
       {/* ════ STATS ════ */}
-      <ScrollReveal variant="fade-up">
+      <ScrollReveal variant="fade-up" className="relative z-20">
         <section className="max-w-[1280px] mx-auto px-5 -mt-8 relative z-10">
-          <SpotlightCard>
-            <Card className="overflow-hidden card-hover-glow">
-              <div className="grid grid-cols-1 sm:grid-cols-3">
-                <StatItem icon={<FilePlus size={20} />} color="var(--accent)" label="Proofs committed" value={stats.loading ? '...' : stats.registered} suffix="synced" />
-                <StatItem icon={<Eye size={20} />} color="var(--success-text, #4CAF50)" label="Inspections run" value={stats.loading ? '...' : stats.verifications} suffix="tracked" border />
-                <StatItem icon={<Shield size={20} />} color="var(--accent-dark)" label="Block anchors" value={stats.loading ? '...' : stats.onchain} suffix="confirmed" />
-              </div>
-            </Card>
-          </SpotlightCard>
+          <Card className="overflow-hidden card-hover-glow">
+            <div className="grid grid-cols-1 sm:grid-cols-3">
+              <StatItem icon={<FilePlus size={20} />} color="var(--accent)" label="Proofs committed" value={stats.loading ? '...' : stats.registered} suffix="synced" />
+              <StatItem icon={<Eye size={20} />} color="var(--success-text, #4CAF50)" label="Inspections run" value={stats.loading ? '...' : stats.verifications} suffix="tracked" border />
+              <StatItem icon={<Shield size={20} />} color="var(--accent-dark)" label="Block anchors" value={stats.loading ? '...' : stats.onchain} suffix="confirmed" />
+            </div>
+          </Card>
         </section>
       </ScrollReveal>
 
       {/* ════ INTEGRITY DASHBOARD ════ */}
-      <ScrollReveal variant="fade-up" delay={0.1}>
+      <ScrollReveal variant="fade-up" delay={0.1} className="relative z-10">
         <section className="max-w-[1280px] mx-auto px-5 pt-5">
           <Card className="integrity-readout card-hover-glow overflow-hidden">
             <CardBody className="p-0 grid grid-cols-1 lg:grid-cols-[1.2fr_2fr]">

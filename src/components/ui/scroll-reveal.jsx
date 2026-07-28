@@ -12,27 +12,27 @@ import { cn } from '@/lib/utils'
 
 const variants = {
   'fade-up': {
-    hidden: { opacity: 0, y: 50, filter: 'blur(12px)', scale: 0.98 },
+    hidden: { opacity: 0, y: 40, filter: 'blur(4px)', scale: 0.98 },
     visible: { opacity: 1, y: 0, filter: 'blur(0px)', scale: 1 },
   },
   'fade-down': {
-    hidden: { opacity: 0, y: -50, filter: 'blur(12px)', scale: 0.98 },
+    hidden: { opacity: 0, y: -40, filter: 'blur(4px)', scale: 0.98 },
     visible: { opacity: 1, y: 0, filter: 'blur(0px)', scale: 1 },
   },
   'fade-left': {
-    hidden: { opacity: 0, x: -50, filter: 'blur(12px)' },
+    hidden: { opacity: 0, x: -40, filter: 'blur(4px)' },
     visible: { opacity: 1, x: 0, filter: 'blur(0px)' },
   },
   'fade-right': {
-    hidden: { opacity: 0, x: 50, filter: 'blur(12px)' },
+    hidden: { opacity: 0, x: 40, filter: 'blur(4px)' },
     visible: { opacity: 1, x: 0, filter: 'blur(0px)' },
   },
   zoom: {
-    hidden: { opacity: 0, scale: 0.85, filter: 'blur(12px)' },
+    hidden: { opacity: 0, scale: 0.88, filter: 'blur(4px)' },
     visible: { opacity: 1, scale: 1, filter: 'blur(0px)' },
   },
   blur: {
-    hidden: { opacity: 0, filter: 'blur(16px)' },
+    hidden: { opacity: 0, filter: 'blur(8px)' },
     visible: { opacity: 1, filter: 'blur(0px)' },
   },
 }
@@ -58,12 +58,13 @@ export function ScrollReveal({
       variants={variants[variant] || variants['fade-up']}
       transition={{
         type: 'spring',
-        stiffness: 70,
-        damping: 20,
-        mass: 1,
+        stiffness: 120,
+        damping: 22,
+        mass: 0.9,
         delay,
       }}
-      className={cn(className)}
+      className={cn('transform-gpu', className)}
+      style={{ willChange: 'transform, opacity, filter' }}
       {...props}
     >
       {children}
@@ -100,7 +101,7 @@ export function ScrollRevealGroup({
       whileInView="visible"
       viewport={{ once, amount: 0.1 }}
       variants={container}
-      className={cn(className)}
+      className={cn('transform-gpu', className)}
       {...props}
     >
       {Array.isArray(children)
@@ -108,7 +109,8 @@ export function ScrollRevealGroup({
           <motion.div
             key={i}
             variants={item}
-            transition={{ type: 'spring', stiffness: 70, damping: 20, mass: 1 }}
+            transition={{ type: 'spring', stiffness: 120, damping: 22, mass: 0.9 }}
+            className="transform-gpu"
           >
             {child}
           </motion.div>
