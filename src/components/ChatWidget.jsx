@@ -1,10 +1,24 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { MessageSquare, X, Send, Bot, CornerDownLeft, Sparkles } from 'lucide-react'
+import { MessageSquare, X, Send, Bot, CornerDownLeft, Sparkles, ArrowUp } from 'lucide-react'
 import { RAG_BOT_API } from '../config'
 
 export default function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false)
+  const [showScrollTop, setShowScrollTop] = useState(false)
+
+  // Track scroll position for "Back to top" arrow
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 300)
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
   const [messages, setMessages] = useState(() => {
     const saved = sessionStorage.getItem('veritrace_chat_history')
     if (saved) {
@@ -173,8 +187,9 @@ export default function ChatWidget() {
             initial={{ opacity: 0, y: 30, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            transition={{ duration: 0.25, ease: 'easeOut' }}
-            className="w-[360px] sm:w-[380px] h-[520px] max-h-[calc(100vh-120px)] rounded-2xl glass-card flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.3)] mb-4 border border-[var(--border-2)] overflow-hidden"
+            transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+            style={{ originY: 1, originX: 1, willChange: 'transform, opacity' }}
+            className="w-[calc(100vw-3rem)] max-w-[360px] sm:max-w-[380px] h-[520px] max-h-[calc(100vh-120px)] rounded-2xl glass-card flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.3)] mb-4 border border-[var(--border-2)] overflow-hidden transform-gpu"
           >
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border-2)] bg-[var(--bg-2)]/60">
@@ -277,8 +292,27 @@ export default function ChatWidget() {
         )}
       </AnimatePresence>
 
-      {/* Floating Toggle Button */}
-      <button
+      {/* Floating Buttons Control Row */}
+      <div className="flex items-end gap-3">
+        {/* Scroll to Top Arrow */}
+        <AnimatePresence>
+          {showScrollTop && !isOpen && (
+            <motion.button
+              initial={{ opacity: 0, scale: 0, x: 20 }}
+              animate={{ opacity: 1, scale: 1, x: 0 }}
+              exit={{ opacity: 0, scale: 0, x: 20 }}
+              transition={{ type: 'spring', stiffness: 350, damping: 25 }}
+              onClick={scrollToTop}
+              className="w-12 h-12 mb-2 rounded-full glass flex items-center justify-center text-[var(--accent)] shadow-[0_8px_30px_rgba(0,0,0,0.12)] hover:bg-[var(--surface-2)] active:scale-95 transition-all border border-[var(--border-2)] hover:border-[var(--accent)]"
+              aria-label="Scroll to top"
+            >
+              <ArrowUp size={20} />
+            </motion.button>
+          )}
+        </AnimatePresence>
+
+        {/* Floating Toggle Button */}
+        <button
         onClick={() => setIsOpen((prev) => !prev)}
         className={`w-16 h-16 rounded-full flex items-center justify-center shadow-[0_8px_30px_rgba(0,0,0,0.08)] transition-all duration-300 active:scale-95 relative group border border-[#e2e8f0] ${
           isOpen
@@ -338,6 +372,7 @@ export default function ChatWidget() {
           <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-[var(--success-text, #4CAF50)] border-2 border-white rounded-full animate-pulse" />
         )}
       </button>
+      </div>
     </div>
   )
 }

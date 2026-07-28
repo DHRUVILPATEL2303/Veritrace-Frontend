@@ -153,11 +153,17 @@
   box-sizing: border-box;
 }
 
-html {
+
+
+html,
+body,
+#root {
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  max-width: 100vw;
+  overflow-x: hidden !important;
 }
 
 body {
@@ -166,7 +172,6 @@ body {
   color: var(--text);
   min-height: 100vh;
   line-height: 1.6;
-  overflow-x: hidden;
   transition: background 0.4s cubic-bezier(0.4,0,0.2,1), color 0.3s ease;
 }
 
@@ -1165,10 +1170,10 @@ html:not([data-theme="dark"]) .ambient-background>div:first-child {
 }
 
 /* ─── Smooth theme transitions ─── */
-*, *::before, *::after {
+*:not(.transform-gpu):not([style*="will-change"]), *::before, *::after {
   transition-property: background-color, border-color, box-shadow;
   transition-duration: 0.2s;
-  transition-timing-function: ease;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* ─── Focus ring ─── */
@@ -1239,17 +1244,22 @@ html:not([data-theme="dark"]) .ambient-background>div:first-child {
 ═══════════════════════════════════════ */
 
 .card-hover-glow {
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease, border-color 0.3s ease;
+  transition: box-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.3s ease;
   position: relative;
 }
 
 .card-hover-glow:hover {
-  border-color: rgba(var(--accent-rgb), 0.4) !important;
-  box-shadow: 0 0 0 1px rgba(var(--accent-rgb), 0.15), 0 12px 40px rgba(var(--accent-rgb), 0.10), var(--shadow-lg);
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 1px var(--accent), 0 16px 48px rgba(var(--accent-rgb), 0.16), var(--shadow-lg);
+}
+
+.card-hover-glow:active {
+  transform: translateY(0px) scale(0.995);
 }
 
 .spotlight:hover [data-card-surface] {
-  box-shadow: 0 0 0 1px rgba(var(--accent-rgb), .16), 0 24px 60px rgba(0, 0, 0, .2), 0 10px 28px rgba(var(--accent-rgb), .08);
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 1px var(--accent), 0 24px 60px rgba(0, 0, 0, .2), 0 10px 28px rgba(var(--accent-rgb), .12);
 }
 
 .spotlight:hover .card-title svg {
@@ -1719,7 +1729,7 @@ html:not([data-theme="dark"]) .border-b-0 {
 /* ═══════════════════════════════════════
    HOMEPAGE — EVIDENCE NETWORK HERO
 ═══════════════════════════════════════ */
-.home-proof-hero { position: relative; overflow: hidden; padding: 8rem 0 6rem; background: var(--bg); }
+.home-proof-hero { position: relative; overflow: hidden; padding: 8rem 0 6rem; background: transparent; }
 .proof-grid { position: absolute; inset: 0; opacity: .48; background-image: linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px); background-size: 52px 52px; mask-image: linear-gradient(90deg, black, transparent 80%); }
 .proof-wave { position: absolute; width: 72vw; height: 72vw; border: 1px solid rgba(var(--accent-rgb), .28); border-radius: 50%; right: -35vw; top: -30vw; transform: translate3d(0,0,0); animation: proof-wave 11s ease-in-out infinite; }
 .proof-wave-two { width: 54vw; height: 54vw; right: -22vw; top: -17vw; border-color: rgba(var(--accent-rgb), .18); animation-delay: -5.5s; }
@@ -1739,7 +1749,7 @@ html:not([data-theme="dark"]) .border-b-0 {
 .proof-scan, .proof-pulse { display: none; }
 
 /* Dark mode evidence network */
-[data-theme="dark"] .home-proof-hero { background: radial-gradient(ellipse 72% 80% at 82% 28%, rgba(155,125,255,.10), transparent 58%), radial-gradient(ellipse 50% 50% at 11% 82%, rgba(155,125,255,.06), transparent 70%), #06060e; }
+[data-theme="dark"] .home-proof-hero { background: radial-gradient(ellipse 72% 80% at 82% 28%, rgba(155,125,255,.10), transparent 58%), radial-gradient(ellipse 50% 50% at 11% 82%, rgba(155,125,255,.06), transparent 70%), transparent; }
 [data-theme="dark"] .proof-grid { opacity: 1; background-image: linear-gradient(rgba(155,125,255,.09) 1px, transparent 1px), linear-gradient(90deg, rgba(155,125,255,.09) 1px, transparent 1px); }
 [data-theme="dark"] .proof-wave { border-color: rgba(155,125,255,.4); box-shadow: 0 0 90px rgba(155,125,255,.08), inset 0 0 70px rgba(155,125,255,.04); opacity: .8; }
 [data-theme="dark"] .proof-wave-two { border-color: rgba(155,125,255,.28); }
@@ -1810,9 +1820,7 @@ html:not([data-theme="dark"]) .border-b-0 {
   opacity: 1;
 }
 
-section {
-  will-change: transform;
-}
+/* will-change applied selectively via transform-gpu class, not blanket on all sections */
 
 .card-hover-glow::after {
   content: '';
@@ -1835,13 +1843,7 @@ section {
 }
 
 .format-preview-card:hover {
-  transform: translateY(-4px) scale(1.01);
-}
-
-*:not(.fixed):not([class*="inset-0"]) {
-  transition-property: background-color, border-color, box-shadow;
-  transition-duration: 0.2s;
-  transition-timing-function: ease;
+  transform: translateY(-3px) scale(1.005);
 }
 
 :focus-visible {

@@ -13,9 +13,9 @@ import { SpotlightCard } from '../components/aceternity/SpotlightCard'
 import { BeamLine } from '../components/aceternity/BeamLine'
 import { AnimatedArbitrumBadge, AnimatedNetworkBadge } from '../components/ArbitrumLogo'
 import { ScrollReveal, ScrollRevealGroup } from '../components/ui/scroll-reveal'
-import SplitText from '../components/ui/SplitText'
 import { FilePlus, Search, Shield, ArrowRight, Upload, FingerprintPattern as Fingerprint, Wallet, CircleCheck as CheckCircle2, Database, Sparkles, Zap, Eye, Link2, Pin, GitBranch, ChevronRight, ChevronLeft, Image as ImageIcon, Video, FileText, Play, Radio, Globe, Lock } from 'lucide-react'
 import { SUPPORTED_FILES, CONTRACT_ADDRESS, ARBITRUM_SEPOLIA } from '../config'
+import ShazamHero3DCarousel from '../components/ShazamHero3DCarousel'
 
 /* ─── Custom animated mesh background for hero ─── */
 function HeroMeshBackground() {
@@ -140,10 +140,24 @@ function HeroMeshBackground() {
       animRef.current = requestAnimationFrame(draw)
     }
 
-    draw()
+    // Only draw if the canvas is within the camera viewport
+    const intersectionObserver = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        if (!animRef.current) draw()
+      } else {
+        if (animRef.current) {
+          cancelAnimationFrame(animRef.current)
+          animRef.current = null
+        }
+      }
+    }, { threshold: 0.05 })
+    
+    intersectionObserver.observe(canvas)
     window.addEventListener('resize', resize)
+    
     return () => {
       cancelAnimationFrame(animRef.current)
+      intersectionObserver.disconnect()
       window.removeEventListener('mousemove', handleMouse)
       window.removeEventListener('resize', resize)
     }
@@ -212,7 +226,7 @@ function ParallaxSection({ children, speed = 0.15, className = '' }) {
   const y = useTransform(scrollYProgress, [0, 1], [speed * 100, -speed * 100])
 
   return (
-    <motion.div ref={ref} style={{ y }} className={className}>
+    <motion.div ref={ref} style={{ y, willChange: 'transform' }} className={className}>
       {children}
     </motion.div>
   )
@@ -261,8 +275,9 @@ function SectionDivider() {
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[var(--accent)]/20 to-transparent" />
         <motion.div
           className="absolute top-1/2 -translate-y-1/2 w-20 h-[2px] bg-gradient-to-r from-transparent via-[var(--accent)] to-transparent"
-          animate={{ left: ['-10%', '110%'] }}
-          transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+          style={{ willChange: 'transform' }}
+          animate={{ x: ['-100vw', '100vw'] }}
+          transition={{ duration: 5, repeat: Infinity, ease: 'linear' }}
         />
       </div>
     </div>
@@ -294,7 +309,7 @@ export default function HomePage() {
   return (
     <>
       {/* ════ HERO ════ */}
-      <section ref={heroRef} className="home-proof-hero relative">
+      <section ref={heroRef} className="home-proof-hero relative z-0">
 
         <motion.div
           className="max-w-[720px] mx-auto px-5 relative z-10 text-center"
@@ -304,17 +319,19 @@ export default function HomePage() {
             <div className="flex items-center justify-center gap-3 flex-wrap mb-8">
               <motion.div
                 className="badge-float"
-                initial={{ opacity: 0, scale: 0.8, y: 10 }}
+                initial={{ opacity: 0, scale: 0.8, y: 12 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
+                transition={{ type: 'spring', stiffness: 350, damping: 25, delay: 0.15 }}
+                style={{ willChange: 'transform, opacity' }}
               >
                 <AnimatedArbitrumBadge text="Powered by Arbitrum Stylus" />
               </motion.div>
               <motion.div
                 className="badge-float-delayed"
-                initial={{ opacity: 0, scale: 0.8, y: 10 }}
+                initial={{ opacity: 0, scale: 0.8, y: 12 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.35 }}
+                transition={{ type: 'spring', stiffness: 350, damping: 25, delay: 0.25 }}
+                style={{ willChange: 'transform, opacity' }}
               >
                 <AnimatedNetworkBadge text="Arbitrum Sepolia Testnet" />
               </motion.div>
@@ -380,27 +397,23 @@ export default function HomePage() {
           </motion.div>
         </motion.div>
 
-        {/* Bottom fade gradient */}
-        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[var(--bg)] to-transparent pointer-events-none z-10" />
       </section>
 
       {/* ════ STATS ════ */}
-      <ScrollReveal variant="fade-up">
+      <ScrollReveal variant="fade-up" className="relative z-20">
         <section className="max-w-[1280px] mx-auto px-5 -mt-8 relative z-10">
-          <SpotlightCard>
-            <Card className="overflow-hidden card-hover-glow">
-              <div className="grid grid-cols-1 sm:grid-cols-3">
-                <StatItem icon={<FilePlus size={20} />} color="var(--accent)" label="Proofs committed" value={stats.loading ? '...' : stats.registered} suffix="synced" />
-                <StatItem icon={<Eye size={20} />} color="var(--success-text, #4CAF50)" label="Inspections run" value={stats.loading ? '...' : stats.verifications} suffix="tracked" border />
-                <StatItem icon={<Shield size={20} />} color="var(--accent-dark)" label="Block anchors" value={stats.loading ? '...' : stats.onchain} suffix="confirmed" />
-              </div>
-            </Card>
-          </SpotlightCard>
+          <Card className="overflow-hidden card-hover-glow">
+            <div className="grid grid-cols-1 sm:grid-cols-3">
+              <StatItem icon={<FilePlus size={20} />} color="var(--accent)" label="Proofs committed" value={stats.loading ? '...' : stats.registered} suffix="synced" />
+              <StatItem icon={<Eye size={20} />} color="var(--success-text, #4CAF50)" label="Inspections run" value={stats.loading ? '...' : stats.verifications} suffix="tracked" border />
+              <StatItem icon={<Shield size={20} />} color="var(--accent-dark)" label="Block anchors" value={stats.loading ? '...' : stats.onchain} suffix="confirmed" />
+            </div>
+          </Card>
         </section>
       </ScrollReveal>
 
       {/* ════ INTEGRITY DASHBOARD ════ */}
-      <ScrollReveal variant="fade-up" delay={0.1}>
+      <ScrollReveal variant="fade-up" delay={0.1} className="relative z-10">
         <section className="max-w-[1280px] mx-auto px-5 pt-5">
           <Card className="integrity-readout card-hover-glow overflow-hidden">
             <CardBody className="p-0 grid grid-cols-1 lg:grid-cols-[1.2fr_2fr]">
@@ -416,6 +429,13 @@ export default function HomePage() {
               </div>
             </CardBody>
           </Card>
+        </section>
+      </ScrollReveal>
+
+      {/* ════ SHAZAM-INSPIRED 3D PERSPECTIVE CAROUSEL & AMBIENT GLOW ════ */}
+      <ScrollReveal variant="fade-up">
+        <section className="my-8">
+          <ShazamHero3DCarousel />
         </section>
       </ScrollReveal>
 
@@ -481,80 +501,7 @@ export default function HomePage() {
 
       <SectionDivider />
 
-      {/* ════ BENTO GRID ════ */}
-      <section className="max-w-[1280px] mx-auto px-5 py-12">
-        <ScrollReveal variant="fade-up">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-extrabold mb-2 text-[var(--text)]">Evidence beyond a single hash.</h2>
-            <p className="text-sm text-[var(--text-3)]">Layered fingerprints make provenance resilient to compression, edits, transformations, and synthetic media.</p>
-          </div>
-        </ScrollReveal>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch">
-          <ScrollReveal variant="fade-up" delay={0}>
-            <SpotlightCard className="md:col-span-2 h-full">
-              <Card hover className="h-full p-6 card-hover-glow">
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="arb-badge text-xs font-bold px-2 py-0.5 rounded">SHA-256</span>
-                  <span className="font-bold text-base text-[var(--text)]">Cryptographic Hash</span>
-                </div>
-                <p className="text-sm text-[var(--text-3)] leading-relaxed mb-3">A deterministic 256-bit fingerprint of raw file bytes. Any single changed byte produces a completely different hash. Used for exact-match detection.</p>
-                <div className="code-block p-3 text-[var(--text-2)]">0xa1b2c3d4e5f6...<span className="text-[var(--text-4)]">48 chars</span></div>
-              </Card>
-            </SpotlightCard>
-          </ScrollReveal>
-
-          <ScrollReveal variant="fade-up" delay={0.08}>
-            <SpotlightCard className="h-full">
-              <Card hover className="h-full p-6 card-hover-glow">
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="bg-[var(--success-bg)] text-[#4CAF50] text-xs font-bold px-2 py-0.5 rounded border border-[var(--success-border)]">pHash</span>
-                  <span className="font-bold text-base text-[var(--text)]">Perceptual</span>
-                </div>
-                <p className="text-sm text-[var(--text-3)] leading-relaxed">64-bit DCT-based visual fingerprint. Resists compression, resize, and format changes.</p>
-              </Card>
-            </SpotlightCard>
-          </ScrollReveal>
-
-          <ScrollReveal variant="fade-up" delay={0.16}>
-            <SpotlightCard className="h-full">
-              <Card hover className="h-full p-6 card-hover-glow">
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="bg-[rgba(179,136,255,0.1)] text-[#B388FF] text-xs font-bold px-2 py-0.5 rounded border border-[rgba(179,136,255,0.25)]">SEM</span>
-                  <span className="font-bold text-base text-[var(--text)]">Semantic</span>
-                </div>
-                <p className="text-sm text-[var(--text-3)] leading-relaxed">High-dimensional vision transformer embedding. Catches style transfers and crops.</p>
-              </Card>
-            </SpotlightCard>
-          </ScrollReveal>
-
-          <ScrollReveal variant="fade-up" delay={0.24}>
-            <SpotlightCard className="h-full">
-              <Card hover className="h-full p-6 card-hover-glow">
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="bg-[var(--success-bg)] text-[#4CAF50] text-xs font-bold px-2 py-0.5 rounded border border-[var(--success-border)]">FACE</span>
-                  <span className="font-bold text-base text-[var(--text)]">ArcFace</span>
-                </div>
-                <p className="text-sm text-[var(--text-3)] leading-relaxed">512-d face identity embedding. Matches across lighting, age, pose, and cosmetic changes.</p>
-              </Card>
-            </SpotlightCard>
-          </ScrollReveal>
-
-          <ScrollReveal variant="fade-up" delay={0.32}>
-            <SpotlightCard className="h-full">
-              <Card hover className="h-full p-6 card-hover-glow">
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="bg-[rgba(255,155,0,0.08)] text-[#FF9B00] text-xs font-bold px-2 py-0.5 rounded border border-[rgba(255,155,0,0.25)]">AUD</span>
-                  <span className="font-bold text-base text-[var(--text)]">wav2vec2</span>
-                </div>
-                <p className="text-sm text-[var(--text-3)] leading-relaxed">768-d voice print. Detects audio deepfakes, voice clones, and speaker identity.</p>
-              </Card>
-            </SpotlightCard>
-          </ScrollReveal>
-        </div>
-      </section>
-
-      <SectionDivider />
 
       {/* ════ SUPPORTED FORMATS ════ */}
       <ScrollReveal variant="fade-up">
