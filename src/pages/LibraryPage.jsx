@@ -147,8 +147,8 @@ export default function LibraryPage() {
         {selectedAsset && (
           <>
             <ModalHeader title="Registered Asset Details" onClose={() => setSelectedAsset(null)} icon={<Shield size={18} className="text-[var(--success-text, #4CAF50)]" />} />
-            <div className="p-5 flex flex-col gap-4">
-              <div className="relative w-full h-72 bg-[var(--bg-2)] rounded-xl overflow-hidden flex items-center justify-center border border-[var(--border)]" onContextMenu={(e) => e.preventDefault()}>
+            <div className="p-4 sm:p-5 flex flex-col gap-3 overflow-y-auto">
+              <div className="relative w-full h-44 sm:h-52 bg-[var(--bg-2)] rounded-xl overflow-hidden flex items-center justify-center border border-[var(--border)]" onContextMenu={(e) => e.preventDefault()}>
                 {modalLoading ? (
                   <div className="text-center"><Spinner /><div className="text-xs text-[var(--text-3)] mt-2">Retrieving media from IPFS...</div></div>
                 ) : modalMediaUrl ? (

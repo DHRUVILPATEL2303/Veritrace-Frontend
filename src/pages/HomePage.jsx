@@ -315,28 +315,6 @@ export default function HomePage() {
           className="max-w-[720px] mx-auto px-5 relative z-10 text-center"
         >
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }} className="flex flex-col items-center text-center">
-            {/* Floating badges */}
-            <div className="flex items-center justify-center gap-3 flex-wrap mb-8">
-              <motion.div
-                className="badge-float"
-                initial={{ opacity: 0, scale: 0.8, y: 12 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                transition={{ type: 'spring', stiffness: 350, damping: 25, delay: 0.15 }}
-                style={{ willChange: 'transform, opacity' }}
-              >
-                <AnimatedArbitrumBadge text="Powered by Arbitrum Stylus" />
-              </motion.div>
-              <motion.div
-                className="badge-float-delayed"
-                initial={{ opacity: 0, scale: 0.8, y: 12 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                transition={{ type: 'spring', stiffness: 350, damping: 25, delay: 0.25 }}
-                style={{ willChange: 'transform, opacity' }}
-              >
-                <AnimatedNetworkBadge text="Arbitrum Sepolia Testnet" />
-              </motion.div>
-            </div>
-
             {/* Main heading */}
             <h1 className="text-5xl sm:text-6xl md:text-7xl font-extrabold tracking-tight leading-[1.1] mb-6 text-[var(--text)] w-full">
               <span className="block mb-1 gradient-arb">Prove what's real.</span>

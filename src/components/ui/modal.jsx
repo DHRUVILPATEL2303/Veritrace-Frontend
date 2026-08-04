@@ -11,16 +11,16 @@ export function Modal({ open, onClose, children, className, maxWidth = 'max-w-2x
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-[1000] flex items-start justify-center p-4 sm:p-6 overflow-y-auto"
-          style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)' }}
+          className="fixed inset-0 z-[1000] flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
+          style={{ background: 'var(--bg)', backdropFilter: 'none' }}
           onClick={onClose}
         >
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            initial={{ opacity: 0, scale: 0.95, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            transition={{ duration: 0.25, ease: 'easeOut' }}
-            className={cn('relative w-full bg-[var(--surface)] border border-[var(--border-2)] rounded-2xl shadow-2xl my-8', maxWidth, className)}
+            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+            className={cn('relative w-full bg-[var(--surface)] border border-[var(--border-2)] rounded-2xl shadow-2xl max-h-[92vh] flex flex-col overflow-hidden', maxWidth, className)}
             onClick={(e) => e.stopPropagation()}
           >
             {children}

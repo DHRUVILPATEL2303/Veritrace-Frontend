@@ -105,7 +105,7 @@ export default function AboutPage() {
               <h2 className="text-2xl font-extrabold text-[var(--text)]">How to Register</h2>
             </div>
             <InfiniteMovingCards items={REGISTER_STEPS} speed="normal" direction="left" renderItem={(s) => (
-              <div className="w-[320px] sm:w-[360px]">
+              <div className="w-[320px] sm:w-[360px] h-full">
                 <StepCard {...s} delay={0} />
               </div>
             )} />
@@ -117,7 +117,7 @@ export default function AboutPage() {
               <h2 className="text-2xl font-extrabold text-[var(--text)]">How to Verify</h2>
             </div>
             <InfiniteMovingCards items={VERIFY_STEPS} speed="normal" direction="left" renderItem={(s) => (
-              <div className="w-[320px] sm:w-[360px]">
+              <div className="w-[320px] sm:w-[360px] h-full">
                 <StepCard {...s} delay={0} />
               </div>
             )} />
@@ -133,14 +133,16 @@ export default function AboutPage() {
           <InfiniteMovingCards items={HASH_TYPES} speed="normal" direction="left" renderItem={(h) => (
             <div className="w-[320px] sm:w-[360px] h-full">
               <SpotlightCard className="h-full">
-                <Card hover className="h-full card-hover-glow">
-                  <CardBody className="p-5 flex flex-col gap-2">
-                    <div className="flex items-center gap-2">
-                      <span className="px-2 py-0.5 rounded text-xs font-bold" style={{ background: `${h.color}15`, color: h.color }}>{h.tag}</span>
-                      <span className="font-bold text-sm text-[var(--text)]">{h.title}</span>
+                <Card hover className="h-full min-h-[140px] card-hover-glow">
+                  <CardBody className="p-5 flex flex-col justify-between gap-2 h-full">
+                    <div className="flex flex-col gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="px-2 py-0.5 rounded text-xs font-bold" style={{ background: `${h.color}15`, color: h.color }}>{h.tag}</span>
+                        <span className="font-bold text-sm text-[var(--text)]">{h.title}</span>
+                      </div>
+                      <p className="text-xs text-[var(--text-3)] leading-relaxed m-0">{h.desc}</p>
                     </div>
-                    <p className="text-xs text-[var(--text-3)] leading-relaxed m-0">{h.desc}</p>
-                    <div className="text-[11px] rounded px-2 py-1" style={{ background: `${h.color}10`, color: h.color }}>Use cases: {h.use}</div>
+                    <div className="text-[11px] rounded px-2 py-1 mt-auto" style={{ background: `${h.color}10`, color: h.color }}>Use cases: {h.use}</div>
                   </CardBody>
                 </Card>
               </SpotlightCard>
@@ -179,11 +181,11 @@ export default function AboutPage() {
 
 function StepCard({ num, title, desc, icon: Icon, color, delay }) {
   return (
-    <motion.div initial={{ opacity: 0, y: 8 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay }}>
-      <SpotlightCard>
-        <Card hover className="flex gap-3 items-start p-4 card-hover-glow">
+    <motion.div initial={{ opacity: 0, y: 8 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay }} className="h-full">
+      <SpotlightCard className="h-full">
+        <Card hover className="flex gap-3 items-start p-4 card-hover-glow h-full min-h-[110px]">
           <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[var(--bg-2)] flex items-center justify-center font-extrabold text-sm" style={{ color }}>{num}</div>
-          <div className="flex-1">
+          <div className="flex-1 flex flex-col justify-center">
             <div className="flex items-center gap-1.5 font-bold text-sm mb-1 text-[var(--text)]"><Icon size={14} style={{ color }} /> {title}</div>
             <div className="text-xs text-[var(--text-3)] leading-relaxed">{desc}</div>
           </div>
