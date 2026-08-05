@@ -338,40 +338,75 @@ function AssetModal({ item, onClose, displayName, address, onDownloadCert }) {
 
   useEffect(() => {
     if (!item) return
+    let isMounted = true
     const fetchMedia = async () => {
-      if (!item.ipfsCid) return
-      setLoading(true)
+      // 1. Try local storage cache first
       try {
-        const res = await fetch(`https://gateway.pinata.cloud/ipfs/${item.ipfsCid}`, { signal: AbortSignal.timeout(5000) })
-        if (res.ok) {
-          const meta = await res.json()
-          setMediaUrl(getGatewayUrl(meta.media_s3_url || meta.media_ipfs_url))
-          setMediaType(meta.media_type || 'image')
+        const localKey = `vt_media_${item.sha256?.toLowerCase()}`
+        const cached = localStorage.getItem(localKey)
+        if (cached) {
+          const parsed = JSON.parse(cached)
+          if (parsed.media_s3_url || parsed.media_ipfs_url) {
+            if (isMounted) {
+              setMediaUrl(getGatewayUrl(parsed.media_s3_url || parsed.media_ipfs_url))
+              setMediaType(parsed.media_type || 'image')
+              return
+            }
+          }
         }
       } catch {}
-      finally { setLoading(false) }
+
+      if (!item.ipfsCid) return
+      if (isMounted) setLoading(true)
+
+      const gateways = [
+        `https://gateway.pinata.cloud/ipfs/${item.ipfsCid}`,
+        `https://cloudflare-ipfs.com/ipfs/${item.ipfsCid}`,
+        `https://ipfs.io/ipfs/${item.ipfsCid}`
+      ]
+
+      for (const gw of gateways) {
+        try {
+          const res = await fetch(gw, { signal: AbortSignal.timeout(4000) })
+          if (res.ok) {
+            const meta = await res.json()
+            if (isMounted) {
+              setMediaUrl(getGatewayUrl(meta.media_s3_url || meta.media_ipfs_url))
+              setMediaType(meta.media_type || 'image')
+            }
+            break
+          }
+        } catch {}
+      }
+      if (isMounted) setLoading(false)
     }
     fetchMedia()
+    return () => { isMounted = false }
   }, [item])
 
   if (!item) return null
 
   return (
-    <Modal open onClose={onClose} className="max-w-2xl">
-      <ModalHeader title="Asset Record" onClose={onClose} />
-      <div className="p-5 space-y-5">
-        {/* Media preview */}
-        <div className="w-full aspect-video rounded-2xl bg-[var(--bg-3)] overflow-hidden flex items-center justify-center border border-[var(--border)]">
+    <Modal open onClose={onClose} maxWidth="max-w-2xl">
+      <ModalHeader title="Asset Record" onClose={onClose} icon={<Shield size={18} className="text-[var(--accent)]" />} />
+      <div className="p-4 sm:p-5 space-y-4 overflow-y-auto">
+        {/* Media preview container with fixed max height */}
+        <div className="relative w-full h-44 sm:h-52 rounded-xl bg-[var(--bg-2)] overflow-hidden flex items-center justify-center border border-[var(--border)]">
           {loading ? (
-            <Spinner />
+            <div className="text-center"><Spinner /><div className="text-xs text-[var(--text-3)] mt-2">Retrieving media from IPFS...</div></div>
           ) : mediaUrl ? (
             mediaType === 'video'
-              ? <video src={mediaUrl} controls className="w-full h-full object-contain" />
-              : <img src={mediaUrl} alt="Asset" className="max-w-full max-h-full object-contain" />
+              ? <video src={mediaUrl} controls controlsList="nodownload" className="max-w-full max-h-full" />
+              : <img src={mediaUrl} alt="Asset" className="max-w-full max-h-full object-contain pointer-events-none select-none" />
           ) : (
-            <div className="text-center text-[var(--text-3)]">
-              <Layers size={32} className="mx-auto mb-2 opacity-40" />
-              <p className="text-xs">No preview available</p>
+            <div className="text-center p-4 flex flex-col items-center">
+              <Lock size={28} className="text-[var(--text-3)] mb-1" />
+              <div className="text-xs font-semibold text-[var(--text)]">Protected Registry Node</div>
+              <div className="text-[11px] text-[var(--text-3)] mt-1 mb-3 max-w-[240px]">{item.ipfsCid ? 'Media not resolved from IPFS gateways.' : 'Legacy registration: File was not pinned to storage.'}</div>
+              <label className="cursor-pointer">
+                <Button variant="outline" size="sm" as="span">Select local file to view</Button>
+                <input type="file" className="hidden" onChange={(e) => { const file = e.target.files[0]; if (file) { setMediaUrl(URL.createObjectURL(file)); setMediaType(file.type.startsWith('video/') ? 'video' : 'image') } }} />
+              </label>
             </div>
           )}
         </div>
