@@ -630,28 +630,47 @@ export default function ProfilePage() {
               Content Library
             </CardTitle>
 
-            {/* Tabs */}
-            <div className="flex rounded-xl bg-[var(--bg-2)] border border-[var(--border)] p-0.5 gap-0.5">
-              {tabs.map(t => (
-                <button
-                  key={t.id}
-                  onClick={() => setActiveTab(t.id)}
-                  className={cn(
-                    'flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-xs font-semibold transition-all',
-                    activeTab === t.id
-                      ? 'bg-[var(--surface)] text-[var(--text)] shadow-sm'
-                      : 'text-[var(--text-3)] hover:text-[var(--text)]'
-                  )}
+            {/* Tabs & Bulk Action */}
+            <div className="flex items-center gap-3">
+              <div className="flex rounded-xl bg-[var(--bg-2)] border border-[var(--border)] p-0.5 gap-0.5">
+                {tabs.map(t => (
+                  <button
+                    key={t.id}
+                    onClick={() => setActiveTab(t.id)}
+                    className={cn(
+                      'flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-xs font-semibold transition-all',
+                      activeTab === t.id
+                        ? 'bg-[var(--surface)] text-[var(--text)] shadow-sm'
+                        : 'text-[var(--text-3)] hover:text-[var(--text)]'
+                    )}
+                  >
+                    {t.label}
+                    <span className={cn(
+                      'px-1.5 py-0.5 rounded-full text-[10px] font-bold',
+                      activeTab === t.id ? 'bg-[var(--accent)]/15 text-[var(--accent)]' : 'bg-[var(--bg-3)] text-[var(--text-4)]'
+                    )}>
+                      {loading ? '…' : t.count}
+                    </span>
+                  </button>
+                ))}
+              </div>
+
+              {myUploads.length > 0 && (
+                <Button
+                  size="sm"
+                  variant="success"
+                  onClick={async () => {
+                    toast.loading(`Generating ${myUploads.length} certificates…`, { id: 'bulk' })
+                    for (const item of myUploads) {
+                      await generateCertificate(item, profile.displayName, address)
+                      await new Promise(r => setTimeout(r, 400))
+                    }
+                    toast.success('All certificates downloaded!', { id: 'bulk' })
+                  }}
                 >
-                  {t.label}
-                  <span className={cn(
-                    'px-1.5 py-0.5 rounded-full text-[10px] font-bold',
-                    activeTab === t.id ? 'bg-[var(--accent)]/15 text-[var(--accent)]' : 'bg-[var(--bg-3)] text-[var(--text-4)]'
-                  )}>
-                    {loading ? '…' : t.count}
-                  </span>
-                </button>
-              ))}
+                  <Download size={13} /> Download All Certs
+                </Button>
+              )}
             </div>
           </CardHeader>
 
@@ -696,36 +715,7 @@ export default function ProfilePage() {
         </Card>
       </motion.div>
 
-      {/* ── Bulk Download Bar (appears when uploads exist) ── */}
-      <AnimatePresence>
-        {myUploads.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            className="fixed bottom-24 right-6 z-40"
-          >
-            <div className="glass rounded-2xl px-4 py-3 flex items-center gap-3 shadow-lg border border-[var(--border-2)]">
-              <Shield size={15} className="text-[var(--success-text, #4CAF50)]" />
-              <span className="text-xs text-[var(--text-2)] font-medium">{myUploads.length} verified assets</span>
-              <Button
-                size="sm"
-                variant="success"
-                onClick={async () => {
-                  toast.loading(`Generating ${myUploads.length} certificates…`, { id: 'bulk' })
-                  for (const item of myUploads) {
-                    await generateCertificate(item, profile.displayName, address)
-                    await new Promise(r => setTimeout(r, 400))
-                  }
-                  toast.success('All certificates downloaded!', { id: 'bulk' })
-                }}
-              >
-                <Download size={13} /> Download All Certs
-              </Button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+
 
       {/* ── Asset Detail Modal ── */}
       <AnimatePresence>

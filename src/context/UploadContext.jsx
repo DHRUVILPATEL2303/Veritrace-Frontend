@@ -42,6 +42,7 @@ export function UploadProvider({ children }) {
   const [verPhash, setVerPhash] = useState(null)
   const [verBlockchainRecord, setVerBlockchainRecord] = useState(null)
   const [verDbResults, setVerDbResults] = useState(null)
+  const [verFullHashes, setVerFullHashes] = useState(null)
 
   return (
     <UploadContext.Provider
@@ -67,6 +68,7 @@ export function UploadProvider({ children }) {
         verPhash, setVerPhash,
         verBlockchainRecord, setVerBlockchainRecord,
         verDbResults, setVerDbResults,
+        verFullHashes, setVerFullHashes,
       }}
     >
       {children}

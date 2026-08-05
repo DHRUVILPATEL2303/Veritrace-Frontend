@@ -9,7 +9,7 @@ const buttonVariants = cva(
     variants: {
       variant: {
         primary: 'text-white shadow-md hover:shadow-lg',
-        success: 'text-black font-bold shadow-md hover:shadow-lg',
+        success: 'text-white font-bold shadow-md hover:shadow-lg',
         outline: 'border border-[var(--border-2)] bg-transparent hover:bg-[var(--bg-2)]',
         ghost: 'bg-transparent hover:bg-[var(--bg-2)]',
         danger: 'text-white shadow-md hover:shadow-lg',
@@ -28,7 +28,7 @@ const buttonVariants = cva(
 
 const variantStyles = {
   primary: { background: 'linear-gradient(135deg, var(--accent), var(--accent-dark))' },
-  success: { background: 'linear-gradient(135deg, var(--success-bg), var(--success-border))' },
+  success: { background: 'linear-gradient(135deg, var(--accent), #0284C7)', color: '#ffffff' },
   outline: { borderColor: 'var(--border-2)', color: 'var(--text-2)' },
   ghost: { color: 'var(--text-2)' },
   danger: { background: 'linear-gradient(135deg, #E53935, #FF6B6B)' },

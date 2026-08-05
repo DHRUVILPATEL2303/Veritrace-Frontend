@@ -34,6 +34,7 @@ export default function VerifyPage() {
     verPhash: phash, setVerPhash: setPhash,
     verBlockchainRecord: blockchainRecord, setVerBlockchainRecord: setBlockchainRecord,
     verDbResults: dbResults, setVerDbResults: setDbResults,
+    verFullHashes: fullHashes, setVerFullHashes: setFullHashes,
   } = useUpload()
   const { setIntegrityTone } = useIntegrityTone()
 
@@ -93,6 +94,7 @@ export default function VerifyPage() {
         xhr.send(formData)
       })
       if (hashData.phash) setPhash(hashData.phash)
+      setFullHashes(hashData)
 
       const matches = []
 
@@ -242,7 +244,31 @@ export default function VerifyPage() {
                     {loading && !localSha256 ? <div className="skeleton h-9 rounded-lg w-full" /> : (
                       <>
                         <HashDisplay label="SHA-256 Cryptographic Hash" hash={localSha256 ? `0x${localSha256}` : null} icon="C" variant="crypto" />
-                        {phash && <HashDisplay label="Visual Perceptual Hash (phash)" hash={phash} icon="P" variant="perceptual" />}
+                        {phash && <HashDisplay label="Visual Perceptual Hash (pHash)" hash={phash} icon="P" variant="perceptual" />}
+                        {fullHashes?.semantic_hash?.length > 0 && (
+                          <HashDisplay 
+                            label="Semantic Vector Embedding (64-D CLIP)" 
+                            hash={`[${fullHashes.semantic_hash.slice(0, 4).map(n => Number(n).toFixed(3)).join(', ')}, ... ${fullHashes.semantic_hash.length}-dim]`} 
+                            icon="S" 
+                            variant="semantic" 
+                          />
+                        )}
+                        {fullHashes?.face_hashes?.length > 0 && (
+                          <HashDisplay 
+                            label="Facial Biometric Mesh (ArcFace 128D)" 
+                            hash={`128-D Mesh Landmark Topology (${fullHashes.face_hashes.length} face${fullHashes.face_hashes.length > 1 ? 's' : ''} detected)`} 
+                            icon="F" 
+                            variant="face" 
+                          />
+                        )}
+                        {fullHashes?.audio_hashes?.length > 0 && (
+                          <HashDisplay 
+                            label="Temporal Audio Chroma Vector (MFCC)" 
+                            hash={`Acoustic Spectrum Fingerprint (${fullHashes.audio_hashes.length} band${fullHashes.audio_hashes.length > 1 ? 's' : ''})`} 
+                            icon="A" 
+                            variant="audio" 
+                          />
+                        )}
                       </>
                     )}
                   </CardBody>

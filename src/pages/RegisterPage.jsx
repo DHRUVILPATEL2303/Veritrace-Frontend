@@ -260,7 +260,31 @@ export default function RegisterPage() {
                     ) : (
                       <>
                         <HashDisplay label="SHA-256 Cryptographic Hash" hash={hashes.sha256 ? (hashes.sha256.startsWith('0x') ? hashes.sha256 : `0x${hashes.sha256}`) : null} icon="C" variant="crypto" />
-                        {hashes.phash && <HashDisplay label="Visual Perceptual Hash (phash)" hash={hashes.phash} icon="P" variant="perceptual" />}
+                        {hashes.phash && <HashDisplay label="Visual Perceptual Hash (pHash)" hash={hashes.phash} icon="P" variant="perceptual" />}
+                        {hashes.semanticHash?.length > 0 && (
+                          <HashDisplay 
+                            label="Semantic Vector Embedding (64-D CLIP)" 
+                            hash={`[${hashes.semanticHash.slice(0, 4).map(n => Number(n).toFixed(3)).join(', ')}, ... ${hashes.semanticHash.length}-dim]` } 
+                            icon="S" 
+                            variant="semantic" 
+                          />
+                        )}
+                        {hashes.faceHashes?.length > 0 && (
+                          <HashDisplay 
+                            label="Facial Biometric Mesh (ArcFace 128D)" 
+                            hash={`128-D Mesh Landmark Topology (${hashes.faceHashes.length} face${hashes.faceHashes.length > 1 ? 's' : ''} detected)`} 
+                            icon="F" 
+                            variant="face" 
+                          />
+                        )}
+                        {hashes.audioHashes?.length > 0 && (
+                          <HashDisplay 
+                            label="Temporal Audio Chroma Vector (MFCC)" 
+                            hash={`Acoustic Spectrum Fingerprint (${hashes.audioHashes.length} band${hashes.audioHashes.length > 1 ? 's' : ''})`} 
+                            icon="A" 
+                            variant="audio" 
+                          />
+                        )}
                         <div className="flex flex-wrap gap-3 text-xs">
                           <Meta label="Asset ID" value={hashes.assetId} mono />
                           <Meta label="Type" value={hashes.mediaType} />
