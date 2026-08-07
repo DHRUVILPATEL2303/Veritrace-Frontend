@@ -91,15 +91,19 @@ async function generateCertificate(item, displayName, address) {
   const corners = [[32,32],[1168,32],[32,768],[1168,768]]
   const dirs = [[1,1],[-1,1],[1,-1],[-1,-1]]
   corners.forEach(([cx,cy],[dx,dy]) => {
-    ctx.strokeStyle = 'var(--accent)'
+    ctx.strokeStyle = '#12AAFF'
     ctx.lineWidth = 2
     ctx.beginPath(); ctx.moveTo(cx, cy + dy*22); ctx.lineTo(cx, cy); ctx.lineTo(cx + dx*22, cy); ctx.stroke()
   })
 
   // Logo area
   ctx.fillStyle = 'rgba(18,170,255,0.08)'
-  ctx.beginPath(); ctx.roundRect(56, 56, 220, 56, 12); ctx.fill()
-  ctx.fillStyle = 'var(--accent)'
+  if (typeof ctx.roundRect === 'function') {
+    ctx.beginPath(); ctx.roundRect(56, 56, 220, 56, 12); ctx.fill()
+  } else {
+    ctx.fillRect(56, 56, 220, 56)
+  }
+  ctx.fillStyle = '#12AAFF'
   ctx.font = 'bold 22px Inter, sans-serif'
   ctx.fillText('VeriTrace', 72, 90)
   ctx.fillStyle = 'rgba(255,255,255,0.4)'
@@ -160,7 +164,7 @@ async function generateCertificate(item, displayName, address) {
   ctx.strokeStyle = 'rgba(18,170,255,0.6)'
   ctx.lineWidth = 1.5
   ctx.beginPath(); ctx.arc(600, 700, 44, 0, Math.PI * 2); ctx.stroke()
-  ctx.fillStyle = 'var(--accent)'
+  ctx.fillStyle = '#12AAFF'
   ctx.font = 'bold 11px Inter, sans-serif'
   ctx.fillText('VERIFIED ON-CHAIN', 600, 695)
   ctx.fillStyle = 'rgba(255,255,255,0.5)'
@@ -172,15 +176,27 @@ async function generateCertificate(item, displayName, address) {
   ctx.font = '10px Inter, sans-serif'
   ctx.fillText(`Generated ${new Date().toISOString()} · veritrace.dpkvtrading.online`, 600, 770)
 
-  return new Promise(resolve => canvas.toBlob(blob => {
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `VeriTrace_Certificate_${(item.sha256 || 'asset').slice(0, 12)}.png`
-    a.click()
-    URL.revokeObjectURL(url)
-    resolve()
-  }, 'image/png', 0.95))
+  return new Promise((resolve, reject) => {
+    try {
+      canvas.toBlob(blob => {
+        if (!blob) {
+          reject(new Error('Canvas export failed'))
+          return
+        }
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `VeriTrace_Certificate_${(item.sha256 || 'asset').slice(0, 12)}.png`
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        setTimeout(() => URL.revokeObjectURL(url), 1000)
+        resolve()
+      }, 'image/png')
+    } catch (e) {
+      reject(e)
+    }
+  })
 }
 
 // ─── Stat Card ───────────────────────────────────────────────────────────────
