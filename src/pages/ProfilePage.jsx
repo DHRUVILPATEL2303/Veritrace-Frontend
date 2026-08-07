@@ -256,7 +256,7 @@ function AssetRow({ item, index, onDownloadCert, onView, address }) {
       </div>
 
       {/* Actions */}
-      <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="flex items-center gap-1.5 transition-opacity">
         <button
           onClick={handleCopy}
           className="w-7 h-7 rounded-lg flex items-center justify-center text-[var(--text-3)] hover:text-[var(--text)] hover:bg-[var(--bg-2)] transition-all"
@@ -531,15 +531,24 @@ export default function ProfilePage() {
     address && r.creator?.toLowerCase() === address.toLowerCase()
   )
 
+  const [certGenerating, setCertGenerating] = useState(false)
+
   const handleDownloadCert = useCallback(async (item) => {
+    if (certGenerating) {
+      toast.info('Certificate generation in progress…')
+      return
+    }
+    setCertGenerating(true)
     toast.loading('Generating certificate…', { id: 'cert' })
     try {
       await generateCertificate(item, profile.displayName, address)
       toast.success('Certificate downloaded!', { id: 'cert' })
     } catch {
       toast.error('Failed to generate certificate', { id: 'cert' })
+    } finally {
+      setCertGenerating(false)
     }
-  }, [profile.displayName, address])
+  }, [profile.displayName, address, certGenerating])
 
   const stats = [
     { icon: Layers, label: 'Total Registrations', value: myUploads.length, color: 'var(--accent)' },
@@ -694,16 +703,25 @@ export default function ProfilePage() {
                 <Button
                   size="sm"
                   variant="success"
+                  disabled={certGenerating}
                   onClick={async () => {
+                    if (certGenerating) return
+                    setCertGenerating(true)
                     toast.loading(`Generating ${myUploads.length} certificates…`, { id: 'bulk' })
-                    for (const item of myUploads) {
-                      await generateCertificate(item, profile.displayName, address)
-                      await new Promise(r => setTimeout(r, 400))
+                    try {
+                      for (const item of myUploads) {
+                        await generateCertificate(item, profile.displayName, address)
+                        await new Promise(r => setTimeout(r, 100))
+                      }
+                      toast.success('All certificates downloaded!', { id: 'bulk' })
+                    } catch {
+                      toast.error('Failed to generate all certificates', { id: 'bulk' })
+                    } finally {
+                      setCertGenerating(false)
                     }
-                    toast.success('All certificates downloaded!', { id: 'bulk' })
                   }}
                 >
-                  <Download size={13} /> Download All Certs
+                  {certGenerating ? <Spinner size="xs" /> : <Download size={13} />} Download All Certs
                 </Button>
               )}
             </div>
