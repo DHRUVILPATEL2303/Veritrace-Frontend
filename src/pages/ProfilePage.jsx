@@ -21,7 +21,8 @@ import { Modal, ModalHeader } from '../components/ui/modal'
 import { SpotlightCard } from '../components/aceternity/SpotlightCard'
 import { ArbitrumLogo } from '../components/ArbitrumLogo'
 import { ScrollReveal } from '../components/ui/scroll-reveal'
-import { CONTRACT_ADDRESS, CONTRACT_ABI, ARBITRUM_SEPOLIA } from '../config'
+import { CONTRACT_ADDRESS, CONTRACT_ABI, ARBITRUM_SEPOLIA, CORE_BACKEND_API } from '../config'
+import { downloadCertificate } from '../utils/generateCertificate'
 import { cn } from '@/lib/utils'
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -66,137 +67,17 @@ function fileTypeIcon(ipfsCid, aiTool) {
 // ─── Certificate Generator ───────────────────────────────────────────────────
 
 async function generateCertificate(item, displayName, address) {
-  const canvas = document.createElement('canvas')
-  canvas.width = 1200
-  canvas.height = 800
-  const ctx = canvas.getContext('2d')
-
-  // Background
-  const bg = ctx.createLinearGradient(0, 0, 1200, 800)
-  bg.addColorStop(0, '#050810')
-  bg.addColorStop(0.5, '#0a0d1a')
-  bg.addColorStop(1, '#060912')
-  ctx.fillStyle = bg
-  ctx.fillRect(0, 0, 1200, 800)
-
-  // Border glow
-  ctx.strokeStyle = 'rgba(18,170,255,0.35)'
-  ctx.lineWidth = 2
-  ctx.strokeRect(24, 24, 1152, 752)
-  ctx.strokeStyle = 'rgba(18,170,255,0.10)'
-  ctx.lineWidth = 1
-  ctx.strokeRect(32, 32, 1136, 736)
-
-  // Corner accents
-  const corners = [[32,32],[1168,32],[32,768],[1168,768]]
-  const dirs = [[1,1],[-1,1],[1,-1],[-1,-1]]
-  corners.forEach(([cx,cy],[dx,dy]) => {
-    ctx.strokeStyle = '#12AAFF'
-    ctx.lineWidth = 2
-    ctx.beginPath(); ctx.moveTo(cx, cy + dy*22); ctx.lineTo(cx, cy); ctx.lineTo(cx + dx*22, cy); ctx.stroke()
-  })
-
-  // Logo area
-  ctx.fillStyle = 'rgba(18,170,255,0.08)'
-  if (typeof ctx.roundRect === 'function') {
-    ctx.beginPath(); ctx.roundRect(56, 56, 220, 56, 12); ctx.fill()
-  } else {
-    ctx.fillRect(56, 56, 220, 56)
+  const txObj = {
+    sha256: item.sha256,
+    blockNumber: item.blockNumber,
+    timestamp: item.timestamp,
+    ipfsCid: item.ipfsCid,
+    aiTool: item.aiTool,
+    mediaS3Url: item.mediaS3Url,
+    mediaIpfsUrl: item.mediaIpfsUrl,
+    hash: item.txHash || ''
   }
-  ctx.fillStyle = '#12AAFF'
-  ctx.font = 'bold 22px Inter, sans-serif'
-  ctx.fillText('VeriTrace', 72, 90)
-  ctx.fillStyle = 'rgba(255,255,255,0.4)'
-  ctx.font = '11px Inter, sans-serif'
-  ctx.fillText('Content Authenticity Protocol', 72, 108)
-
-  // Title
-  ctx.fillStyle = '#ffffff'
-  ctx.font = 'bold 48px Inter, sans-serif'
-  ctx.textAlign = 'center'
-  ctx.fillText('Certificate of Authenticity', 600, 200)
-  ctx.fillStyle = 'rgba(255,255,255,0.45)'
-  ctx.font = '16px Inter, sans-serif'
-  ctx.fillText('This document certifies that the following digital asset has been cryptographically anchored', 600, 235)
-  ctx.fillText('to the Arbitrum Sepolia blockchain via the VeritraceRegistry smart contract.', 600, 258)
-
-  // Divider
-  const div = ctx.createLinearGradient(160, 0, 1040, 0)
-  div.addColorStop(0, 'transparent'); div.addColorStop(0.5, 'rgba(18,170,255,0.5)'); div.addColorStop(1, 'transparent')
-  ctx.strokeStyle = div; ctx.lineWidth = 1
-  ctx.beginPath(); ctx.moveTo(160, 285); ctx.lineTo(1040, 285); ctx.stroke()
-
-  // Data fields
-  const fields = [
-    ['SHA-256 Hash', item.sha256 ? `0x${item.sha256.slice(2, 18)}...${item.sha256.slice(-8)}` : '—'],
-    ['Registered By', displayName || address || '—'],
-    ['Wallet Address', address || '—'],
-    ['Block Number', item.blockNumber?.toString() || '—'],
-    ['Registration Date', formatTs(item.timestamp)],
-    ['AI Tool', item.aiTool || 'Not specified'],
-    ['IPFS CID', item.ipfsCid ? `${item.ipfsCid.slice(0, 24)}...` : '—'],
-    ['Contract', `${CONTRACT_ADDRESS.slice(0,10)}...${CONTRACT_ADDRESS.slice(-6)}`],
-  ]
-
-  ctx.textAlign = 'left'
-  const col1x = 120, col2x = 620
-  fields.forEach(([label, value], i) => {
-    const col = i % 2 === 0 ? col1x : col2x
-    const row = Math.floor(i / 2)
-    const y = 340 + row * 78
-
-    ctx.fillStyle = 'rgba(255,255,255,0.35)'
-    ctx.font = '11px Inter, sans-serif'
-    ctx.fillText(label.toUpperCase(), col, y)
-    ctx.fillStyle = '#ffffff'
-    ctx.font = '14px "JetBrains Mono", monospace'
-    ctx.fillText(value, col, y + 22)
-
-    ctx.strokeStyle = 'rgba(255,255,255,0.07)'
-    ctx.lineWidth = 1
-    ctx.beginPath(); ctx.moveTo(col, y + 34); ctx.lineTo(col + 460, y + 34); ctx.stroke()
-  })
-
-  // Seal
-  ctx.textAlign = 'center'
-  ctx.fillStyle = 'rgba(18,170,255,0.12)'
-  ctx.beginPath(); ctx.arc(600, 700, 44, 0, Math.PI * 2); ctx.fill()
-  ctx.strokeStyle = 'rgba(18,170,255,0.6)'
-  ctx.lineWidth = 1.5
-  ctx.beginPath(); ctx.arc(600, 700, 44, 0, Math.PI * 2); ctx.stroke()
-  ctx.fillStyle = '#12AAFF'
-  ctx.font = 'bold 11px Inter, sans-serif'
-  ctx.fillText('VERIFIED ON-CHAIN', 600, 695)
-  ctx.fillStyle = 'rgba(255,255,255,0.5)'
-  ctx.font = '9px Inter, sans-serif'
-  ctx.fillText('Arbitrum Sepolia', 600, 710)
-
-  // Footer
-  ctx.fillStyle = 'rgba(255,255,255,0.2)'
-  ctx.font = '10px Inter, sans-serif'
-  ctx.fillText(`Generated ${new Date().toISOString()} · veritrace.dpkvtrading.online`, 600, 770)
-
-  return new Promise((resolve, reject) => {
-    try {
-      canvas.toBlob(blob => {
-        if (!blob) {
-          reject(new Error('Canvas export failed'))
-          return
-        }
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = `VeriTrace_Certificate_${(item.sha256 || 'asset').slice(0, 12)}.png`
-        document.body.appendChild(a)
-        a.click()
-        document.body.removeChild(a)
-        setTimeout(() => URL.revokeObjectURL(url), 1000)
-        resolve()
-      }, 'image/png')
-    } catch (e) {
-      reject(e)
-    }
-  })
+  await downloadCertificate(txObj, address || item.creator, CORE_BACKEND_API)
 }
 
 // ─── Stat Card ───────────────────────────────────────────────────────────────
