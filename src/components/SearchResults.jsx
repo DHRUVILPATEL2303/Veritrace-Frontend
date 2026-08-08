@@ -346,49 +346,11 @@ export default function SearchResults({ results, loading, uploadedFile }) {
         ))}
       </div>
 
-      <Modal open={!!comparisonMatch} onClose={() => { setComparisonMatch(null); setHeatmapBase64(null); setSyncResult(null) }} maxWidth={resolvedOriginalUrl && resolvedMediaType === 'image' ? 'max-w-7xl' : 'max-w-5xl'}>
+      <Modal open={!!comparisonMatch} onClose={() => { setComparisonMatch(null); setHeatmapBase64(null); setSyncResult(null) }} maxWidth="max-w-4xl">
         {comparisonMatch && (
           <>
             <ModalHeader title={`Authenticity Check — ${comparisonMatch.similarity?.toFixed(1)}% Match`} onClose={() => { setComparisonMatch(null); setHeatmapBase64(null); setSyncResult(null) }} icon={<Search size={18} className="text-[var(--accent)]" />} />
-            <div className="p-5 flex flex-col gap-4 overflow-y-auto max-h-[80vh] custom-scrollbar">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <div className="flex flex-col gap-1.5 min-w-0">
-                  <div className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-2)]">Uploaded Target (To Verify)</div>
-                  <div className="h-48 sm:h-52 bg-[var(--bg-2)] rounded-xl border border-[var(--border)] overflow-hidden flex items-center justify-center relative">
-                    {uploadedFile?.type?.startsWith('video/') ? <video src={localPreviewUrl} controls className="max-w-full max-h-full object-contain" /> : localPreviewUrl ? <img src={localPreviewUrl} alt="Uploaded" className="max-w-full max-h-full object-contain" /> : <span className="text-xs text-[var(--text-3)]">No image loaded</span>}
-                  </div>
-                </div>
-                <div className="flex flex-col gap-1.5 min-w-0">
-                  <div className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-2)]">Matched Original (On-Chain)</div>
-                  <div className="h-48 sm:h-52 bg-[var(--bg-2)] rounded-xl border border-[var(--border)] overflow-hidden flex items-center justify-center relative" onContextMenu={(e) => e.preventDefault()}>
-                    {loadingOriginal ? <div className="text-center"><Spinner /><div className="text-xs text-[var(--text-3)] mt-2">Resolving media...</div></div> : resolvedOriginalUrl ? (
-                        resolvedMediaType === 'video' ? <video src={resolvedOriginalUrl} controls controlsList="nodownload" className="max-w-full max-h-full object-contain" /> : <img src={resolvedOriginalUrl} alt="Matched" className="max-w-full max-h-full object-contain pointer-events-none select-none" />
-                    ) : (
-                      <div className="text-center p-4 flex flex-col items-center">
-                        <Lock size={24} className="text-[var(--text-3)] mb-1" />
-                        <div className="text-xs font-semibold text-[var(--text)]">Original Media Not Archived</div>
-                        <div className="text-[10px] text-[var(--text-3)] mt-1 max-w-[240px]">This registration was created using a legacy version that did not store the media file online.</div>
-                        {comparisonMatch.similarity === 100 && <Button variant="primary" size="sm" className="mt-3" onClick={handleArchiveLegacy} disabled={uploadingLegacy}><Cloud size={14} /> {uploadingLegacy ? 'Archiving...' : 'Archive to S3 & IPFS'}</Button>}
-                      </div>
-                    )}
-                  </div>
-                </div>
-                {resolvedOriginalUrl && resolvedMediaType === 'image' ? (
-                  <div className="flex flex-col gap-1.5 min-w-0">
-                    <div className="text-[11px] font-bold uppercase tracking-wider text-[#FF4D4D]">Pixel Diff Heatmap</div>
-                    <div className="h-48 sm:h-52 bg-[var(--bg-2)] rounded-xl border border-dashed border-[#FF4D4D]/30 overflow-hidden flex items-center justify-center">
-                      {heatmapLoading ? <div className="text-center"><Spinner className="!border-t-[#FF4D4D]" /><div className="text-xs text-[var(--text-3)] mt-2">Analyzing pixel diffs...</div></div> : heatmapBase64 ? <img src={heatmapBase64} alt="Heatmap" className="max-w-full max-h-full object-contain" /> : <div className="text-center p-4 flex flex-col items-center"><AlertTriangle size={24} className="text-[var(--text-3)] mb-1" /><div className="text-xs font-semibold text-[var(--text)]">Heatmap Not Loaded</div><Button variant="outline" size="sm" className="mt-3" onClick={handleViewAlterations}>Retry Analysis</Button></div>}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="hidden md:flex flex-col gap-1.5 min-w-0 opacity-40">
-                    <div className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-4)]">Pixel Diff Heatmap</div>
-                    <div className="h-48 sm:h-52 bg-[var(--bg-2)] rounded-xl border border-dashed border-[var(--border)] overflow-hidden flex items-center justify-center text-center p-4 text-xs text-[var(--text-3)]">
-                      Heatmap unavailable for non-image or unarchived media
-                    </div>
-                  </div>
-                )}
-              </div>
+            <div className="flex-1 overflow-y-auto p-5 flex flex-col gap-4 custom-scrollbar">
               <div className="grid grid-cols-2 gap-4 text-xs border-t border-[var(--border)] pt-3">
                 <div>
                   <div className="font-semibold text-[var(--text-2)] mb-1">Asset Identification</div>
