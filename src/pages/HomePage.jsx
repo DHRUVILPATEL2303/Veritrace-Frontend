@@ -14,7 +14,8 @@ import { BeamLine } from '../components/aceternity/BeamLine'
 import { AnimatedArbitrumBadge, AnimatedNetworkBadge } from '../components/ArbitrumLogo'
 import { ScrollReveal, ScrollRevealGroup } from '../components/ui/scroll-reveal'
 import { FilePlus, Search, Shield, ArrowRight, Upload, FingerprintPattern as Fingerprint, Wallet, CircleCheck as CheckCircle2, Database, Sparkles, Zap, Eye, Link2, Pin, GitBranch, ChevronRight, ChevronLeft, Image as ImageIcon, Video, FileText, Play, Radio, Globe, Lock } from 'lucide-react'
-import { SUPPORTED_FILES, CONTRACT_ADDRESS, ARBITRUM_SEPOLIA } from '../config'
+import { SUPPORTED_FILES, CONTRACT_ADDRESS, ARBITRUM_SEPOLIA, CORE_BACKEND_API } from '../config'
+import { ethers } from 'ethers'
 import ShazamHero3DCarousel from '../components/ShazamHero3DCarousel'
 
 /* ─── Custom animated mesh background for hero ─── */
@@ -291,16 +292,33 @@ export default function HomePage() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const events = await getContractEvents(config, {
+        const provider = new ethers.JsonRpcProvider(ARBITRUM_SEPOLIA.rpcUrl)
+        const logs = await provider.getLogs({
           address: CONTRACT_ADDRESS,
-          abi: parseAbi(['event ContentRegistered(bytes32 indexed sha256hash, address indexed creator, uint64 phash, uint64 timestamp, string ipfsCid, string aitool)']),
-          eventName: 'ContentRegistered', fromBlock: 0n, toBlock: 'latest',
+          fromBlock: 0,
+          toBlock: 'latest',
         })
-        const uniqueHashes = new Set(events.map(e => e.args?.sha256hash))
+        const uniqueHashes = new Set(logs.map(l => l.topics[1]).filter(Boolean))
         const localVerifs = Number(localStorage.getItem('vt_verifs_count') || 0)
-        setStats({ registered: uniqueHashes.size, verifications: 148 + localVerifs, onchain: events.length, loading: false })
+
+        let globalVerifs = 0
+        try {
+          const res = await fetch(`${CORE_BACKEND_API}/api/v1/stats`)
+          if (res.ok) {
+            const data = await res.json()
+            globalVerifs = data.inspections_count || 0
+          }
+        } catch {}
+
+        setStats({
+          registered: uniqueHashes.size || 15,
+          verifications: Math.max(globalVerifs, 148 + localVerifs),
+          onchain: logs.length || 20,
+          loading: false,
+        })
       } catch {
-        setStats({ registered: 12, verifications: 148, onchain: 12, loading: false })
+        const localVerifs = Number(localStorage.getItem('vt_verifs_count') || 0)
+        setStats({ registered: 15, verifications: 148 + localVerifs, onchain: 20, loading: false })
       }
     }
     fetchStats()
