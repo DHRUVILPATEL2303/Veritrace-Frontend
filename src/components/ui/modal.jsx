@@ -11,22 +11,20 @@ export function Modal({ open, onClose, children, className, maxWidth = 'max-w-2x
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-[1000] overflow-y-auto"
+          className="fixed inset-0 z-[1000] flex items-center justify-center p-3 sm:p-4"
           style={{ background: 'var(--bg)', backdropFilter: 'none' }}
           onClick={onClose}
         >
-          <div className="min-h-full flex items-start justify-center p-3 sm:p-4">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 10 }}
-              transition={{ duration: 0.2, ease: 'easeOut' }}
-              className={cn('relative w-full my-4 bg-[var(--surface)] border border-[var(--border-2)] rounded-2xl shadow-2xl', maxWidth, className)}
-              onClick={(e) => e.stopPropagation()}
-            >
-              {children}
-            </motion.div>
-          </div>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+            className={cn('relative w-full max-h-[85vh] bg-[var(--surface)] border border-[var(--border-2)] rounded-2xl shadow-2xl flex flex-col overflow-hidden', maxWidth, className)}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {children}
+          </motion.div>
         </motion.div>
       )}
     </AnimatePresence>

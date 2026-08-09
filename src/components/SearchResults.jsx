@@ -136,6 +136,7 @@ export default function SearchResults({ results, loading, uploadedFile }) {
 
   const [lineageData, setLineageData] = useState(null)
   const [lineageLoading, setLineageLoading] = useState(false)
+  const [lightboxOpen, setLightboxOpen] = useState(false)
 
   const fetchLineage = async (hash) => {
     setLineageLoading(true)
@@ -346,165 +347,191 @@ export default function SearchResults({ results, loading, uploadedFile }) {
         ))}
       </div>
 
-      <Modal open={!!comparisonMatch} onClose={() => { setComparisonMatch(null); setHeatmapBase64(null); setSyncResult(null) }} maxWidth="max-w-4xl">
-        {comparisonMatch && (
-          <>
-            <ModalHeader title={`Authenticity Check — ${comparisonMatch.similarity?.toFixed(1)}% Match`} onClose={() => { setComparisonMatch(null); setHeatmapBase64(null); setSyncResult(null) }} icon={<Search size={18} className="text-[var(--accent)]" />} />
-            <div className="p-5 flex flex-col gap-4">
-              <div className="grid grid-cols-2 gap-4 text-xs border-t border-[var(--border)] pt-3">
-                <div>
-                  <div className="font-semibold text-[var(--text-2)] mb-1">Asset Identification</div>
-                  <div className="text-[var(--text-3)]">SHA-256 Slice: <span className="font-mono text-[var(--accent)]">{comparisonMatch.assetId}</span></div>
-                  <div className="text-[var(--text-3)]">AI Model: {comparisonMatch.aiTool || 'None (Authentic Content)'}</div>
-                  {comparisonMatch.confidenceTier && (
-                    <div className="text-[var(--text-3)]">Confidence Score: <span className="font-semibold text-[var(--success-text, #4CAF50)]">{comparisonMatch.confidenceScore?.toFixed(0)}% ({comparisonMatch.confidenceTier})</span></div>
+      {/* Inline Expanded Details — no modal */}
+      {comparisonMatch && (
+        <div className="mt-4 bg-[var(--surface)] border border-[var(--border-2)] rounded-2xl overflow-hidden">
+          {/* Header */}
+          <div className="flex items-center justify-between px-5 py-3 border-b border-[var(--border)] bg-[var(--bg-2)]">
+            <h3 className="text-sm font-bold flex items-center gap-2 text-[var(--text)]"><Search size={16} className="text-[var(--accent)]" /> Authenticity Check — {comparisonMatch.similarity?.toFixed(1)}% Match</h3>
+            <button onClick={() => { setComparisonMatch(null); setHeatmapBase64(null); setSyncResult(null) }} className="w-7 h-7 rounded-lg flex items-center justify-center text-[var(--text-3)] hover:bg-[var(--bg)] hover:text-[var(--text)] transition-colors text-lg">×</button>
+          </div>
+
+          <div className="p-5 flex flex-col gap-4">
+            {/* 3 Image Previews */}
+            <div className="grid grid-cols-3 gap-3">
+              <div className="flex flex-col gap-1.5">
+                <div className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-3)]">Your Upload</div>
+                <div className="aspect-[4/3] bg-[var(--bg-2)] rounded-xl border border-[var(--border)] overflow-hidden flex items-center justify-center cursor-pointer group" onClick={() => setLightboxOpen(true)}>
+                  {uploadedFile?.type?.startsWith('video/') ? (
+                    <video src={localPreviewUrl} className="w-full h-full object-contain" />
+                  ) : localPreviewUrl ? (
+                    <img src={localPreviewUrl} alt="Uploaded" className="w-full h-full object-contain group-hover:scale-105 transition-transform" />
+                  ) : (
+                    <span className="text-xs text-[var(--text-3)]">No preview</span>
                   )}
                 </div>
-                <div>
-                  <div className="font-semibold text-[var(--text-2)] mb-1 font-bold">On-Chain Record</div>
-                  <div className="text-[var(--text-3)]">Owner: <span className="font-mono">{comparisonMatch.creator ? `${comparisonMatch.creator.slice(0, 8)}...${comparisonMatch.creator.slice(-6)}` : 'Unknown'}</span></div>
-                  <div className="text-[var(--text-3)]">Registered: {comparisonMatch.registeredAt}</div>
-                  
-                  {(comparisonMatch.isPublisherVerified || comparisonMatch.is_publisher_verified) && (
-                    <div className="text-blue-400 font-bold flex items-center gap-1.5 mt-1 text-[11px]">
-                      ✓ Verified Source: {comparisonMatch.publisherName || comparisonMatch.publisher_name}
-                    </div>
-                  )}
-                  
-                  {(comparisonMatch.publisherFlagCount || comparisonMatch.publisher_flag_count) > 0 && (
-                    <div className="text-red-500 font-extrabold flex items-center gap-1.5 mt-1 text-[11px] bg-red-500/10 px-2 py-1 rounded border border-red-500/25">
-                      ⚠️ Verified Editorial Alert: Disputed by Official Publisher
-                    </div>
-                  )}
-                  
-                  {(comparisonMatch.flagCount || comparisonMatch.flag_count) > 0 && !(comparisonMatch.publisherFlagCount || comparisonMatch.publisher_flag_count) && (
-                    <div className="text-red-400 font-semibold flex items-center gap-1.5 mt-1 text-[11px]">
-                      <Flag size={12} className="text-red-400" /> Disputed ({(comparisonMatch.flagCount || comparisonMatch.flag_count)} {(comparisonMatch.flagCount || comparisonMatch.flag_count) === 1 ? 'report' : 'reports'})
-                    </div>
-                  )}
-                  {(comparisonMatch.consensusCount || comparisonMatch.consensus_count) > 1 && (
-                    <div className="text-emerald-400 font-semibold flex items-center gap-1.5 mt-1 text-[11px]">
-                      🤝 Consensus: {(comparisonMatch.consensusCount || comparisonMatch.consensus_count)} independent creators verified
-                    </div>
-                  )}
-                </div>
+                <div className="text-[10px] font-mono text-[var(--accent)] truncate">{comparisonMatch.assetId}</div>
               </div>
-
-              {/* Flag / Dispute Section */}
-              <div className="flex flex-col gap-3 border-t border-[var(--border)] pt-3 mt-1">
-                <div className="p-3 bg-red-500/5 border border-red-500/10 rounded-xl flex flex-col gap-2">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-[11px] font-bold uppercase tracking-wider text-red-400 flex items-center gap-1"><Flag size={12} /> Dispute Registry Entry</div>
-                      <div className="text-[10px] text-[var(--text-3)] mt-0.5">Flag this registry match if you believe it is a manipulated variant or plagiarized copy.</div>
-                    </div>
-                    {!showFlagForm && (
-                      <Button variant="outline" size="sm" className="border-red-500/20 text-red-400 hover:bg-red-500/10 hover:border-red-500/30 text-xs py-1 transition-colors" onClick={() => setShowFlagForm(true)}>
-                        File Dispute
-                      </Button>
-                    )}
-                  </div>
-
-                  {showFlagForm && (
-                    <div className="flex flex-col gap-2 border-t border-red-500/10 pt-2.5">
-                      <div className="text-[10px] font-semibold text-[var(--text-2)]">Flagger wallet: <span className="font-mono text-[var(--text-3)]">0x3d434220b22a0100d395000000000000000002ba</span> (Connected)</div>
-                      <div className="flex flex-col gap-1">
-                        <label className="text-[9px] uppercase font-bold text-[var(--text-3)]">Reason for Dispute</label>
-                        <select className="w-full p-2 bg-[var(--bg-2)] border border-[var(--border)] rounded-lg text-xs focus:border-[var(--accent)] focus:outline-none" value={flagReason} onChange={(e) => setFlagReason(e.target.value)}>
-                          <option value="Voice-Cloned/Audio Deepfake">Voice-Cloned/Audio Deepfake</option>
-                          <option value="Cropped or Resized Derivative">Cropped or Resized Derivative</option>
-                          <option value="Manipulated/Altered Pixels">Manipulated/Altered Pixels</option>
-                          <option value="Plagiarized Copy">Plagiarized Copy</option>
-                          <option value="Other / Metadata Override">Other / Metadata Override</option>
-                        </select>
-                      </div>
-                      <div className="flex gap-2 justify-end mt-1">
-                        <Button variant="outline" size="sm" className="text-xs py-1" onClick={() => setShowFlagForm(false)}>Cancel</Button>
-                        <Button variant="primary" size="sm" className="bg-red-500 hover:bg-red-600 border-none text-xs py-1 text-white" onClick={submitDispute} disabled={submittingFlag}>
-                          {submittingFlag ? 'Submitting...' : 'Submit Dispute'}
-                        </Button>
-                      </div>
-                    </div>
+              <div className="flex flex-col gap-1.5">
+                <div className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-3)]">On-Chain Match</div>
+                <div className="aspect-[4/3] bg-[var(--bg-2)] rounded-xl border border-[var(--border)] overflow-hidden flex items-center justify-center cursor-pointer group" onClick={() => setLightboxOpen(true)}>
+                  {loadingOriginal ? (
+                    <Spinner />
+                  ) : resolvedOriginalUrl ? (
+                    resolvedMediaType === 'video' ? (
+                      <video src={resolvedOriginalUrl} className="w-full h-full object-contain" />
+                    ) : (
+                      <img src={resolvedOriginalUrl} alt="Matched" className="w-full h-full object-contain group-hover:scale-105 transition-transform" />
+                    )
+                  ) : (
+                    <div className="text-center p-3"><Lock size={20} className="text-[var(--text-3)] mx-auto mb-1" /><div className="text-[10px] text-[var(--text-3)]">Not Archived</div></div>
                   )}
                 </div>
+                <div className="text-[10px] text-[var(--text-3)] truncate">{comparisonMatch.creator ? `${comparisonMatch.creator.slice(0, 8)}...${comparisonMatch.creator.slice(-6)}` : 'Unknown'} · {comparisonMatch.registeredAt}</div>
               </div>
+              <div className="flex flex-col gap-1.5">
+                <div className="text-[10px] font-bold uppercase tracking-wider text-[#FF4D4D]">Pixel Diff Heatmap</div>
+                <div className={`aspect-[4/3] rounded-xl border overflow-hidden flex items-center justify-center cursor-pointer group ${heatmapBase64 ? 'bg-[#FF4D4D]/5 border-[#FF4D4D]/20' : 'bg-[var(--bg-2)] border-dashed border-[var(--border)]'}`} onClick={() => heatmapBase64 && setLightboxOpen(true)}>
+                  {heatmapLoading ? (
+                    <div className="text-center"><Spinner /><div className="text-[10px] text-[var(--text-3)] mt-1">Analyzing...</div></div>
+                  ) : heatmapBase64 ? (
+                    <img src={heatmapBase64} alt="Heatmap" className="w-full h-full object-contain group-hover:scale-105 transition-transform" />
+                  ) : (
+                    <div className="text-center p-3"><AlertTriangle size={20} className="text-[var(--text-3)] mx-auto mb-1" /><div className="text-[10px] text-[var(--text-3)]">{resolvedMediaType !== 'image' ? 'Images only' : 'Unavailable'}</div></div>
+                  )}
+                </div>
+                <div className="text-[10px] text-[var(--text-3)]">{heatmapLoading ? 'Generating...' : heatmapBase64 ? 'Click to compare' : ''}</div>
+              </div>
+            </div>
 
-              {/* Heritage Tree (Lineage DAG) */}
-              <div className="flex flex-col gap-3 border-t border-[var(--border)] pt-4">
-                <div className="text-xs font-bold uppercase tracking-wider text-[var(--text-2)]">Asset Heritage Tree (Lineage DAG)</div>
-                <div className="text-[11px] text-[var(--text-3)] mb-1">Trace original ancestors, sibling crops, and downstream derivatives. Click any node to inspect details.</div>
-                
-                {lineageLoading ? (
-                  <div className="flex justify-center p-6"><Spinner /></div>
-                ) : lineageData ? (
-                  <div className="w-full overflow-x-auto py-6 bg-[var(--bg-2)] border border-[var(--border)] rounded-xl flex justify-center min-h-[180px]">
-                    <div className="flex justify-center items-start min-w-max px-6">
-                      <TreeNode 
-                        node={lineageData} 
-                        targetHash={comparisonMatch.sha256Hash || comparisonMatch.sha256_hash || comparisonMatch.sha256}
-                        onSelectNode={(selectedNode) => {
-                          setComparisonMatch({
-                            sha256: selectedNode.sha256_hash || selectedNode.Sha256Hash,
-                            creator: selectedNode.creator_address || selectedNode.CreatorAddress,
-                            timestamp: selectedNode.timestamp || selectedNode.Timestamp,
-                            phash: selectedNode.phash || selectedNode.PHash,
-                            ipfsCid: selectedNode.ipfs_cid || selectedNode.IpfsCid,
-                            aiTool: selectedNode.ai_tool || selectedNode.AiTool,
-                            mediaIpfsUrl: selectedNode.media_ipfs_url || selectedNode.MediaIpfsUrl,
-                            mediaS3Url: selectedNode.media_s3_url || selectedNode.MediaS3Url,
-                            allowAiTraining: selectedNode.allow_ai_training || selectedNode.AllowAiTraining,
-                            mediaType: selectedNode.media_type || selectedNode.MediaType
-                          })
-                        }}
-                      />
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center p-4 text-xs text-[var(--text-3)] bg-[var(--bg-2)] border border-[var(--border)] rounded-xl">No lineage tracking available.</div>
+            {/* Confidence & Badges */}
+            {comparisonMatch.confidenceTier && (
+              <div className="flex items-center gap-2 text-xs text-[var(--text-3)]">
+                Confidence: <span className="font-semibold text-[var(--success-text, #4CAF50)]">{comparisonMatch.confidenceScore?.toFixed(0)}% ({comparisonMatch.confidenceTier})</span>
+                {(comparisonMatch.flagCount || comparisonMatch.flag_count) > 0 && !(comparisonMatch.publisherFlagCount || comparisonMatch.publisher_flag_count) && (
+                  <span className="text-red-400 font-semibold flex items-center gap-1"><Flag size={11} /> {(comparisonMatch.flagCount || comparisonMatch.flag_count)} dispute{(comparisonMatch.flagCount || comparisonMatch.flag_count) !== 1 ? 's' : ''}</span>
+                )}
+                {(comparisonMatch.consensusCount || comparisonMatch.consensus_count) > 1 && (
+                  <span className="text-emerald-400 font-semibold">🤝 {(comparisonMatch.consensusCount || comparisonMatch.consensus_count)} consensus</span>
                 )}
               </div>
+            )}
 
-              {/* Temporal Integrity & Deepfake Sync */}
-              {(comparisonMatch.temporalIntegrity !== undefined || comparisonMatch.mediaType === 'video') && (
-                <div className="flex flex-col gap-3 border-t border-[var(--border)] pt-4">
-                  {comparisonMatch.temporalIntegrity !== undefined && (
-                    <div className="flex items-center gap-3">
-                      <div className="flex-1 p-3 bg-[var(--bg-2)] border border-[var(--border)] rounded-xl">
-                        <div className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-2)] mb-1">Temporal Sequence Integrity (DTW)</div>
-                        <div className="flex items-center gap-2">
-                          <Badge variant={comparisonMatch.temporalIntegrity > 90 ? 'success' : 'danger'}>{comparisonMatch.temporalIntegrity.toFixed(1)}%</Badge>
-                          <span className="text-xs text-[var(--text-3)]">{comparisonMatch.temporalIntegrity > 90 ? 'Video sequence matches original temporally.' : 'Video may be chopped, reversed, or sped-up!'}</span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  {comparisonMatch.mediaType === 'video' && (
-                    <div className="flex items-center gap-3">
-                      <div className="flex-1 p-3 bg-[var(--bg-2)] border border-[var(--border)] rounded-xl flex items-center justify-between">
-                        <div>
-                          <div className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-2)] mb-1">Deepfake Audio-Visual Sync</div>
-                          <div className="text-xs text-[var(--text-3)]">Analyze lip movements and audio to detect AI voice-swaps.</div>
-                        </div>
-                        {syncResult ? (
-                          <div className="text-right">
-                            <Badge variant={syncResult.is_deepfake ? 'danger' : 'success'}>
-                              {syncResult.is_deepfake ? 'DEEPFAKE DETECTED' : 'Sync Normal'}
-                            </Badge>
-                            <div className="text-[10px] text-[var(--text-3)] mt-1">Score: {syncResult.sync_score?.toFixed(2)}</div>
-                          </div>
-                        ) : (
-                          <Button size="sm" onClick={handleAnalyzeSync} disabled={syncLoading}>
-                            {syncLoading ? <Spinner /> : 'Run AI Analysis'}
-                          </Button>
-                        )}
-                      </div>
-                    </div>
+            {/* Flag / Dispute Section */}
+            <div className="flex flex-col gap-3 border-t border-[var(--border)] pt-3 mt-1">
+              <div className="p-3 bg-red-500/5 border border-red-500/10 rounded-xl flex flex-col gap-2">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-[11px] font-bold uppercase tracking-wider text-red-400 flex items-center gap-1"><Flag size={12} /> Dispute Registry Entry</div>
+                    <div className="text-[10px] text-[var(--text-3)] mt-0.5">Flag this registry match if you believe it is a manipulated variant or plagiarized copy.</div>
+                  </div>
+                  {!showFlagForm && (
+                    <Button variant="outline" size="sm" className="border-red-500/20 text-red-400 hover:bg-red-500/10 hover:border-red-500/30 text-xs py-1 transition-colors" onClick={() => setShowFlagForm(true)}>
+                      File Dispute
+                    </Button>
                   )}
                 </div>
-              )}
 
+                {showFlagForm && (
+                  <div className="flex flex-col gap-2 border-t border-red-500/10 pt-2.5">
+                    <div className="text-[10px] font-semibold text-[var(--text-2)]">Flagger wallet: <span className="font-mono text-[var(--text-3)]">0x3d434220b22a0100d395000000000000000002ba</span> (Connected)</div>
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[9px] uppercase font-bold text-[var(--text-3)]">Reason for Dispute</label>
+                      <select className="w-full p-2 bg-[var(--bg-2)] border border-[var(--border)] rounded-lg text-xs focus:border-[var(--accent)] focus:outline-none" value={flagReason} onChange={(e) => setFlagReason(e.target.value)}>
+                        <option value="Voice-Cloned/Audio Deepfake">Voice-Cloned/Audio Deepfake</option>
+                        <option value="Cropped or Resized Derivative">Cropped or Resized Derivative</option>
+                        <option value="Manipulated/Altered Pixels">Manipulated/Altered Pixels</option>
+                        <option value="Plagiarized Copy">Plagiarized Copy</option>
+                        <option value="Other / Metadata Override">Other / Metadata Override</option>
+                      </select>
+                    </div>
+                    <div className="flex gap-2 justify-end mt-1">
+                      <Button variant="outline" size="sm" className="text-xs py-1" onClick={() => setShowFlagForm(false)}>Cancel</Button>
+                      <Button variant="primary" size="sm" className="bg-red-500 hover:bg-red-600 border-none text-xs py-1 text-white" onClick={submitDispute} disabled={submittingFlag}>
+                        {submittingFlag ? 'Submitting...' : 'Submit Dispute'}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
-            <div className="px-5 py-3 border-t border-[var(--border)] bg-[var(--bg-2)] flex justify-center gap-3">
+
+            {/* Heritage Tree (Lineage DAG) */}
+            <div className="flex flex-col gap-3 border-t border-[var(--border)] pt-4">
+              <div className="text-xs font-bold uppercase tracking-wider text-[var(--text-2)]">Asset Heritage Tree (Lineage DAG)</div>
+              <div className="text-[11px] text-[var(--text-3)] mb-1">Trace original ancestors, sibling crops, and downstream derivatives. Click any node to inspect details.</div>
+              
+              {lineageLoading ? (
+                <div className="flex justify-center p-6"><Spinner /></div>
+              ) : lineageData ? (
+                <div className="w-full overflow-x-auto py-6 bg-[var(--bg-2)] border border-[var(--border)] rounded-xl flex justify-center min-h-[180px]">
+                  <div className="flex justify-center items-start min-w-max px-6">
+                    <TreeNode 
+                      node={lineageData} 
+                      targetHash={comparisonMatch.sha256Hash || comparisonMatch.sha256_hash || comparisonMatch.sha256}
+                      onSelectNode={(selectedNode) => {
+                        setComparisonMatch({
+                          sha256: selectedNode.sha256_hash || selectedNode.Sha256Hash,
+                          creator: selectedNode.creator_address || selectedNode.CreatorAddress,
+                          timestamp: selectedNode.timestamp || selectedNode.Timestamp,
+                          phash: selectedNode.phash || selectedNode.PHash,
+                          ipfsCid: selectedNode.ipfs_cid || selectedNode.IpfsCid,
+                          aiTool: selectedNode.ai_tool || selectedNode.AiTool,
+                          mediaIpfsUrl: selectedNode.media_ipfs_url || selectedNode.MediaIpfsUrl,
+                          mediaS3Url: selectedNode.media_s3_url || selectedNode.MediaS3Url,
+                          allowAiTraining: selectedNode.allow_ai_training || selectedNode.AllowAiTraining,
+                          mediaType: selectedNode.media_type || selectedNode.MediaType
+                        })
+                      }}
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center p-4 text-xs text-[var(--text-3)] bg-[var(--bg-2)] border border-[var(--border)] rounded-xl">No lineage tracking available.</div>
+              )}
+            </div>
+
+            {/* Temporal Integrity & Deepfake Sync */}
+            {(comparisonMatch.temporalIntegrity !== undefined || comparisonMatch.mediaType === 'video') && (
+              <div className="flex flex-col gap-3 border-t border-[var(--border)] pt-4">
+                {comparisonMatch.temporalIntegrity !== undefined && (
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 p-3 bg-[var(--bg-2)] border border-[var(--border)] rounded-xl">
+                      <div className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-2)] mb-1">Temporal Sequence Integrity (DTW)</div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant={comparisonMatch.temporalIntegrity > 90 ? 'success' : 'danger'}>{comparisonMatch.temporalIntegrity.toFixed(1)}%</Badge>
+                        <span className="text-xs text-[var(--text-3)]">{comparisonMatch.temporalIntegrity > 90 ? 'Video sequence matches original temporally.' : 'Video may be chopped, reversed, or sped-up!'}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {comparisonMatch.mediaType === 'video' && (
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 p-3 bg-[var(--bg-2)] border border-[var(--border)] rounded-xl flex items-center justify-between">
+                      <div>
+                        <div className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-2)] mb-1">Deepfake Audio-Visual Sync</div>
+                        <div className="text-xs text-[var(--text-3)]">Analyze lip movements and audio to detect AI voice-swaps.</div>
+                      </div>
+                      {syncResult ? (
+                        <div className="text-right">
+                          <Badge variant={syncResult.is_deepfake ? 'danger' : 'success'}>
+                            {syncResult.is_deepfake ? 'DEEPFAKE DETECTED' : 'Sync Normal'}
+                          </Badge>
+                          <div className="text-[10px] text-[var(--text-3)] mt-1">Score: {syncResult.sync_score?.toFixed(2)}</div>
+                        </div>
+                      ) : (
+                        <Button size="sm" onClick={handleAnalyzeSync} disabled={syncLoading}>
+                          {syncLoading ? <Spinner /> : 'Run AI Analysis'}
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Actions */}
+            <div className="flex justify-center gap-3 border-t border-[var(--border)] pt-3">
               <Button variant="outline" className="border-[var(--accent)]/30 text-[var(--accent)] hover:bg-[var(--accent)]/10 hover:border-[var(--accent)]" onClick={handleDownloadCert}>
                 📥 Download Certificate
               </Button>
@@ -512,9 +539,36 @@ export default function SearchResults({ results, loading, uploadedFile }) {
                 Back to Results
               </Button>
             </div>
-          </>
-        )}
-      </Modal>
+          </div>
+        </div>
+      )}
+
+      {/* Lightbox — all 3 images side by side */}
+      {lightboxOpen && (
+        <div className="fixed inset-0 z-[2000] bg-black/90 flex items-center justify-center p-4" onClick={() => setLightboxOpen(false)}>
+          <button className="absolute top-4 right-4 text-white/70 hover:text-white text-3xl font-light z-10" onClick={() => setLightboxOpen(false)}>×</button>
+          <div className="flex gap-4 max-w-[95vw] max-h-[90vh] items-center" onClick={(e) => e.stopPropagation()}>
+            {localPreviewUrl && (
+              <div className="flex flex-col items-center gap-2">
+                <img src={localPreviewUrl} alt="Uploaded" className="max-h-[80vh] max-w-[30vw] object-contain rounded-lg" />
+                <span className="text-white/60 text-xs font-bold uppercase tracking-wider">Your Upload</span>
+              </div>
+            )}
+            {resolvedOriginalUrl && (
+              <div className="flex flex-col items-center gap-2">
+                <img src={resolvedOriginalUrl} alt="Original" className="max-h-[80vh] max-w-[30vw] object-contain rounded-lg" />
+                <span className="text-white/60 text-xs font-bold uppercase tracking-wider">On-Chain Match</span>
+              </div>
+            )}
+            {heatmapBase64 && (
+              <div className="flex flex-col items-center gap-2">
+                <img src={heatmapBase64} alt="Heatmap" className="max-h-[80vh] max-w-[30vw] object-contain rounded-lg" />
+                <span className="text-[#FF4D4D]/80 text-xs font-bold uppercase tracking-wider">Pixel Diff</span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </>
   )
 }
