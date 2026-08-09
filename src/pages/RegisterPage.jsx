@@ -118,10 +118,28 @@ export default function RegisterPage() {
 
   const handleRegister = async () => {
     setError(null)
-    if (!isConnected) { setError('Wallet is not connected. Please connect your wallet in the navigation bar.'); return }
+    if (!isConnected) {
+      const msg = 'Wallet is not connected. Please connect your wallet in the navigation bar.'
+      setError(msg)
+      toast.error(msg)
+      return
+    }
     try {
       setSigning(true)
-      if (showAiRequirement) { setError(`Registration Blocked: AI analyzer detected ${Math.round(maxConf * 100)}% probability this media is AI-generated. Please select the correct AI model.`); setSigning(false); return }
+      if (showAiRequirement) {
+        const msg = `AI Detected (${Math.round(maxConf * 100)}% probability): Please select the AI generator model from the dropdown to proceed.`
+        setError(msg)
+        toast.error(msg)
+        setSigning(false)
+        return
+      }
+      if (aiCategory === 'Other (Custom Input)' && !aiTool.trim()) {
+        const msg = 'Please enter a custom AI model name.'
+        setError(msg)
+        toast.error(msg)
+        setSigning(false)
+        return
+      }
       setStep(3)
       if (!chain || chain.id !== ARBITRUM_SEPOLIA.chainId) { try { await switchChainAsync({ chainId: ARBITRUM_SEPOLIA.chainId }) } catch { throw new Error('Please switch to Arbitrum Sepolia network in your wallet.') } }
       const cleanHash = hashes.sha256.startsWith('0x') ? hashes.sha256.slice(2) : hashes.sha256
@@ -365,15 +383,19 @@ export default function RegisterPage() {
 
                   {step === 2 && !processing && (
                     <motion.div key="ready" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="flex flex-col gap-4">
+                      {error && <Alert variant="danger">{error}</Alert>}
                       <Alert variant="success">Evidence is ready. Review the record, then sign once to publish your proof on-chain.</Alert>
 
-                      <div>
-                        <label className="text-xs font-semibold text-[var(--text-3)] block mb-1.5 flex items-center gap-1"><Bot size={12} /> AI Generator Attribution</label>
+                      <div className={cn("p-3.5 rounded-2xl border transition-all flex flex-col gap-2", showAiRequirement ? "bg-[#FF4D4D]/10 border-[#FF4D4D]/40 shadow-[0_0_15px_rgba(255,77,77,0.15)]" : "bg-[var(--bg-2)] border-[var(--border)]")}>
+                        <label className="text-xs font-bold text-[var(--text)] flex items-center justify-between">
+                          <span className="flex items-center gap-1.5"><Bot size={14} className={showAiRequirement ? "text-[#FF4D4D]" : "text-[var(--accent)]"} /> AI Generator Attribution</span>
+                          {showAiRequirement && <span className="text-[10px] uppercase tracking-wider font-extrabold text-[#FF4D4D] bg-[#FF4D4D]/15 px-2 py-0.5 rounded-full">Action Required</span>}
+                        </label>
                         <Select value={aiCategory} onChange={(e) => { const val = e.target.value; setAiCategory(val); if (val === 'None (Authentic Content)') setAiTool(''); else if (val !== 'Other (Custom Input)') setAiTool(val) }}>
                           {AI_MODELS.map(m => <option key={m} value={m}>{m}</option>)}
                         </Select>
-                        {showAiRequirement && <div className="text-xs text-[#FF4D4D] mt-1.5 font-medium flex items-center gap-1"><AlertTriangle size={12} /> AI detected ({Math.round(maxConf * 100)}%). You must declare the AI model.</div>}
-                        {aiCategory === 'Other (Custom Input)' && <input type="text" value={aiTool} onChange={(e) => setAiTool(e.target.value)} placeholder="Enter custom AI model name" className="w-full mt-2 px-3.5 py-2.5 text-sm rounded-xl bg-[var(--bg-2)] border border-[var(--border)] text-[var(--text)] outline-none focus:border-[var(--accent)]" />}
+                        {showAiRequirement && <div className="text-xs text-[#FF4D4D] font-semibold flex items-center gap-1.5 mt-0.5"><AlertTriangle size={14} className="flex-shrink-0" /> AI content detected ({Math.round(maxConf * 100)}% confidence). Select the AI model (e.g. Midjourney, DALL-E, Stable Diffusion) to enable registration.</div>}
+                        {aiCategory === 'Other (Custom Input)' && <input type="text" value={aiTool} onChange={(e) => setAiTool(e.target.value)} placeholder="Enter custom AI model name (e.g. Ideogram, Runway Gen-2)" className="w-full mt-1 px-3.5 py-2.5 text-sm rounded-xl bg-[var(--surface)] border border-[var(--border)] text-[var(--text)] outline-none focus:border-[var(--accent)]" />}
                       </div>
 
                       <label className="flex items-center gap-2 text-xs cursor-pointer text-[var(--text-2)]"><input type="checkbox" checked={allowAiTraining} onChange={(e) => setAllowAiTraining(e.target.checked)} className="accent-[var(--accent)]" /> Allow AI models to use this content for training</label>
