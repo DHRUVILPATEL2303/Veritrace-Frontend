@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { CloudUpload as UploadCloud, X } from 'lucide-react'
 import { SUPPORTED_FILES } from '../config'
@@ -38,9 +38,22 @@ export default function FileUpload({ onFileSelected, accept, label }) {
     return '📁'
   }
 
+  const [previewUrl, setPreviewUrl] = useState(null)
+
+  useEffect(() => {
+    if (!file || !file.type?.startsWith('image/')) {
+      setPreviewUrl(null)
+      return
+    }
+    const url = URL.createObjectURL(file)
+    setPreviewUrl(url)
+    return () => {
+      URL.revokeObjectURL(url)
+    }
+  }, [file])
+
   if (file) {
     const isImage = file.type?.startsWith('image/')
-    const imageUrl = isImage ? URL.createObjectURL(file) : null
 
     return (
       <motion.div
@@ -48,8 +61,8 @@ export default function FileUpload({ onFileSelected, accept, label }) {
         animate={{ opacity: 1, scale: 1 }}
         className="flex items-center gap-3 p-3.5 rounded-xl bg-[var(--bg-2)] border border-[var(--border)]"
       >
-        {isImage ? (
-          <img src={imageUrl} alt="Preview" className="w-12 h-12 rounded-lg object-cover border border-[var(--border)]" onLoad={() => URL.revokeObjectURL(imageUrl)} />
+        {isImage && previewUrl ? (
+          <img src={previewUrl} alt="Preview" className="w-12 h-12 rounded-lg object-cover border border-[var(--border)]" />
         ) : (
           <div className="w-12 h-12 rounded-lg flex items-center justify-center text-2xl bg-[var(--surface)] border border-[var(--border)]">
             {getFileIcon(file.type)}
