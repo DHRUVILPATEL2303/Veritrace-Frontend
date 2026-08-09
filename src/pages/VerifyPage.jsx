@@ -306,7 +306,15 @@ export default function VerifyPage() {
                       </div>
                     ) : (
                       <div className="flex flex-col gap-2 text-xs">
-                        <DataRow label="Registrant Wallet"><a href={`${ARBITRUM_SEPOLIA.explorer}/address/${blockchainRecord.creator}`} target="_blank" rel="noopener noreferrer" className="font-mono font-semibold text-[var(--accent)] hover:opacity-80">{blockchainRecord.creator.slice(0, 10)}...{blockchainRecord.creator.slice(-6)}</a></DataRow>
+                        <DataRow label="Registrant Wallet">
+                          {blockchainRecord.creator ? (
+                            <a href={`${ARBITRUM_SEPOLIA.explorer}/address/${blockchainRecord.creator}`} target="_blank" rel="noopener noreferrer" className="font-mono font-semibold text-[var(--accent)] hover:opacity-80">
+                              {blockchainRecord.creator.slice(0, 10)}...{blockchainRecord.creator.slice(-6)}
+                            </a>
+                          ) : (
+                            <span className="font-mono text-[var(--text-3)]">Unknown Wallet</span>
+                          )}
+                        </DataRow>
                         <DataRow label="Proof Committed At" value={new Date(blockchainRecord.timestamp * 1000).toLocaleString()} />
                         <DataRow label="AI Tool Attribution" value={blockchainRecord.aiTool || 'None'} bold />
                         {blockchainRecord.ipfsCid && <DataRow label="Metadata (IPFS)"><a href={`https://gateway.pinata.cloud/ipfs/${blockchainRecord.ipfsCid}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-3 py-1 bg-[var(--surface-3)] hover:bg-[var(--border)] text-[var(--text-2)] rounded-md text-[11px] font-bold border border-[var(--border)] transition-colors"><ExternalLink size={12} /> View JSON</a></DataRow>}

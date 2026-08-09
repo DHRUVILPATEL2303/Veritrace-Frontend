@@ -47,8 +47,9 @@ function TreeNode({ node, targetHash, onSelectNode }) {
   const currentHash = (node.sha256_hash || node.Sha256Hash || '').toLowerCase();
   const isTarget = currentHash === targetHash.toLowerCase();
   
-  const shortAddress = node.creator_address || node.CreatorAddress 
-    ? `${(node.creator_address || node.CreatorAddress).slice(0, 6)}...${(node.creator_address || node.CreatorAddress).slice(-4)}`
+  const rawAddr = node.creator_address || node.CreatorAddress
+  const shortAddress = rawAddr && typeof rawAddr === 'string'
+    ? `${rawAddr.slice(0, 6)}...${rawAddr.slice(-4)}`
     : 'Unknown';
 
   const getGatewayUrl = (url, cid) => {
