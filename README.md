@@ -93,7 +93,7 @@ sequenceDiagram
     actor Creator as Creator / Publisher
     participant FE as Frontend Client (React)
     participant HE as Hash Engine (Go)
-    participant BE as Core Backend (Node.js/Go)
+    participant BE as Core Backend (Go)
     participant BC as Arbitrum Sepolia (Stylus)
     
     Creator->>FE: Selects Media or Inputs Text
@@ -231,11 +231,6 @@ You can configure the help widget's API endpoint:
 
 | Member | Responsibilities |
 | :--- | :--- |
-| **Blockchain & Backend Engineer** | Smart contract deployment on Arbitrum Sepolia; core backend orchestration, storage integrations, and database layer. |
-| **Hashing & Assistant Developer** | Signature-extraction service (cryptographic, perceptual, and tiled hashing); supporting query/lookup tooling. |
-| **Frontend & Client Integrations Developer** (Dhruvil Patel) | Web dashboard for registration and verification workflows; browser extension for in-page verification. |
-
----
-
-## 📄 License
-This project is licensed under the MIT License.
+| **Blockchain & Backend Engineer** | Smart contract deployment on Arbitrum Sepolia; core backend orchestration (built in Go), storage integrations, and database layer. |
+| **Hashing & Assistant Developer** | Signature-extraction service (cryptographic, perceptual, and tiled hashing built in Go); supporting query/lookup tooling. |
+| **Frontend & Client Integrations Developer (Dhruvil Patel)** | Web dashboard for registration and verification workflows; browser extension for in-page verification. |
