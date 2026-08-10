@@ -225,12 +225,3 @@ You can configure the help widget's API endpoint:
    * Search for a media dataset (e.g., query "video" or "image" and input a semantic prompt).
    * Pay using mock Sepolia USDC to unlock high-res URL files on AWS S3.
 
----
-
-## 👥 Team Structure & Roles
-
-| Member | Responsibilities |
-| :--- | :--- |
-| **Blockchain & Backend Engineer** | Smart contract deployment on Arbitrum Sepolia; core backend orchestration (built in Go), storage integrations, and database layer. |
-| **Hashing & Assistant Developer** | Signature-extraction service (cryptographic, perceptual, and tiled hashing built in Go); supporting query/lookup tooling. |
-| **Frontend & Client Integrations Developer (Dhruvil Patel)** | Web dashboard for registration and verification workflows; browser extension for in-page verification. |
