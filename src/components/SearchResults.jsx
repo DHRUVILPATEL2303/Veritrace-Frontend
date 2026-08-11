@@ -12,25 +12,25 @@ import { downloadCertificate } from '../utils/generateCertificate'
 
 function buildLineageTree(records) {
   if (!records || records.length === 0) return null;
-  
+
   const map = {};
   records.forEach(r => {
     const key = (r.sha256_hash || r.Sha256Hash || '').toLowerCase();
     map[key] = { ...r, children: [] };
   });
-  
+
   let root = null;
   const sortedRecords = [...records].sort((a, b) => (a.timestamp || a.Timestamp || 0) - (b.timestamp || b.Timestamp || 0));
-  
+
   if (sortedRecords.length > 0) {
     const oldestKey = (sortedRecords[0].sha256_hash || sortedRecords[0].Sha256Hash || '').toLowerCase();
     root = map[oldestKey];
   }
-  
+
   records.forEach(r => {
     const childKey = (r.sha256_hash || r.Sha256Hash || '').toLowerCase();
     const parentKey = (r.parent_sha256 || r.ParentSha256 || '').toLowerCase();
-    
+
     if (parentKey && map[parentKey] && childKey !== parentKey) {
       const exists = map[parentKey].children.some(c => (c.sha256_hash || c.Sha256Hash || '').toLowerCase() === childKey);
       if (!exists) {
@@ -46,7 +46,7 @@ function TreeNode({ node, targetHash, onSelectNode }) {
   if (!node) return null;
   const currentHash = (node.sha256_hash || node.Sha256Hash || '').toLowerCase();
   const isTarget = currentHash && targetHash && currentHash === targetHash.toLowerCase();
-  
+
   const rawAddr = node.creator_address || node.CreatorAddress
   const shortAddress = rawAddr && typeof rawAddr === 'string'
     ? `${rawAddr.slice(0, 6)}...${rawAddr.slice(-4)}`
@@ -65,16 +65,15 @@ function TreeNode({ node, targetHash, onSelectNode }) {
 
   return (
     <div className="flex flex-col items-center relative">
-      <div 
+      <div
         onClick={() => onSelectNode(node)}
-        className={`z-10 cursor-pointer flex flex-col items-center p-2 bg-[var(--bg-3)] border rounded-xl shadow-lg transition-all duration-200 hover:scale-105 hover:border-[var(--accent)]/50 w-28 text-center ${
-          isTarget ? 'border-[var(--accent)] ring-2 ring-[var(--accent)]/20 bg-[var(--accent)]/5' : 'border-[var(--border)]'
-        }`}
+        className={`z-10 cursor-pointer flex flex-col items-center p-2 bg-[var(--bg-3)] border rounded-xl shadow-lg transition-all duration-200 hover:scale-105 hover:border-[var(--accent)]/50 w-28 text-center ${isTarget ? 'border-[var(--accent)] ring-2 ring-[var(--accent)]/20 bg-[var(--accent)]/5' : 'border-[var(--border)]'
+          }`}
       >
         {previewSrc ? (
-          <img 
-            src={previewSrc} 
-            alt="Preview" 
+          <img
+            src={previewSrc}
+            alt="Preview"
             className="w-10 h-10 object-cover rounded-md mb-1 border border-[var(--border)]"
           />
         ) : (
@@ -104,10 +103,10 @@ function TreeNode({ node, targetHash, onSelectNode }) {
             )}
             <div className="flex gap-4 pt-3">
               {node.children.map((child) => (
-                <TreeNode 
-                  key={child.sha256_hash || child.Sha256Hash || Math.random()} 
-                  node={child} 
-                  targetHash={targetHash} 
+                <TreeNode
+                  key={child.sha256_hash || child.Sha256Hash || Math.random()}
+                  node={child}
+                  targetHash={targetHash}
                   onSelectNode={onSelectNode}
                 />
               ))}
@@ -232,7 +231,7 @@ export default function SearchResults({ results, loading, uploadedFile }) {
     const { mediaS3Url, mediaIpfsUrl, ipfsCid, mediaType, sha256, assetId } = comparisonMatch
     const hashKey = (sha256 || assetId || '').toLowerCase()
     const cachedMediaStr = localStorage.getItem(`vt_media_${hashKey}`)
-    if (cachedMediaStr) { try { const cached = JSON.parse(cachedMediaStr); if (cached.media_ipfs_url || cached.media_s3_url) { setResolvedOriginalUrl(getGatewayUrl(cached.media_s3_url || cached.media_ipfs_url)); setResolvedMediaType(cached.media_type || mediaType || 'image'); return } } catch {} }
+    if (cachedMediaStr) { try { const cached = JSON.parse(cachedMediaStr); if (cached.media_ipfs_url || cached.media_s3_url) { setResolvedOriginalUrl(getGatewayUrl(cached.media_s3_url || cached.media_ipfs_url)); setResolvedMediaType(cached.media_type || mediaType || 'image'); return } } catch { } }
     const cachedUrl = localStorage.getItem(`vt_legacy_${hashKey}`)
     if (cachedUrl) { setResolvedOriginalUrl(getGatewayUrl(cachedUrl)); setResolvedMediaType(mediaType || 'image'); return }
     const initialUrl = getGatewayUrl(mediaS3Url) || getGatewayUrl(mediaIpfsUrl)
@@ -240,7 +239,7 @@ export default function SearchResults({ results, loading, uploadedFile }) {
     if (ipfsCid && ipfsCid !== '' && !ipfsCid.startsWith('QmYourMetadataCid')) {
       setLoadingOriginal(true)
       const fetchMetadata = async () => {
-        try { const controller = new AbortController(); const timeoutId = setTimeout(() => controller.abort(), 4000); const res = await fetch(`https://gateway.pinata.cloud/ipfs/${ipfsCid}`, { signal: controller.signal }); clearTimeout(timeoutId); if (res.ok) { const meta = await res.json(); setResolvedOriginalUrl(getGatewayUrl(meta.media_s3_url || meta.media_ipfs_url)); setResolvedMediaType(meta.media_type || mediaType || 'image') } } catch {} finally { setLoadingOriginal(false) }
+        try { const controller = new AbortController(); const timeoutId = setTimeout(() => controller.abort(), 4000); const res = await fetch(`https://gateway.pinata.cloud/ipfs/${ipfsCid}`, { signal: controller.signal }); clearTimeout(timeoutId); if (res.ok) { const meta = await res.json(); setResolvedOriginalUrl(getGatewayUrl(meta.media_s3_url || meta.media_ipfs_url)); setResolvedMediaType(meta.media_type || mediaType || 'image') } } catch { } finally { setLoadingOriginal(false) }
       }
       fetchMetadata()
     } else { setResolvedOriginalUrl(null); setResolvedMediaType(mediaType || 'image'); setLoadingOriginal(false) }
@@ -254,7 +253,7 @@ export default function SearchResults({ results, loading, uploadedFile }) {
       fd.append('file1', blob, 'original.jpg'); fd.append('file2', uploadedFile)
       const compareRes = await fetch(`https://api.hash.veritrace.dpkvtrading.online/api/v1/compare`, { method: 'POST', body: fd })
       if (compareRes.ok) { const data = await compareRes.json(); setHeatmapBase64(data.heatmap_base64) }
-    } catch {} finally { setHeatmapLoading(false) }
+    } catch { } finally { setHeatmapLoading(false) }
   }, [uploadedFile, resolvedOriginalUrl])
 
   useEffect(() => {
@@ -269,7 +268,7 @@ export default function SearchResults({ results, loading, uploadedFile }) {
       const formData = new FormData(); formData.append('file', uploadedFile)
       const res = await fetch(`${CORE_BACKEND_API}/api/v1/pin-file`, { method: 'POST', body: formData })
       if (res.ok) { const data = await res.json(); const mediaUrl = data.media_s3_url || data.media_ipfs_url; if (mediaUrl) { const hashKey = (comparisonMatch.sha256 || comparisonMatch.assetId || '').toLowerCase(); localStorage.setItem(`vt_media_${hashKey}`, JSON.stringify({ sha256: hashKey, media_ipfs_url: data.media_ipfs_url, media_s3_url: data.media_s3_url, media_type: comparisonMatch.mediaType || 'image' })); localStorage.setItem(`vt_legacy_${hashKey}`, mediaUrl); setResolvedOriginalUrl(getGatewayUrl(mediaUrl)) } }
-    } catch {} finally { setUploadingLegacy(false) }
+    } catch { } finally { setUploadingLegacy(false) }
   }
 
   const handleAnalyzeSync = async () => {
@@ -339,11 +338,11 @@ export default function SearchResults({ results, loading, uploadedFile }) {
 
       <div className="flex flex-col gap-2">
         {results.map((result, index) => (
-          <MatchCard 
-            key={index} 
-            result={result} 
+          <MatchCard
+            key={index}
+            result={result}
             isEarliest={result.sha256 === earliestMatchHash}
-            onSelect={() => setComparisonMatch(result)} 
+            onSelect={() => setComparisonMatch(result)}
           />
         ))}
       </div>
@@ -461,14 +460,14 @@ export default function SearchResults({ results, loading, uploadedFile }) {
             <div className="flex flex-col gap-3 border-t border-[var(--border)] pt-4">
               <div className="text-xs font-bold uppercase tracking-wider text-[var(--text-2)]">Asset Heritage Tree (Lineage DAG)</div>
               <div className="text-[11px] text-[var(--text-3)] mb-1">Trace original ancestors, sibling crops, and downstream derivatives. Click any node to inspect details.</div>
-              
+
               {lineageLoading ? (
                 <div className="flex justify-center p-6"><Spinner /></div>
               ) : lineageData ? (
                 <div className="w-full overflow-x-auto py-6 bg-[var(--bg-2)] border border-[var(--border)] rounded-xl flex justify-center min-h-[180px]">
                   <div className="flex justify-center items-start min-w-max px-6">
-                    <TreeNode 
-                      node={lineageData} 
+                    <TreeNode
+                      node={lineageData}
                       targetHash={comparisonMatch.sha256Hash || comparisonMatch.sha256_hash || comparisonMatch.sha256}
                       onSelectNode={(selectedNode) => {
                         setComparisonMatch({
