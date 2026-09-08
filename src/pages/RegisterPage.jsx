@@ -163,16 +163,33 @@ export default function RegisterPage() {
       const pinFileData = await pinFileRes.json()
       const mediaIpfsUrl = pinFileData.media_ipfs_url
       const mediaS3Url = pinFileData.media_s3_url
-      // Determine correct preview image based on media type
+
+      // Convert any IPFS URL (https gateway or ipfs://) to a canonical ipfs:// URI.
+      // Wallets (MetaMask, OpenSea, Rainbow…) resolve ipfs:// natively.
+      // Using an HTTPS Pinata gateway URL as the NFT image causes broken images
+      // due to CORS restrictions, rate-limits, and gateway outages.
+      const toIpfsUri = (url) => {
+        if (!url) return null
+        if (url.startsWith('ipfs://')) return url
+        // Match https://<gateway>/ipfs/<CID>[/<path>]
+        const match = url.match(/\/ipfs\/([^/?#]+(?:\/[^?#]*)?)/)
+        if (match) return `ipfs://${match[1]}`
+        return url // fallback: return as-is if format is unrecognised
+      }
+
       const isImage = hashes.mediaType === 'image'
-      // Fallback logo if the content is video/audio/text, otherwise use the actual image via HTTPS gateway
-      const previewImageUrl = isImage ? mediaIpfsUrl : 'https://bafybeiemv7p2tng32a5j7o2mgsed4ifivs3l4wixgsh24b64n226sksrca.ipfs.w3s.link/veritrace-nft-placeholder.png'
+      // Use ipfs:// URI so wallets can load the image from their own IPFS gateway.
+      // For non-image types (video/doc) fall back to the VeriTrace placeholder.
+      const mediaIpfsUri = toIpfsUri(mediaIpfsUrl)
+      const previewImageIpfsUri = isImage
+        ? mediaIpfsUri
+        : 'ipfs://bafybeiemv7p2tng32a5j7o2mgsed4ifivs3l4wixgsh24b64n226sksrca/veritrace-nft-placeholder.png'
 
       const metadataPayload = {
         name: `VeriTrace Proof: ${sha256Bytes32.slice(0, 12)}...`,
         description: `Immutable provenance record registered via VeriTrace.\n\nSHA-256: ${sha256Bytes32}\nAI Generator: ${aiTool || 'None'}`,
-        image: previewImageUrl,
-        animation_url: mediaIpfsUrl, // OpenSea uses this for audio/video/html
+        image: previewImageIpfsUri,          // ipfs:// URI — wallets resolve this natively
+        animation_url: mediaIpfsUri,         // OpenSea uses this for audio/video/html
         attributes: [
           { trait_type: 'AI Generator', value: aiTool || 'None' },
           { trait_type: 'Media Type', value: hashes.mediaType || 'image' },
