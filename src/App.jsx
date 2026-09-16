@@ -12,6 +12,7 @@ import AdminPage from './pages/AdminPage'
 import { Toaster } from './components/ui/sonner'
 import AppShell from './components/AppShell'
 import ChatWidget from './components/ChatWidget'
+import OnboardingTour from './components/OnboardingTour'
 
 // Scroll to top on route change
 function ScrollToTop() {
@@ -62,6 +63,7 @@ function App() {
       </AppShell>
       <ChatWidget />
       <Toaster />
+      <OnboardingTour />
     </>
   )
 }

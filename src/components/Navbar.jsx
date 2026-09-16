@@ -2,7 +2,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence, useScroll, useSpring } from 'framer-motion'
 import { useAccount, useConnect, useDisconnect, useSwitchChain } from 'wagmi'
-import { FilePlus, Search, Library, Info, Menu, X, ChevronDown, Wallet, Sun, Moon, Copy, LogOut, Check, User, Database } from 'lucide-react'
+import { Home, FilePlus, Search, Library, Info, Menu, X, ChevronDown, Wallet, Sun, Moon, Copy, LogOut, Check, User, Database } from 'lucide-react'
 import { toast } from 'sonner'
 import { ARBITRUM_SEPOLIA } from '../config'
 import { VeriTraceLogo, ArbitrumLogo } from './ArbitrumLogo'
@@ -11,13 +11,13 @@ import { useTheme } from './providers/ExperienceProvider'
 import ThemeToggle from './ThemeToggle'
 
 const navItems = [
-  { path: '/', label: 'Home', icon: null },
+  { path: '/', label: 'Home', icon: Home },
   { path: '/register', label: 'Register', icon: FilePlus },
   { path: '/verify', label: 'Verify', icon: Search },
   { path: '/library', label: 'Library', icon: Library },
-  { path: '/about', label: 'About', icon: Info },
   { path: '/profile', label: 'Profile', icon: User },
   { path: '/enterprise', label: 'Enterprise', icon: Database },
+  { path: '/about', label: 'About', icon: Info },
 ]
 
 function ScrollProgress() {
