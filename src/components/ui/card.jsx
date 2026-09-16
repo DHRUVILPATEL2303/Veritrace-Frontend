@@ -6,10 +6,10 @@ export function Card({ className, children, hover = false, ...props }) {
   return (
     <motion.div
       data-card-surface
-      whileHover={isInteractive ? { y: -6, scale: 1.01 } : undefined}
+      whileHover={isInteractive ? { y: -4 } : undefined}
       transition={isInteractive ? { type: 'spring', stiffness: 200, damping: 20 } : undefined}
       className={cn(
-        'rounded-2xl border border-[var(--border-2)] bg-[var(--surface)] transition-colors duration-300',
+        'rounded-2xl border border-[var(--border-2)] bg-[var(--surface)] transition-colors duration-300 overflow-hidden',
         hover && 'hover:border-[var(--arb-border)] hover:shadow-lg',
         className
       )}
@@ -22,7 +22,7 @@ export function Card({ className, children, hover = false, ...props }) {
 
 export function CardHeader({ className, children, ...props }) {
   return (
-    <div className={cn('flex items-center justify-between px-5 py-4 border-b border-[var(--border)]', className)} {...props}>
+    <div className={cn('flex items-center justify-between px-5 py-4 border-b border-[var(--border-2)]', className)} {...props}>
       {children}
     </div>
   )
@@ -42,7 +42,7 @@ export function CardBody({ className, children, ...props }) {
 
 export function CardFooter({ className, children, ...props }) {
   return (
-    <div className={cn('flex items-center px-5 py-3 border-t border-[var(--border)] bg-[var(--bg-2)]', className)} {...props}>
+    <div className={cn('flex items-center px-5 py-3 border-t border-[var(--border-2)] bg-[var(--bg-2)]', className)} {...props}>
       {children}
     </div>
   )

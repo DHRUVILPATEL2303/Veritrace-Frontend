@@ -15,8 +15,8 @@ const navItems = [
   { path: '/register', label: 'Register', icon: FilePlus },
   { path: '/verify', label: 'Verify', icon: Search },
   { path: '/library', label: 'Library', icon: Library },
-  { path: '/profile', label: 'Profile', icon: User },
   { path: '/enterprise', label: 'Enterprise', icon: Database },
+  { path: '/profile', label: 'Profile', icon: User },
   { path: '/about', label: 'About', icon: Info },
 ]
 

@@ -31,8 +31,8 @@ export default function Footer() {
               <li><Link to="/register" className="text-sm text-[var(--footer-text-muted)] hover:text-[var(--footer-text)] transition-colors">Register</Link></li>
               <li><Link to="/verify" className="text-sm text-[var(--footer-text-muted)] hover:text-[var(--footer-text)] transition-colors">Verify</Link></li>
               <li><Link to="/library" className="text-sm text-[var(--footer-text-muted)] hover:text-[var(--footer-text)] transition-colors">Library</Link></li>
-              <li><Link to="/profile" className="text-sm text-[var(--footer-text-muted)] hover:text-[var(--footer-text)] transition-colors">Profile</Link></li>
               <li><Link to="/enterprise" className="text-sm text-[var(--footer-text-muted)] hover:text-[var(--footer-text)] transition-colors">Enterprise</Link></li>
+              <li><Link to="/profile" className="text-sm text-[var(--footer-text-muted)] hover:text-[var(--footer-text)] transition-colors">Profile</Link></li>
               <li><Link to="/about" className="text-sm text-[var(--footer-text-muted)] hover:text-[var(--footer-text)] transition-colors">About</Link></li>
             </ul>
           </div>

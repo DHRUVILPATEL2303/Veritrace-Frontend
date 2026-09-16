@@ -343,7 +343,7 @@ export default function VerifyPage() {
       </div>
 
       <Card className="card-hover-glow border-[var(--border)] overflow-hidden mt-5">
-        <CardHeader className="border-b border-[var(--border)] bg-[var(--bg-2)]/30">
+        <CardHeader className="border-b border-[var(--border-2)] bg-[var(--bg-2)]/30">
           <CardTitle className="flex items-center gap-2 text-sm font-semibold tracking-tight">
             <Info size={15} className="text-[var(--accent)]" />
             Verification Thresholds
