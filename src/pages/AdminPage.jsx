@@ -106,9 +106,9 @@ export default function AdminPage() {
       <div className="max-w-[800px] mx-auto px-5 pt-7 pb-20">
         
         {!isConnected && (
-          <div className="mb-5 flex items-center gap-3 px-4 py-3 rounded-2xl border border-[var(--arb-border)] bg-[var(--arb-bg)]">
-            <AlertTriangle size={15} className="text-[var(--accent)] flex-shrink-0" />
-            <p className="text-xs text-[var(--text-2)] leading-relaxed">
+          <div className="mb-5 flex items-center gap-3 px-4 py-3 rounded-[6px] border border-[var(--warning-border)] bg-[var(--surface)]">
+            <AlertTriangle size={15} className="text-[var(--warning-text)] flex-shrink-0" />
+            <p className="text-xs text-[var(--text-2)] leading-relaxed m-0">
               Connect your wallet to access the owner portal. Only the initialized owner can withdraw funds.
             </p>
           </div>
@@ -122,22 +122,22 @@ export default function AdminPage() {
             <CardBody className="flex flex-col gap-6 text-center py-6">
               
               <div>
-                <div className="text-sm font-semibold text-[var(--text-3)] mb-2 uppercase tracking-wider">Current Accumulated Fees</div>
-                <div className="text-5xl font-bold text-[var(--success-text)]">${balanceUsdc} USDC</div>
+                <div className="kicker justify-center mb-3">Current Accumulated Fees</div>
+                <div className="stat-value !text-5xl">${balanceUsdc} <span className="font-mono text-lg font-medium text-[var(--text-3)]">USDC</span></div>
               </div>
 
               <div className="mx-auto w-full max-w-sm">
                 <Button 
                   variant="primary" 
                   size="lg" 
-                  className="w-full h-14 text-base shadow-lg shadow-blue-500/20" 
+                  className="w-full h-12 text-[15px]" 
                   onClick={handleWithdraw}
                   disabled={withdrawing || !isConnected || balanceData === 0n}
                 >
                   {withdrawing ? <Spinner size="md" /> : <span className="flex items-center gap-2"><Download size={20} /> Withdraw Treasury to Owner</span>}
                 </Button>
                 <div className="text-xs text-[var(--text-4)] mt-3">
-                  This transaction calls <span className="font-mono bg-[var(--bg-2)] px-1 py-0.5 rounded text-[var(--accent)]">withdrawTreasury</span> on the registry.
+                  This transaction calls <span className="font-mono bg-[var(--bg-2)] border border-[var(--border)] px-1 py-0.5 rounded-[3px] text-[var(--accent)]">withdrawTreasury</span> on the registry.
                 </div>
               </div>
 

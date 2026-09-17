@@ -9,6 +9,7 @@ import { EmptyState } from './ui/empty-state'
 import { Modal, ModalHeader } from './ui/modal'
 import { toast } from 'sonner'
 import { downloadCertificate } from '../utils/generateCertificate'
+import { Address } from './chain/Address'
 
 const heatmapMemoryCache = new Map()
 const activeHeatmapJobs = new Map()
@@ -185,10 +186,10 @@ export default function SearchResults({ results, loading, uploadedFile }) {
     return (
       <div className="flex flex-col gap-2">
         {[1, 2, 3].map(i => (
-          <div key={i} className="flex items-stretch rounded-2xl border border-[var(--border)] bg-[var(--surface)] overflow-hidden">
+          <div key={i} className="flex items-stretch rounded-[6px] border border-[var(--border)] bg-[var(--surface)] overflow-hidden">
             <div className="w-1 bg-[var(--bg-3)]" />
-            <div className="flex-1 p-3.5"><div className="skeleton h-3.5 rounded w-70% mb-2" /><div className="skeleton h-2.5 rounded w-50%" /></div>
-            <div className="p-3.5"><div className="skeleton w-10 h-10 rounded-full" /></div>
+            <div className="flex-1 p-3.5"><div className="skeleton h-3.5 w-[70%] mb-2" /><div className="skeleton h-2.5 w-[50%]" /></div>
+            <div className="p-3.5"><div className="skeleton w-10 h-10" /></div>
           </div>
         ))}
       </div>
@@ -228,21 +229,21 @@ export default function SearchResults({ results, loading, uploadedFile }) {
 
       {/* Inline Expanded Details — no modal */}
       {comparisonMatch && (
-        <div className="mt-4 bg-[var(--surface)] border border-[var(--border-2)] rounded-2xl overflow-hidden">
+        <div className="mt-4 bg-[var(--surface)] border border-[var(--border-2)] rounded-[6px] overflow-hidden">
           {/* Header */}
           <div className="flex items-center justify-between px-5 py-3 border-b border-[var(--border)] bg-[var(--bg-2)]">
-            <h3 className="text-sm font-bold flex items-center gap-2 text-[var(--text)]">
-              <Search size={16} className="text-[var(--accent)]" /> Authenticity Check — {(comparisonMatch.matchType === 'exact' ? 100 : (comparisonMatch.visualSimilarity || (comparisonMatch.similarity >= 100 ? 92.5 : comparisonMatch.similarity)))?.toFixed(1)}% Match
+            <h3 className="font-sans text-sm font-semibold tracking-normal flex items-center gap-2 text-[var(--text)]">
+              <Search size={15} className="text-[var(--accent)]" /> Authenticity Check — <span className="font-mono">{(comparisonMatch.matchType === 'exact' ? 100 : (comparisonMatch.visualSimilarity || (comparisonMatch.similarity >= 100 ? 92.5 : comparisonMatch.similarity)))?.toFixed(1)}%</span> Match
             </h3>
-            <button onClick={() => { setComparisonMatch(null); setHeatmapBase64(null); setSyncResult(null) }} className="w-7 h-7 rounded-lg flex items-center justify-center text-[var(--text-3)] hover:bg-[var(--bg)] hover:text-[var(--text)] transition-colors text-lg">×</button>
+            <button onClick={() => { setComparisonMatch(null); setHeatmapBase64(null); setSyncResult(null) }} aria-label="Close comparison" className="w-7 h-7 rounded-[4px] flex items-center justify-center text-[var(--text-3)] hover:bg-[var(--bg-3)] hover:text-[var(--text)] text-lg">×</button>
           </div>
 
           <div className="p-5 flex flex-col gap-4">
             {/* 3 Image Previews */}
             <div className="grid grid-cols-3 gap-3">
               <div className="flex flex-col gap-1.5">
-                <div className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-3)]">Your Upload</div>
-                <div className="aspect-[4/3] bg-[var(--bg-2)] rounded-xl border border-[var(--border)] overflow-hidden flex items-center justify-center cursor-pointer group" onClick={() => setLightboxOpen(true)}>
+                <div className="kicker">Your Upload</div>
+                <div className="aspect-[4/3] bg-[var(--bg-2)] rounded-[5px] border border-[var(--border)] overflow-hidden flex items-center justify-center cursor-pointer group" onClick={() => setLightboxOpen(true)}>
                   {uploadedFile?.type?.startsWith('video/') ? (
                     <video src={localPreviewUrl} className="w-full h-full object-contain" />
                   ) : localPreviewUrl ? (
@@ -254,8 +255,8 @@ export default function SearchResults({ results, loading, uploadedFile }) {
                 <div className="text-[10px] font-mono text-[var(--accent)] truncate">{comparisonMatch.assetId}</div>
               </div>
               <div className="flex flex-col gap-1.5">
-                <div className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-3)]">On-Chain Match</div>
-                <div className="aspect-[4/3] bg-[var(--bg-2)] rounded-xl border border-[var(--border)] overflow-hidden flex items-center justify-center cursor-pointer group" onClick={() => setLightboxOpen(true)}>
+                <div className="kicker">On-Chain Match</div>
+                <div className="aspect-[4/3] bg-[var(--bg-2)] rounded-[5px] border border-[var(--border)] overflow-hidden flex items-center justify-center cursor-pointer group" onClick={() => setLightboxOpen(true)}>
                   {loadingOriginal ? (
                     <Spinner />
                   ) : resolvedOriginalUrl ? (
@@ -271,8 +272,8 @@ export default function SearchResults({ results, loading, uploadedFile }) {
                 <div className="text-[10px] text-[var(--text-3)] truncate">{comparisonMatch.creator ? `${comparisonMatch.creator.slice(0, 8)}...${comparisonMatch.creator.slice(-6)}` : 'Unknown'} · {comparisonMatch.registeredAt}</div>
               </div>
               <div className="flex flex-col gap-1.5">
-                <div className="text-[10px] font-bold uppercase tracking-wider text-[var(--danger-text)]">Pixel Diff Heatmap</div>
-                <div className={`aspect-[4/3] rounded-xl border overflow-hidden flex items-center justify-center cursor-pointer group ${heatmapBase64 ? 'bg-[var(--danger-text)]/5 border-[var(--danger-text)]/20' : 'bg-[var(--bg-2)] border-dashed border-[var(--border)]'}`} onClick={() => heatmapBase64 && setLightboxOpen(true)}>
+                <div className="kicker text-[var(--danger-text)]">Pixel Diff Heatmap</div>
+                <div className={`aspect-[4/3] rounded-[5px] border overflow-hidden flex items-center justify-center cursor-pointer group ${heatmapBase64 ? 'bg-[var(--danger-bg)] border-[var(--danger-border)]' : 'bg-[var(--bg-2)] border-dashed border-[var(--border)]'}`} onClick={() => heatmapBase64 && setLightboxOpen(true)}>
                   {heatmapLoading ? (
                     <div className="text-center"><Spinner /><div className="text-[10px] text-[var(--text-3)] mt-1">Analyzing...</div></div>
                   ) : heatmapBase64 ? (
@@ -290,7 +291,7 @@ export default function SearchResults({ results, loading, uploadedFile }) {
               <div className="flex items-center gap-2 text-xs text-[var(--text-3)]">
                 Confidence: <span className="font-semibold text-[var(--success-text)]">{comparisonMatch.confidenceScore?.toFixed(0)}% ({comparisonMatch.confidenceTier})</span>
                 {(comparisonMatch.consensusCount || comparisonMatch.consensus_count) > 1 && (
-                  <span className="text-emerald-400 font-semibold">🤝 {(comparisonMatch.consensusCount || comparisonMatch.consensus_count)} consensus</span>
+                  <span className="text-[var(--success-text)] font-semibold">{(comparisonMatch.consensusCount || comparisonMatch.consensus_count)} consensus</span>
                 )}
               </div>
             )}
@@ -300,8 +301,8 @@ export default function SearchResults({ results, loading, uploadedFile }) {
               <div className="flex flex-col gap-3 border-t border-[var(--border)] pt-4">
                 {comparisonMatch.temporalIntegrity !== undefined && (
                   <div className="flex items-center gap-3">
-                    <div className="flex-1 p-3 bg-[var(--bg-2)] border border-[var(--border)] rounded-xl">
-                      <div className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-2)] mb-1">Temporal Sequence Integrity (DTW)</div>
+                    <div className="flex-1 p-3 bg-[var(--surface)] border border-[var(--border)] rounded-[5px]">
+                      <div className="kicker mb-1.5">Temporal Sequence Integrity (DTW)</div>
                       <div className="flex items-center gap-2">
                         <Badge variant={comparisonMatch.temporalIntegrity > 90 ? 'success' : 'danger'}>{comparisonMatch.temporalIntegrity.toFixed(1)}%</Badge>
                         <span className="text-xs text-[var(--text-3)]">{comparisonMatch.temporalIntegrity > 90 ? 'Video sequence matches original temporally.' : 'Video may be chopped, reversed, or sped-up!'}</span>
@@ -311,9 +312,9 @@ export default function SearchResults({ results, loading, uploadedFile }) {
                 )}
                 {comparisonMatch.mediaType === 'video' && (
                   <div className="flex items-center gap-3">
-                    <div className="flex-1 p-3 bg-[var(--bg-2)] border border-[var(--border)] rounded-xl flex items-center justify-between">
+                    <div className="flex-1 p-3 bg-[var(--surface)] border border-[var(--border)] rounded-[5px] flex items-center justify-between gap-3">
                       <div>
-                        <div className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-2)] mb-1">Deepfake Audio-Visual Sync</div>
+                        <div className="kicker mb-1.5">Deepfake Audio-Visual Sync</div>
                         <div className="text-xs text-[var(--text-3)]">Analyze lip movements and audio to detect AI voice-swaps.</div>
                       </div>
                       {syncResult ? (
@@ -324,8 +325,8 @@ export default function SearchResults({ results, loading, uploadedFile }) {
                           <div className="text-[10px] text-[var(--text-3)] mt-1">Score: {syncResult.sync_score?.toFixed(2)}</div>
                         </div>
                       ) : (
-                        <Button size="sm" onClick={handleAnalyzeSync} disabled={syncLoading}>
-                          {syncLoading ? <Spinner /> : 'Run AI Analysis'}
+                        <Button size="sm" variant="outline" onClick={handleAnalyzeSync} disabled={syncLoading}>
+                          {syncLoading ? <Spinner size="sm" /> : 'Run AI Analysis'}
                         </Button>
                       )}
                     </div>
@@ -335,12 +336,12 @@ export default function SearchResults({ results, loading, uploadedFile }) {
             )}
 
             {/* Actions */}
-            <div className="flex justify-center gap-3 border-t border-[var(--border)] pt-3">
-              <Button variant="outline" className="border-[var(--accent)]/30 text-[var(--accent)] hover:bg-[var(--accent)]/10 hover:border-[var(--accent)]" onClick={handleDownloadCert}>
-                📥 Download Certificate
-              </Button>
-              <Button variant="primary" onClick={() => { setComparisonMatch(null); setHeatmapBase64(null); setSyncResult(null) }}>
+            <div className="flex justify-end gap-2.5 border-t border-[var(--border)] pt-3">
+              <Button variant="outline" onClick={() => { setComparisonMatch(null); setHeatmapBase64(null); setSyncResult(null) }}>
                 Back to Results
+              </Button>
+              <Button variant="accent" onClick={handleDownloadCert}>
+                Download Certificate
               </Button>
             </div>
           </div>
@@ -349,25 +350,25 @@ export default function SearchResults({ results, loading, uploadedFile }) {
 
       {/* Lightbox — 2 on top, heatmap below */}
       {lightboxOpen && (
-        <div className="fixed inset-0 z-[2000] bg-black/92 backdrop-blur-md flex items-center justify-center p-3" onClick={() => setLightboxOpen(false)}>
-          <button className="absolute top-4 right-4 text-white/70 hover:text-white text-3xl font-light z-10 w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors" onClick={() => setLightboxOpen(false)}>×</button>
+        <div className="fixed inset-0 z-[2000] bg-[rgba(14,18,21,.94)] flex items-center justify-center p-3" onClick={() => setLightboxOpen(false)}>
+          <button aria-label="Close" className="absolute top-4 right-4 text-white/70 hover:text-white text-2xl font-light z-10 w-9 h-9 rounded-[5px] border border-white/20 hover:bg-white/10 flex items-center justify-center" onClick={() => setLightboxOpen(false)}>×</button>
           <div className="flex flex-col items-center gap-2.5 max-w-[95vw] max-h-[95vh] w-full justify-center" onClick={(e) => e.stopPropagation()}>
             {/* Top row: 2 images side-by-side */}
             <div className="grid grid-cols-2 gap-3 w-full max-w-4xl justify-center items-center">
               {localPreviewUrl && (
                 <div className="flex flex-col items-center gap-1 min-w-0">
-                  <div className="h-[37vh] w-full flex items-center justify-center bg-black/40 rounded-xl border border-white/10 p-1.5 overflow-hidden">
-                    <img src={localPreviewUrl} alt="Uploaded" className="max-h-full max-w-full object-contain rounded-lg shadow-lg" />
+                  <div className="h-[37vh] w-full flex items-center justify-center bg-black/40 rounded-[6px] border border-white/10 p-1.5 overflow-hidden">
+                    <img src={localPreviewUrl} alt="Uploaded" className="max-h-full max-w-full object-contain rounded-[4px]" />
                   </div>
-                  <span className="text-white/70 text-[11px] font-bold uppercase tracking-wider">Your Upload</span>
+                  <span className="text-white/70 font-mono text-[11px] uppercase tracking-[.12em]">Your Upload</span>
                 </div>
               )}
               {resolvedOriginalUrl && (
                 <div className="flex flex-col items-center gap-1 min-w-0">
-                  <div className="h-[37vh] w-full flex items-center justify-center bg-black/40 rounded-xl border border-white/10 p-1.5 overflow-hidden">
-                    <img src={resolvedOriginalUrl} alt="Original" className="max-h-full max-w-full object-contain rounded-lg shadow-lg" />
+                  <div className="h-[37vh] w-full flex items-center justify-center bg-black/40 rounded-[6px] border border-white/10 p-1.5 overflow-hidden">
+                    <img src={resolvedOriginalUrl} alt="Original" className="max-h-full max-w-full object-contain rounded-[4px]" />
                   </div>
-                  <span className="text-white/70 text-[11px] font-bold uppercase tracking-wider">On-Chain Match</span>
+                  <span className="text-white/70 font-mono text-[11px] uppercase tracking-[.12em]">On-Chain Match</span>
                 </div>
               )}
             </div>
@@ -375,12 +376,10 @@ export default function SearchResults({ results, loading, uploadedFile }) {
             {/* Bottom row: Pixel Diff Heatmap */}
             {heatmapBase64 && (
               <div className="flex flex-col items-center gap-1 w-full max-w-lg">
-                <div className="h-[37vh] w-full flex items-center justify-center bg-red-950/20 rounded-xl border border-red-500/30 p-1.5 overflow-hidden shadow-2xl">
-                  <img src={heatmapBase64} alt="Heatmap" className="max-h-full max-w-full object-contain rounded-lg" />
+                <div className="h-[37vh] w-full flex items-center justify-center bg-black/40 rounded-[6px] border border-[var(--danger-border)] p-1.5 overflow-hidden">
+                  <img src={heatmapBase64} alt="Heatmap" className="max-h-full max-w-full object-contain rounded-[4px]" />
                 </div>
-                <span className="text-[var(--danger-text)] text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-[var(--danger-text)] animate-pulse" /> Pixel Diff Heatmap
-                </span>
+                <span className="text-[var(--danger-text)] font-mono text-[11px] uppercase tracking-[.12em]">Pixel Diff Heatmap</span>
               </div>
             )}
           </div>
@@ -401,46 +400,46 @@ function MatchCard({ result, onSelect, isEarliest }) {
   const previewUrl = getGatewayUrl(result.mediaS3Url) || getGatewayUrl(result.mediaIpfsUrl)
 
   return (
-    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }} onClick={onSelect} className="flex items-stretch rounded-2xl border border-[var(--border)] bg-[var(--surface)] overflow-hidden cursor-pointer hover:border-[var(--border-2)] hover:shadow-md transition-all group">
+    <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }} onClick={onSelect} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect() } }} className="flex items-stretch rounded-[6px] border border-[var(--border)] bg-[var(--surface)] overflow-hidden cursor-pointer hover:border-[var(--border-2)] hover:bg-[var(--row-hover)] group">
       <div className="w-1 flex-shrink-0" style={{ background: isExact ? 'var(--success-text)' : isDeepfake ? 'var(--danger-text)' : 'var(--warning-text)' }} />
       <div className="flex items-center justify-center p-3 flex-shrink-0">
-        {!previewUrl ? <div className="w-[140px] h-[95px] rounded-lg border border-[var(--border)] bg-[var(--bg-2)] flex items-center justify-center text-[10px] text-[var(--text-3)] text-center p-2 leading-tight">{isLegacy ? 'No preview (Legacy)' : 'Click to compare'}</div> : <img src={previewUrl} alt="Match" className="w-[140px] h-[95px] object-cover rounded-lg border border-[var(--border)] bg-[var(--bg-2)]" onError={(e) => { if (result.assetId && e.target.src !== `https://s3.veritrace.dpkvtrading.online/veritrace/${result.assetId}`) { e.target.src = `https://s3.veritrace.dpkvtrading.online/veritrace/${result.assetId}` } else { e.target.style.display = 'none' } }} />}
+        {!previewUrl ? <div className="w-[140px] h-[95px] rounded-[4px] border border-dashed border-[var(--border-2)] bg-[var(--bg-2)] flex items-center justify-center text-[10px] text-[var(--text-3)] text-center p-2 leading-tight">{isLegacy ? 'No preview (Legacy)' : 'Click to compare'}</div> : <img src={previewUrl} alt="Match" className="w-[140px] h-[95px] object-cover rounded-[4px] border border-[var(--border)] bg-[var(--bg-2)]" onError={(e) => { if (result.assetId && e.target.src !== `https://s3.veritrace.dpkvtrading.online/veritrace/${result.assetId}`) { e.target.src = `https://s3.veritrace.dpkvtrading.online/veritrace/${result.assetId}` } else { e.target.style.display = 'none' } }} />}
       </div>
       <div className="flex-1 p-3.5 flex flex-col justify-center gap-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <Badge variant={isExact ? 'success' : isDeepfake ? 'danger' : 'warning'}>{isExact ? <><CheckCircle2 size={10} /> Exact Match</> : isDeepfake ? 'DEEPFAKE DETECTED' : '≈ Similar'}</Badge>
-          {isAudioDeepfake && <Badge variant="danger" className="ml-1">AUDIO DEEPFAKE</Badge>}
-          {isEarliest && <Badge variant="success" className="ml-1 bg-[var(--accent)] hover:bg-[var(--accent)] text-white border-none">Earliest Registry</Badge>}
+          <Badge variant={isExact ? 'success' : isDeepfake ? 'danger' : 'warning'}>{isExact ? <><CheckCircle2 size={10} /> Exact Match</> : isDeepfake ? 'Deepfake detected' : '≈ Similar'}</Badge>
+          {isAudioDeepfake && <Badge variant="danger">Audio deepfake</Badge>}
+          {isEarliest && <Badge variant="ink">Earliest Registry</Badge>}
           {result.confidenceTier && (
-            <Badge variant={result.confidenceTier === 'High' ? 'success' : result.confidenceTier === 'Medium' ? 'warning' : 'danger'} className="ml-1">
+            <Badge variant={result.confidenceTier === 'High' ? 'success' : result.confidenceTier === 'Medium' ? 'warning' : 'danger'}>
               Confidence: {result.confidenceTier} ({result.confidenceScore?.toFixed(0)}%)
             </Badge>
           )}
           {(result.isPublisherVerified || result.is_publisher_verified) && (
-            <Badge variant="success" className="ml-1 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border-blue-500/20 flex items-center gap-1 font-bold">
-              ✓ Verified Source: {result.publisherName || result.publisher_name || 'Official Outlet'}
+            <Badge variant="arb">
+              <CheckCircle2 size={10} /> Verified Source: {result.publisherName || result.publisher_name || 'Official Outlet'}
             </Badge>
           )}
           {(result.consensusCount || result.consensus_count) > 1 && (
-            <Badge variant="success" className="ml-1 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border-emerald-500/20 flex items-center gap-1">
-              🤝 Consensus: {(result.consensusCount || result.consensus_count)} Creators
+            <Badge variant="success">
+              Consensus: {(result.consensusCount || result.consensus_count)} Creators
             </Badge>
           )}
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-3)]">{result.mediaType || 'unknown'}</span>
+          <span className="chip">{result.mediaType || 'unknown'}</span>
         </div>
         {result.assetId && <div className="text-xs"><span className="text-[var(--text-3)]">Asset: </span><span className="font-mono text-[var(--accent)]">{result.assetId}</span></div>}
-        {result.creator && <div className="text-xs"><span className="text-[var(--text-3)]">Creator: </span><a href={`${ARBITRUM_SEPOLIA.explorer}/address/${result.creator}`} target="_blank" rel="noopener noreferrer" className="font-mono text-[var(--accent)] hover:opacity-80" onClick={(e) => e.stopPropagation()}>{result.creator.slice(0, 10)}...{result.creator.slice(-6)}</a></div>}
+        {result.creator && <div className="text-xs flex items-center gap-1.5"><span className="text-[var(--text-3)]">Creator: </span><span onClick={(e) => e.stopPropagation()}><Address address={result.creator} head={10} tail={6} size={16} /></span></div>}
         {result.registeredAt && <div className="text-xs text-[var(--text-3)]">Registered: {result.registeredAt}</div>}
         <div className="flex flex-wrap items-center gap-2 mt-2">
-          {result.mediaS3Url && <a href={getGatewayUrl(result.mediaS3Url)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--success-text)]/10 hover:bg-[var(--success-text)]/20 text-[var(--success-text)] rounded-md text-[11px] font-bold border border-[var(--success-text)]/20 transition-colors" onClick={(e) => e.stopPropagation()}><ExternalLink size={12} /> S3 Media</a>}
-          {result.mediaIpfsUrl && <a href={getGatewayUrl(result.mediaIpfsUrl)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--accent)]/10 hover:bg-[var(--accent)]/20 text-[var(--accent)] rounded-md text-[11px] font-bold border border-[var(--accent)]/20 transition-colors" onClick={(e) => e.stopPropagation()}><ExternalLink size={12} /> IPFS Media</a>}
-          {result.ipfsCid && <a href={`https://gateway.pinata.cloud/ipfs/${result.ipfsCid}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--surface-3)] hover:bg-[var(--border)] text-[var(--text-2)] rounded-md text-[11px] font-bold border border-[var(--border)] transition-colors" onClick={(e) => e.stopPropagation()}><ExternalLink size={12} /> IPFS JSON</a>}
+          {result.mediaS3Url && <a href={getGatewayUrl(result.mediaS3Url)} target="_blank" rel="noopener noreferrer" className="btn btn-outline text-[11px] px-2.5 py-1" onClick={(e) => e.stopPropagation()}><ExternalLink size={11} /> S3 Media</a>}
+          {result.mediaIpfsUrl && <a href={getGatewayUrl(result.mediaIpfsUrl)} target="_blank" rel="noopener noreferrer" className="btn btn-outline text-[11px] px-2.5 py-1" onClick={(e) => e.stopPropagation()}><ExternalLink size={11} /> IPFS Media</a>}
+          {result.ipfsCid && <a href={`https://gateway.pinata.cloud/ipfs/${result.ipfsCid}`} target="_blank" rel="noopener noreferrer" className="btn btn-outline text-[11px] px-2.5 py-1" onClick={(e) => e.stopPropagation()}><ExternalLink size={11} /> IPFS JSON</a>}
         </div>
       </div>
-      <div className="flex items-center justify-center px-5 flex-shrink-0">
+      <div className="flex items-center justify-center px-5 flex-shrink-0 border-l border-[var(--border)]">
         <div className="text-center">
-          <div className="text-xl font-extrabold" style={{ color: isExact ? 'var(--success-text)' : isDeepfake ? 'var(--danger-text)' : percentage >= 80 ? 'var(--warning-text)' : 'var(--text-4)' }}>{percentage.toFixed(1)}%</div>
-          <div className="text-[10px] uppercase tracking-wider text-[var(--text-3)]">match</div>
+          <div className="font-mono text-lg font-semibold" style={{ color: isExact ? 'var(--success-text)' : isDeepfake ? 'var(--danger-text)' : percentage >= 80 ? 'var(--warning-text)' : 'var(--text-4)' }}>{percentage.toFixed(1)}%</div>
+          <div className="kicker justify-center">match</div>
         </div>
       </div>
     </motion.div>

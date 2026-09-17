@@ -21,6 +21,7 @@ import {
   HASH_ENGINE_API, CONTRACT_ADDRESS, CONTRACT_ABI, ARBITRUM_SEPOLIA, CORE_BACKEND_API,
 } from '../config'
 import { Search, Shield, Database, Info, CircleCheck as CheckCircle2, ExternalLink } from 'lucide-react'
+import { Address } from '../components/chain/Address'
 
 export default function VerifyPage() {
   const {
@@ -275,32 +276,26 @@ export default function VerifyPage() {
           <AnimatePresence>
             {(blockchainRecord || loading) && (
               <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-                <Card className={`card-hover-glow ${blockchainRecord ? 'border-[var(--success-border)]' : ''}`}>
-                  <CardHeader className={blockchainRecord ? 'bg-[var(--success-bg)]' : ''}>
-                    <CardTitle className={blockchainRecord ? 'text-[var(--success-text)]' : ''}><Shield size={16} /> Immutable registry record</CardTitle>
+                <Card className={blockchainRecord ? 'border-[var(--success-border)]' : ''}>
+                  <CardHeader className={blockchainRecord ? 'bg-[var(--success-bg)] border-[var(--success-border)]' : ''}>
+                    <CardTitle className={blockchainRecord ? 'text-[var(--success-text)]' : ''}><Shield size={15} /> Immutable registry record</CardTitle>
                     {blockchainRecord && <Badge variant="success">Proof located</Badge>}
                   </CardHeader>
                   <CardBody>
                     {loading && !blockchainRecord ? (
                       <div className="flex flex-col gap-3 pt-2">
-                        <Skeleton className="h-4 w-3/4 bg-[var(--bg-2)]" />
-                        <Skeleton className="h-4 w-1/2 bg-[var(--bg-2)]" />
-                        <Skeleton className="h-4 w-2/3 bg-[var(--bg-2)]" />
+                        <Skeleton className="h-4 w-3/4" />
+                        <Skeleton className="h-4 w-1/2" />
+                        <Skeleton className="h-4 w-2/3" />
                       </div>
                     ) : (
                       <div className="flex flex-col gap-2 text-xs">
                         <DataRow label="Registrant Wallet">
-                          {blockchainRecord.creator ? (
-                            <a href={`${ARBITRUM_SEPOLIA.explorer}/address/${blockchainRecord.creator}`} target="_blank" rel="noopener noreferrer" className="font-mono font-semibold text-[var(--accent)] hover:opacity-80">
-                              {blockchainRecord.creator.slice(0, 10)}...{blockchainRecord.creator.slice(-6)}
-                            </a>
-                          ) : (
-                            <span className="font-mono text-[var(--text-3)]">Unknown Wallet</span>
-                          )}
+                          <Address address={blockchainRecord.creator} head={10} tail={6} />
                         </DataRow>
                         <DataRow label="Proof Committed At" value={new Date(blockchainRecord.timestamp * 1000).toLocaleString()} />
                         <DataRow label="AI Tool Attribution" value={blockchainRecord.aiTool || 'None'} bold />
-                        {blockchainRecord.ipfsCid && <DataRow label="Metadata (IPFS)"><a href={`https://gateway.pinata.cloud/ipfs/${blockchainRecord.ipfsCid}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-3 py-1 bg-[var(--surface-3)] hover:bg-[var(--border)] text-[var(--text-2)] rounded-md text-[11px] font-bold border border-[var(--border)] transition-colors"><ExternalLink size={12} /> View JSON</a></DataRow>}
+                        {blockchainRecord.ipfsCid && <DataRow label="Metadata (IPFS)"><a href={`https://gateway.pinata.cloud/ipfs/${blockchainRecord.ipfsCid}`} target="_blank" rel="noopener noreferrer" className="btn btn-outline text-[11px] px-2.5 py-1"><ExternalLink size={12} /> View JSON</a></DataRow>}
                       </div>
                     )}
                   </CardBody>
@@ -310,9 +305,9 @@ export default function VerifyPage() {
           </AnimatePresence>
 
           <SpotlightCard className="flex-1 flex flex-col">
-            <Card className="card-hover-glow card-border-animate h-full flex flex-col">
+            <Card className="h-full flex flex-col">
               <CardHeader>
-                <CardTitle><Database size={16} className="text-[var(--accent)]" /> Database Similarity Results</CardTitle>
+                <CardTitle><Database size={15} className="text-[var(--accent)]" /> Database Similarity Results</CardTitle>
                 {dbResults?.length > 0 && <Badge variant="arb">{dbResults.length} matches</Badge>}
               </CardHeader>
               <CardBody className="flex-1 max-h-[520px] overflow-y-auto">
@@ -326,9 +321,8 @@ export default function VerifyPage() {
                     ) : (
                       <div className="flex flex-col items-center py-4">
                         <div className="relative w-16 h-16 flex items-center justify-center mb-3">
-                          <div className="loading-orb-outer absolute inset-0 rounded-full" style={{ border: '2.5px solid var(--border)', borderTopColor: 'var(--accent)', borderRightColor: 'var(--accent)' }} />
-                          <div className="loading-orb-inner absolute inset-1.5 rounded-full" style={{ border: '2.5px solid var(--border)', borderBottomColor: 'var(--success-text)', borderLeftColor: 'var(--success-text)' }} />
-                          <ArbitrumLogo size={20} animated />
+                          <div className="loading-orb-outer absolute inset-0 rounded-full" style={{ border: '2px solid var(--border)', borderTopColor: 'var(--accent)' }} />
+                          <ArbitrumLogo size={20} />
                         </div>
                         <div className="font-semibold text-sm text-[var(--text)]">Searching similarity index...</div>
                         <div className="text-xs text-[var(--text-3)] mt-1">Comparing perceptual Hamming distances on the server.</div>
@@ -342,58 +336,18 @@ export default function VerifyPage() {
         </div>
       </div>
 
-      <Card className="card-hover-glow border-[var(--border)] overflow-hidden mt-5">
-        <CardHeader className="border-b border-[var(--border-2)] bg-[var(--bg-2)]/30">
-          <CardTitle className="flex items-center gap-2 text-sm font-semibold tracking-tight">
+      <Card className="mt-5">
+        <CardHeader>
+          <CardTitle>
             <Info size={15} className="text-[var(--accent)]" />
             Verification Thresholds
           </CardTitle>
         </CardHeader>
-        <CardBody className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 text-xs">
-          <div className="relative flex gap-3 p-4 rounded-xl border border-[var(--success-text)]/20 bg-[var(--success-text)]/5 transition-all hover:bg-[var(--success-text)]/10">
-            <div className="flex-shrink-0 font-bold text-sm text-[var(--success-text)] min-w-[36px] pt-0.5">
-              100%
-            </div>
-            <div className="flex flex-col gap-0.5">
-              <div className="font-semibold text-[var(--text-1)] flex items-center gap-1.5">
-                Cryptographic Match
-                <span className="w-1.5 h-1.5 rounded-full bg-[var(--success-text)] animate-pulse" />
-              </div>
-              <div className="text-[var(--text-3)] leading-relaxed text-[11px]">
-                Byte-level validation. The uploaded file is completely identical to the registered original.
-              </div>
-            </div>
-          </div>
-
-          <div className="relative flex gap-3 p-4 rounded-xl border border-[var(--warning-text)]/20 bg-[var(--warning-text)]/5 transition-all hover:bg-[var(--warning-text)]/10">
-            <div className="flex-shrink-0 font-bold text-sm text-[var(--warning-text)] min-w-[36px] pt-0.5">
-              80%+
-            </div>
-            <div className="flex flex-col gap-0.5">
-              <div className="font-semibold text-[var(--text-1)] flex items-center gap-1.5">
-                Perceptual Match
-                <span className="w-1.5 h-1.5 rounded-full bg-[var(--warning-text)]" />
-              </div>
-              <div className="text-[var(--text-3)] leading-relaxed text-[11px]">
-                Structural verification. The content matches closely, indicating potential cropping, resizing, or compression.
-              </div>
-            </div>
-          </div>
-
-          <div className="relative flex gap-3 p-4 rounded-xl border border-[var(--border)] bg-[var(--bg-2)]/40 transition-all hover:bg-[var(--bg-2)]/60">
-            <div className="flex-shrink-0 font-bold text-sm text-[var(--text-3)] min-w-[36px] pt-0.5">
-              &lt;80%
-            </div>
-            <div className="flex flex-col gap-0.5">
-              <div className="font-semibold text-[var(--text-2)] flex items-center gap-1.5">
-                Unregistered / Original
-              </div>
-              <div className="text-[var(--text-4)] leading-relaxed text-[11px]">
-                No matching record. The media is unique or has not yet been registered on-chain.
-              </div>
-            </div>
-          </div>
-        </CardBody>
+        <div className="grid grid-cols-1 sm:grid-cols-3 text-xs">
+          <ThresholdCell value="100%" tone="var(--success-text)" title="Cryptographic Match" desc="Byte-level validation. The uploaded file is completely identical to the registered original." />
+          <ThresholdCell value="80%+" tone="var(--warning-text)" title="Perceptual Match" desc="Structural verification. The content matches closely, indicating potential cropping, resizing, or compression." />
+          <ThresholdCell value="<80%" tone="var(--text-3)" title="Unregistered / Original" desc="No matching record. The media is unique or has not yet been registered on-chain." last />
+        </div>
       </Card>
       </div>
       </ScrollReveal>
@@ -402,5 +356,17 @@ export default function VerifyPage() {
 }
 
 function DataRow({ label, value, bold, children }) {
-  return <div className="flex justify-between items-center"><span className="text-[var(--text-3)]">{label}</span>{children || <span className={bold ? 'font-semibold' : ''}>{value}</span>}</div>
+  return <div className="flex justify-between items-center gap-4 py-1.5 border-b border-dashed border-[var(--border)] last:border-b-0"><span className="text-[var(--text-3)]">{label}</span>{children || <span className={`text-right text-[var(--text)] ${bold ? 'font-semibold' : ''}`}>{value}</span>}</div>
+}
+
+function ThresholdCell({ value, tone, title, desc, last }) {
+  return (
+    <div className={`flex gap-4 p-4 border-[var(--border)] ${last ? '' : 'border-b sm:border-b-0 sm:border-r'}`}>
+      <div className="flex-shrink-0 font-mono font-semibold text-base min-w-[3.2rem] pt-0.5" style={{ color: tone }}>{value}</div>
+      <div className="flex flex-col gap-0.5">
+        <div className="font-semibold text-[var(--text)] text-[13px]">{title}</div>
+        <div className="text-[var(--text-3)] leading-relaxed text-[11.5px]">{desc}</div>
+      </div>
+    </div>
+  )
 }

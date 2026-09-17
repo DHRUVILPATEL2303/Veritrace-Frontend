@@ -1,645 +1,309 @@
-import { useState, useEffect, useRef, useCallback, Fragment } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { Link } from 'react-router-dom'
-import { motion, AnimatePresence, useScroll, useTransform, useMotionValue, useSpring, useInView, useReducedMotion } from 'framer-motion'
-import { getContractEvents } from '@wagmi/core'
-import { parseAbi } from 'viem'
-import { config } from '../wagmiConfig'
-import { Card, CardBody, CardFooter } from '../components/ui/card'
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { Button } from '../components/ui/button'
 import { Badge } from '../components/ui/badge'
 import { CounterUp } from '../components/aceternity/CounterUp'
-import { ParticleField } from '../components/aceternity/ParticleField'
-import { SpotlightCard } from '../components/aceternity/SpotlightCard'
-import { AnimatedArbitrumBadge, AnimatedNetworkBadge } from '../components/ArbitrumLogo'
-import { ScrollReveal, ScrollRevealGroup } from '../components/ui/scroll-reveal'
-import { FilePlus, Search, Shield, ArrowRight, Upload, FingerprintPattern as Fingerprint, Wallet, CircleCheck as CheckCircle2, Database, Sparkles, Zap, Eye, Link2, Pin, GitBranch, ChevronDown, Image as ImageIcon, Video, FileText, Play, Radio, Globe, Lock } from 'lucide-react'
+import { ScrollReveal } from '../components/ui/scroll-reveal'
+import EvidenceLayers from '../components/EvidenceLayers'
+import { Identicon } from '../components/chain/Identicon'
+import { shortHex } from '../components/chain/Address'
+import { useChainStatus, timeAgo } from '../components/chain/useChainStatus'
+import { useRegistryEvents } from '../components/chain/useRegistryEvents'
+import { ArbitrumLogo } from '../components/ArbitrumLogo'
+import { FilePlus, Search, Shield, ArrowRight, Upload, FingerprintPattern as Fingerprint, Wallet, CircleCheck as CheckCircle2, Eye, Pin, ChevronDown, Image as ImageIcon, Video, FileText, Radio, Globe, ExternalLink, Blocks } from 'lucide-react'
 import { SUPPORTED_FILES, CONTRACT_ADDRESS, ARBITRUM_SEPOLIA, CORE_BACKEND_API } from '../config'
-import { ethers } from 'ethers'
 import { cn } from '@/lib/utils'
-import ShazamHero3DCarousel from '../components/ShazamHero3DCarousel'
 
-/* ─── Custom animated mesh background for hero ─── */
-function HeroMeshBackground() {
-  const canvasRef = useRef(null)
-  const mouseRef = useRef({ x: 0.5, y: 0.5 })
-  const animRef = useRef(null)
-  const timeRef = useRef(0)
-  const accentRgbRef = useRef('124, 92, 252')
-  const prefersReducedMotion = useReducedMotion()
-
-  useEffect(() => {
-    if (prefersReducedMotion) return
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const ctx = canvas.getContext('2d')
-    const isMobile = window.innerWidth < 768
-    const nodeCount = isMobile ? 14 : 28
-    const connectDistance = isMobile ? 120 : 190
-
-    // Canvas fillStyle can't resolve CSS var() itself — read the computed value instead.
-    const readAccentRgb = () => {
-      const value = getComputedStyle(document.documentElement).getPropertyValue('--accent-rgb').trim()
-      if (value) accentRgbRef.current = value
-    }
-    readAccentRgb()
-    const themeObserver = new MutationObserver(readAccentRgb)
-    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
-
-    const resize = () => {
-      canvas.width = canvas.offsetWidth * (window.devicePixelRatio || 1)
-      canvas.height = canvas.offsetHeight * (window.devicePixelRatio || 1)
-      ctx.scale(window.devicePixelRatio || 1, window.devicePixelRatio || 1)
-    }
-    resize()
-
-    const handleMouse = (e) => {
-      const rect = canvas.getBoundingClientRect()
-      mouseRef.current.x = (e.clientX - rect.left) / rect.width
-      mouseRef.current.y = (e.clientY - rect.top) / rect.height
-    }
-    window.addEventListener('mousemove', handleMouse, { passive: true })
-
-    const nodes = Array.from({ length: nodeCount }, () => ({
-      x: Math.random(),
-      y: Math.random(),
-      vx: (Math.random() - 0.5) * 0.0004,
-      vy: (Math.random() - 0.5) * 0.0004,
-      r: 1.5 + Math.random() * 2,
-    }))
-
-    const draw = () => {
-      timeRef.current += 0.008
-      const t = timeRef.current
-      const w = canvas.offsetWidth
-      const h = canvas.offsetHeight
-      const mx = mouseRef.current.x
-      const my = mouseRef.current.y
-
-      ctx.clearRect(0, 0, w, h)
-
-      const accentRgb = accentRgbRef.current
-
-      // Animated mesh gradient blobs
-      const grad1 = ctx.createRadialGradient(
-        w * (0.3 + Math.sin(t * 0.3) * 0.15),
-        h * (0.4 + Math.cos(t * 0.2) * 0.15),
-        0,
-        w * 0.5, h * 0.5, w * 0.5
-      )
-      grad1.addColorStop(0, `rgba(${accentRgb}, 0.08)`)
-      grad1.addColorStop(0.5, `rgba(${accentRgb}, 0.04)`)
-      grad1.addColorStop(1, 'transparent')
-      ctx.fillStyle = grad1
-      ctx.fillRect(0, 0, w, h)
-
-      const grad2 = ctx.createRadialGradient(
-        w * (0.7 + Math.cos(t * 0.25) * 0.12),
-        h * (0.6 + Math.sin(t * 0.35) * 0.12),
-        0,
-        w * 0.6, h * 0.5, w * 0.4
-      )
-      grad2.addColorStop(0, `rgba(${accentRgb}, 0.06)`)
-      grad2.addColorStop(0.6, `rgba(${accentRgb}, 0.03)`)
-      grad2.addColorStop(1, 'transparent')
-      ctx.fillStyle = grad2
-      ctx.fillRect(0, 0, w, h)
-
-      // Mouse-reactive glow
-      const glowGrad = ctx.createRadialGradient(
-        mx * w, my * h, 0,
-        mx * w, my * h, w * 0.3
-      )
-      glowGrad.addColorStop(0, `rgba(${accentRgb}, 0.07)`)
-      glowGrad.addColorStop(0.4, `rgba(${accentRgb}, 0.03)`)
-      glowGrad.addColorStop(1, 'transparent')
-      ctx.fillStyle = glowGrad
-      ctx.fillRect(0, 0, w, h)
-
-      // Floating network nodes
-      for (const node of nodes) {
-        node.x += node.vx
-        node.y += node.vy
-        if (node.x < 0 || node.x > 1) node.vx *= -1
-        if (node.y < 0 || node.y > 1) node.vy *= -1
-
-        // Subtle mouse attraction
-        const dx = mx - node.x
-        const dy = my - node.y
-        const dist = Math.sqrt(dx * dx + dy * dy)
-        if (dist < 0.3) {
-          node.vx += dx * 0.00002
-          node.vy += dy * 0.00002
-        }
-
-        const px = node.x * w
-        const py = node.y * h
-        const pulse = Math.sin(t * 2 + node.x * 10) * 0.5 + 0.5
-
-        ctx.beginPath()
-        ctx.arc(px, py, node.r * (0.8 + pulse * 0.4), 0, Math.PI * 2)
-        ctx.fillStyle = `rgba(${accentRgb}, ${0.15 + pulse * 0.15})`
-        ctx.fill()
-
-        // Connect nearby nodes
-        for (const other of nodes) {
-          const d = Math.hypot((node.x - other.x) * w, (node.y - other.y) * h)
-          if (d < connectDistance && d > 0) {
-            const alpha = (1 - d / connectDistance) * 0.12
-            ctx.beginPath()
-            ctx.moveTo(px, py)
-            ctx.lineTo(other.x * w, other.y * h)
-            ctx.strokeStyle = `rgba(${accentRgb}, ${alpha})`
-            ctx.lineWidth = 0.5
-            ctx.stroke()
-          }
-        }
-      }
-
-      animRef.current = requestAnimationFrame(draw)
-    }
-
-    // Only draw if the canvas is within the camera viewport
-    const intersectionObserver = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting) {
-        if (!animRef.current) draw()
-      } else {
-        if (animRef.current) {
-          cancelAnimationFrame(animRef.current)
-          animRef.current = null
-        }
-      }
-    }, { threshold: 0.05 })
-    
-    intersectionObserver.observe(canvas)
-    window.addEventListener('resize', resize)
-    
-    return () => {
-      cancelAnimationFrame(animRef.current)
-      intersectionObserver.disconnect()
-      themeObserver.disconnect()
-      window.removeEventListener('mousemove', handleMouse)
-      window.removeEventListener('resize', resize)
-    }
-  }, [prefersReducedMotion])
-
-  if (prefersReducedMotion) return null
-
-  return (
-    <canvas
-      ref={canvasRef}
-      className="absolute inset-0 w-full h-full pointer-events-none"
-      aria-hidden="true"
-    />
-  )
-}
-
-/* ─── Floating particle ring for hero ─── */
-function FloatingParticles() {
-  const prefersReducedMotion = useReducedMotion()
-  const particles = useRef(
-    Array.from({ length: window.innerWidth < 768 ? 24 : 60 }, (_, i) => ({
-      id: i,
-      x: Math.random() * 100,
-      y: Math.random() * 100,
-      size: 1 + Math.random() * 2.5,
-      duration: 15 + Math.random() * 20,
-      delay: Math.random() * -20,
-      opacity: 0.1 + Math.random() * 0.3,
-    }))
-  ).current
-
-  if (prefersReducedMotion) return null
-
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
-      {particles.map((p) => (
-        <motion.div
-          key={p.id}
-          className="absolute rounded-full bg-[var(--accent)]"
-          style={{
-            width: p.size,
-            height: p.size,
-            left: `${p.x}%`,
-            top: `${p.y}%`,
-            opacity: p.opacity,
-          }}
-          animate={{
-            y: [0, -80, 20, -40, 0],
-            x: [0, 30, -20, 10, 0],
-            opacity: [p.opacity, p.opacity * 1.5, p.opacity * 0.5, p.opacity * 1.2, p.opacity],
-          }}
-          transition={{
-            duration: p.duration,
-            delay: p.delay,
-            repeat: Infinity,
-            ease: 'easeInOut',
-          }}
-        />
-      ))}
-    </div>
-  )
-}
-
-/* ─── Scroll-triggered parallax wrapper ─── */
-function ParallaxSection({ children, speed = 0.15, className = '' }) {
-  const ref = useRef(null)
-  const prefersReducedMotion = useReducedMotion()
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ['start end', 'end start'],
-  })
-  const effectiveSpeed = prefersReducedMotion ? 0 : speed
-  const y = useTransform(scrollYProgress, [0, 1], [effectiveSpeed * 100, -effectiveSpeed * 100])
-
-  return (
-    <motion.div ref={ref} style={{ y, willChange: 'transform' }} className={className}>
-      {children}
-    </motion.div>
-  )
-}
-
-/* ─── Magnetic button wrapper ─── */
-function MagneticButton({ children, strength = 0.3, className = '' }) {
-  const ref = useRef(null)
-  const x = useMotionValue(0)
-  const y = useMotionValue(0)
-  const springX = useSpring(x, { stiffness: 150, damping: 15 })
-  const springY = useSpring(y, { stiffness: 150, damping: 15 })
-
-  const handleMouse = useCallback((e) => {
-    if (!ref.current) return
-    const rect = ref.current.getBoundingClientRect()
-    const cx = rect.left + rect.width / 2
-    const cy = rect.top + rect.height / 2
-    x.set((e.clientX - cx) * strength)
-    y.set((e.clientY - cy) * strength)
-  }, [x, y, strength])
-
-  const handleLeave = useCallback(() => {
-    x.set(0)
-    y.set(0)
-  }, [x, y])
-
-  return (
-    <motion.div
-      ref={ref}
-      style={{ x: springX, y: springY }}
-      onMouseMove={handleMouse}
-      onMouseLeave={handleLeave}
-      className={className}
-    >
-      {children}
-    </motion.div>
-  )
-}
-
-/* ─── Animated section divider ─── */
-function SectionDivider() {
-  return (
-    <div className="max-w-[1280px] mx-auto px-5 py-2">
-      <div className="relative h-px">
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[var(--accent)]/20 to-transparent" />
-        <motion.div
-          className="absolute top-1/2 -translate-y-1/2 w-20 h-[2px] bg-gradient-to-r from-transparent via-[var(--accent)] to-transparent"
-          style={{ willChange: 'transform' }}
-          animate={{ x: ['-100vw', '100vw'] }}
-          transition={{ duration: 5, repeat: Infinity, ease: 'linear' }}
-        />
-      </div>
-    </div>
-  )
-}
-
-/* ─── Data for the on-chain verification workflow chain ─── */
+/* Chain-of-custody steps. The order is the real pipeline, so the numbering means something. */
 const WORKFLOW_STEPS = [
-  { Icon: Upload, label: 'Upload', desc: 'File dropped', color: 'var(--accent)' },
-  { Icon: Fingerprint, label: 'Fingerprint', desc: 'SHA-256 + pHash', color: 'var(--accent-2)' },
-  { Icon: Pin, label: 'Pin to IPFS', desc: 'Permanent storage', color: 'var(--accent-dark)' },
-  { Icon: Wallet, label: 'Sign Tx', desc: 'MetaMask confirm', color: 'var(--success-text)' },
-  { Icon: Globe, label: 'Index', desc: 'Go backend', color: 'var(--success-text)' },
-  { Icon: CheckCircle2, label: 'Verified', desc: 'On-chain proof', color: 'var(--success-text)' },
+  { Icon: Upload, label: 'Upload', desc: 'File dropped' },
+  { Icon: Fingerprint, label: 'Fingerprint', desc: 'SHA-256 + pHash' },
+  { Icon: Pin, label: 'Pin to IPFS', desc: 'Permanent storage' },
+  { Icon: Wallet, label: 'Sign Tx', desc: 'MetaMask confirm' },
+  { Icon: Globe, label: 'Index', desc: 'Go backend' },
+  { Icon: CheckCircle2, label: 'Verified', desc: 'On-chain proof' },
 ]
+
+const FORMAT_ICONS = { image: ImageIcon, video: Video, document: FileText }
 
 export default function HomePage() {
   const [stats, setStats] = useState({ registered: 0, verifications: 0, onchain: 0, loading: true })
   const [searchFilter, setSearchFilter] = useState('all')
-  const heroRef = useRef(null)
   const prefersReducedMotion = useReducedMotion()
+  const { events, loading: eventsLoading } = useRegistryEvents()
 
-  // Workflow chain animation: walks node → connector → node → … → node 6, then loops back to node 1.
-  // `flowStep` is a single phase counter (0..10 for 6 nodes/5 connectors) so exactly one segment
-  // is ever "live" at a time — even phases light a node, odd phases animate the connector after it.
-  const [flowStep, setFlowStep] = useState(0)
-  const activeWorkflowNode = prefersReducedMotion ? -1 : Math.floor(flowStep / 2)
-  const activeWorkflowConnector = prefersReducedMotion ? -1 : (flowStep % 2 === 1 ? (flowStep - 1) / 2 : -1)
-
+  // Pipeline animation: one step is "live" at a time, walking 1 → 6 and looping.
+  const [activeStep, setActiveStep] = useState(prefersReducedMotion ? -1 : 0)
   useEffect(() => {
     if (prefersReducedMotion) return
-
-    const NODE_MS = 850
-    const CONNECTOR_MS = 550
-    const totalPhases = WORKFLOW_STEPS.length * 2 - 1 // node,conn,node,conn,...,node
-    let phase = 0
-    let timeoutId = null
-
-    const scheduleNext = () => {
-      const isNodePhase = phase % 2 === 0
-      timeoutId = setTimeout(() => {
-        phase = (phase + 1) % totalPhases
-        setFlowStep(phase)
-        scheduleNext()
-      }, isNodePhase ? NODE_MS : CONNECTOR_MS)
-    }
-
-    scheduleNext()
-    return () => clearTimeout(timeoutId)
+    const id = setInterval(() => setActiveStep(s => (s + 1) % WORKFLOW_STEPS.length), 1400)
+    return () => clearInterval(id)
   }, [prefersReducedMotion])
-  const { scrollYProgress: heroScrollProgress } = useScroll({
-    target: heroRef,
-    offset: ['start start', 'end start'],
-  })
-  const heroOpacity = useTransform(heroScrollProgress, [0, 1], [1, prefersReducedMotion ? 1 : 0.2])
-  const heroScale = useTransform(heroScrollProgress, [0, 1], [1, prefersReducedMotion ? 1 : 0.94])
 
   useEffect(() => {
+    if (eventsLoading) return
     const fetchStats = async () => {
+      const localVerifs = Number(localStorage.getItem('vt_verifs_count') || 0)
+      let globalVerifs = 0
       try {
-        const provider = new ethers.JsonRpcProvider(ARBITRUM_SEPOLIA.rpcUrl)
-        const logs = await provider.getLogs({
-          address: CONTRACT_ADDRESS,
-          fromBlock: 0,
-          toBlock: 'latest',
-        })
-        const uniqueHashes = new Set(logs.map(l => l.topics[1]).filter(Boolean))
-        const localVerifs = Number(localStorage.getItem('vt_verifs_count') || 0)
-
-        let globalVerifs = 0
-        try {
-          const res = await fetch(`${CORE_BACKEND_API}/api/v1/stats`)
-          if (res.ok) {
-            const data = await res.json()
-            globalVerifs = data.inspections_count || 0
-          }
-        } catch {}
-
-        setStats({
-          registered: uniqueHashes.size || 15,
-          verifications: Math.max(globalVerifs, 148 + localVerifs),
-          onchain: logs.length || 20,
-          loading: false,
-        })
-      } catch {
-        const localVerifs = Number(localStorage.getItem('vt_verifs_count') || 0)
-        setStats({ registered: 15, verifications: 148 + localVerifs, onchain: 20, loading: false })
-      }
+        const res = await fetch(`${CORE_BACKEND_API}/api/v1/stats`)
+        if (res.ok) {
+          const data = await res.json()
+          globalVerifs = data.inspections_count || 0
+        }
+      } catch {}
+      const unique = new Set(events.map(e => e.sha256).filter(Boolean)).size
+      setStats({
+        registered: unique || 15,
+        verifications: Math.max(globalVerifs, 148 + localVerifs),
+        onchain: events.length || 20,
+        loading: false,
+      })
     }
     fetchStats()
-  }, [])
+  }, [events, eventsLoading])
 
   return (
     <>
       {/* ════ HERO ════ */}
-      <section ref={heroRef} className="home-proof-hero relative z-0">
-        <HeroMeshBackground />
-        <FloatingParticles />
+      <section className="home-hero">
+        <div className="relative max-w-[1280px] mx-auto px-5 pt-12 pb-12 md:pt-16 md:pb-14 grid grid-cols-1 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,.95fr)] gap-10 lg:gap-12 items-center">
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}>
+            <div className="flex items-center gap-2 mb-5">
+              <span className="chip !text-[var(--accent)] !border-[var(--accent-border)] !bg-[var(--accent-bg)]"><ArbitrumLogo size={10} /> Arbitrum Sepolia</span>
+              <span className="chip">Stylus · Rust</span>
+              <span className="chip hidden sm:inline-flex">ERC-721 proofs</span>
+            </div>
 
-        <motion.div
-          className="max-w-[720px] mx-auto px-5 relative z-10 text-center"
-          style={{ opacity: heroOpacity, scale: heroScale, willChange: 'transform, opacity' }}
-        >
-          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }} className="flex flex-col items-center text-center">
-            {/* Main heading */}
-            <h1 className="text-5xl sm:text-6xl md:text-7xl font-extrabold tracking-tight leading-[1.1] mb-6 text-[var(--text)] w-full">
-              <span className="block mb-1 gradient-arb-animated">Prove what's real.</span>
-              <span className="block text-[var(--text-2)]">Trace what's not.</span>
+            <h1 className="home-title mb-5">
+              Prove what's real.<br />
+              <span className="muted">Trace what's not.</span>
             </h1>
 
-            {/* Subtitle */}
-            <motion.p
-              className="text-base sm:text-lg text-[var(--text-2)] max-w-2xl leading-relaxed mb-8"
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-            >
+            <p className="text-[15px] sm:text-base text-[var(--text-2)] max-w-[34rem] leading-relaxed mb-7 m-0">
               Turn every original into a durable, independently verifiable record. Establish ownership, surface derivatives, and protect trust across the open web.
-            </motion.p>
+            </p>
 
-            {/* CTA buttons */}
-            <motion.div
-              className="flex gap-3 justify-center flex-wrap"
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.55 }}
-            >
-              <MagneticButton>
-                <Link to="/register">
-                  <Button variant="primary" size="lg" className="shadow-[0_0_30px_rgba(var(--accent-rgb),0.2)] hover:shadow-[0_0_40px_rgba(var(--accent-rgb),0.35)] transition-shadow duration-300">
-                    <FilePlus size={18} /> Create a proof
-                  </Button>
-                </Link>
-              </MagneticButton>
-              <MagneticButton strength={0.2}>
-                <Link to="/verify">
-                  <Button variant="outline" size="lg">
-                    <Search size={18} /> Inspect a file
-                  </Button>
-                </Link>
-              </MagneticButton>
-            </motion.div>
-
-            {/* Search bar */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.7 }}
-              className="w-full max-w-2xl mt-10"
-            >
-              <div className="flex glass rounded-2xl overflow-hidden border border-[var(--border)] hover:border-[var(--accent)] transition-all duration-300 hover:shadow-[0_0_20px_rgba(var(--accent-rgb),0.1)]">
-                <SearchFilterDropdown value={searchFilter} onChange={setSearchFilter} />
-                <input type="text" placeholder="Search a proof, wallet, or transaction" spellCheck="false" autoComplete="off" className="flex-1 px-4 py-3.5 text-sm bg-transparent outline-none font-mono text-[var(--text)] placeholder:text-[var(--text-4)] placeholder:font-sans min-w-0" />
-                <Button variant="primary" className="rounded-none px-5"><Search size={18} /></Button>
-              </div>
-            </motion.div>
-          </motion.div>
-        </motion.div>
-
-      </section>
-
-      {/* ════ STATS ════ */}
-      <ScrollReveal variant="fade-up" className="relative z-20">
-        <section className="max-w-[1280px] mx-auto px-5 -mt-8 relative z-10">
-          <Card className="overflow-hidden card-hover-glow">
-            <div className="grid grid-cols-1 sm:grid-cols-3">
-              <StatItem icon={<FilePlus size={20} />} color="var(--accent)" label="Proofs committed" value={stats.loading ? '...' : stats.registered} suffix="synced" />
-              <StatItem icon={<Eye size={20} />} color="var(--success-text)" label="Inspections run" value={stats.loading ? '...' : stats.verifications} suffix="tracked" border />
-              <StatItem icon={<Shield size={20} />} color="var(--accent-dark)" label="Block anchors" value={stats.loading ? '...' : stats.onchain} suffix="confirmed" />
+            <div className="flex gap-2.5 flex-wrap mb-7">
+              <Link to="/register" className="inline-flex">
+                <Button variant="primary" size="lg" as="span"><FilePlus size={16} /> Create a proof</Button>
+              </Link>
+              <Link to="/verify" className="inline-flex">
+                <Button variant="outline" size="lg" as="span"><Search size={16} /> Inspect a file</Button>
+              </Link>
             </div>
-          </Card>
-        </section>
-      </ScrollReveal>
 
-      {/* ════ INTEGRITY DASHBOARD ════ */}
-      <ScrollReveal variant="fade-up" delay={0.1} className="relative z-10">
-        <section className="max-w-[1280px] mx-auto px-5 pt-5">
-          <Card className="integrity-readout card-hover-glow overflow-hidden">
-            <CardBody className="p-0 grid grid-cols-1 lg:grid-cols-[1.2fr_2fr]">
-              <div className="p-5 lg:p-6 border-b lg:border-b-0 lg:border-r border-[var(--border)]">
-                <div className="flex items-center gap-2 text-[var(--success-text)] text-[11px] font-extrabold tracking-[.14em] uppercase"><span className="live-dot" /> Integrity dashboard</div>
-                <div className="text-xl font-bold tracking-tight mt-2 text-[var(--text)]">Registry health: operational</div>
-                <p className="text-xs text-[var(--text-3)] mt-1.5 leading-relaxed">Forensic services, evidence storage, and block anchoring are available for proof creation and inspection.</p>
+            <div className="max-w-[36rem]">
+              <div className="hero-search">
+                <SearchFilterDropdown value={searchFilter} onChange={setSearchFilter} />
+                <input type="text" placeholder="Search a proof, wallet, or transaction" spellCheck="false" autoComplete="off" aria-label="Search the registry" />
+                <button type="button" className="px-4 border-l border-[var(--border)] text-[var(--text-2)] hover:text-[var(--accent)] hover:bg-[var(--surface-2)]" aria-label="Search">
+                  <Search size={16} />
+                </button>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-3">
-                <IntegritySignal icon={<Radio size={16} />} label="Registry listener" value="Synced" detail="Event index online" color="var(--accent)" />
-                <IntegritySignal icon={<Fingerprint size={16} />} label="Exact evidence" value="SHA-256" detail="Byte-level proof" color="var(--accent-2)" />
-                <IntegritySignal icon={<CheckCircle2 size={16} />} label="Fuzzy evidence" value="pHash ready" detail="Derivative detection" color="var(--success-text)" />
-              </div>
-            </CardBody>
-          </Card>
-        </section>
-      </ScrollReveal>
+            </div>
+          </motion.div>
 
-      {/* ════ SHAZAM-INSPIRED 3D PERSPECTIVE CAROUSEL & AMBIENT GLOW ════ */}
-      <ScrollReveal variant="fade-up">
-        <section className="my-8">
-          <ShazamHero3DCarousel />
-        </section>
-      </ScrollReveal>
-
-      <SectionDivider />
-
-      {/* ════ ON-CHAIN VERIFICATION WORKFLOW ANIMATION ════ */}
-      <ScrollReveal variant="fade-up">
-        <section className="max-w-[1280px] mx-auto px-5 py-16">
-          <div className="text-center mb-10">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-            >
-              <Badge variant="arb" className="mb-3"><Zap size={12} /> Live Workflow</Badge>
-            </motion.div>
-            <h2 className="text-3xl font-extrabold mb-2 text-[var(--text)]">One file. A complete chain of trust.</h2>
-            <p className="text-sm text-[var(--text-3)]">From a private upload to a public, tamper-evident record—without adding friction to your workflow.</p>
-          </div>
-
-          <ParallaxSection speed={0.06}>
-            <Card className="p-6 sm:p-8 xl:p-10 overflow-hidden relative card-hover-glow">
-              <ParticleField density={28} />
-
-              {/* Workflow nodes — one continuous chain, no matter how it wraps */}
-              <div className="relative flex flex-col xl:flex-row xl:items-start">
-                {WORKFLOW_STEPS.map((s, i) => (
-                  <Fragment key={s.label}>
-                    <WorkflowNode icon={<s.Icon size={24} />} label={s.label} desc={s.desc} color={s.color} step={i + 1} isActive={i === activeWorkflowNode} />
-                    {i < WORKFLOW_STEPS.length - 1 && <WorkflowConnector isActive={i === activeWorkflowConnector} />}
-                  </Fragment>
-                ))}
-              </div>
-            </Card>
-          </ParallaxSection>
-        </section>
-      </ScrollReveal>
-
-      <SectionDivider />
-
-      {/* ════ FEATURE CARDS ════ */}
-      <section className="max-w-[1280px] mx-auto px-5 py-12">
-        <ScrollRevealGroup variant="fade-up" stagger={0.12}>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-stretch">
-            <FeatureCard to="/register" icon={<FilePlus size={22} />} color="var(--accent)" title="Create a proof" description="Fingerprint your work and commit a clear ownership signal to Arbitrum in a single guided flow." cta="Start registration" />
-            <FeatureCard to="/verify" icon={<Search size={22} />} color="var(--success-text)" title="Inspect authenticity" description="Check for exact matches, visual derivatives, and provenance signals before you trust a file." cta="Run verification" />
-            <FeatureCard href={`${ARBITRUM_SEPOLIA.explorer}/address/${CONTRACT_ADDRESS}`} icon={<Shield size={22} />} color="var(--accent-dark)" title="Public by design" description="Every registration is time-stamped and independently auditable through an on-chain registry." cta="View the contract" />
-          </div>
-        </ScrollRevealGroup>
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.12, ease: [0.22, 1, 0.36, 1] }} className="w-full lg:justify-self-end max-w-[520px]">
+            <ChainConsole events={events} loading={eventsLoading} />
+          </motion.div>
+        </div>
       </section>
 
-      <SectionDivider />
+      {/* ════ STATS + INTEGRITY ════ */}
+      <section className="max-w-[1280px] mx-auto px-5">
+        <div className="grid grid-cols-1 xl:grid-cols-[1fr_1.15fr] gap-3 pt-5">
+          <div className="stat-row">
+            <StatCell label="Proofs committed" value={stats.loading ? null : stats.registered} suffix="synced" icon={<FilePlus size={13} />} />
+            <StatCell label="Inspections run" value={stats.loading ? null : stats.verifications} suffix="tracked" icon={<Eye size={13} />} />
+            <StatCell label="Block anchors" value={stats.loading ? null : stats.onchain} suffix="confirmed" icon={<Shield size={13} />} />
+          </div>
 
+          <div className="panel overflow-hidden grid grid-cols-1 md:grid-cols-[1.05fr_2fr]">
+            <div className="p-4 md:p-5 border-b md:border-b-0 md:border-r border-[var(--border)]">
+              <div className="kicker"><span className="live-dot" aria-hidden="true" /> Integrity dashboard</div>
+              <div className="text-base font-semibold mt-2 text-[var(--text)]">Registry health: operational</div>
+              <p className="text-xs text-[var(--text-3)] mt-1 leading-relaxed m-0">Forensic services, evidence storage, and block anchoring are available for proof creation and inspection.</p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3">
+              <IntegritySignal icon={<Radio size={13} />} label="Registry listener" value="Synced" detail="Event index online" />
+              <IntegritySignal icon={<Fingerprint size={13} />} label="Exact evidence" value="SHA-256" detail="Byte-level proof" />
+              <IntegritySignal icon={<CheckCircle2 size={13} />} label="Fuzzy evidence" value="pHash ready" detail="Derivative detection" />
+            </div>
+          </div>
+        </div>
+      </section>
 
+      {/* ════ EVIDENCE LAYERS ════ */}
+      <ScrollReveal>
+        <section className="py-16 md:py-20">
+          <EvidenceLayers />
+        </section>
+      </ScrollReveal>
+
+      {/* ════ PIPELINE ════ */}
+      <ScrollReveal>
+        <section className="max-w-[1280px] mx-auto px-5 pb-16 md:pb-20">
+          <div className="section-rule"><span className="kicker kicker-accent"><span className="live-dot" aria-hidden="true" /> Live workflow</span></div>
+          <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)] gap-4 md:gap-10 mb-7 items-end">
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-[var(--text)] leading-[1.05]">One file. A complete chain of trust.</h2>
+            <p className="text-sm text-[var(--text-2)] leading-relaxed m-0 max-w-xl">From a private upload to a public, tamper-evident record—without adding friction to your workflow.</p>
+          </div>
+
+          <ol className="custody-log list-none m-0 p-0">
+            {WORKFLOW_STEPS.map((s, i) => (
+              <li key={s.label} className={cn('custody-step', i === activeStep && 'is-active', activeStep > -1 && i < activeStep && 'is-done')}>
+                <span className="custody-index">{String(i + 1).padStart(2, '0')}</span>
+                <div>
+                  <span className="custody-icon mb-2.5"><s.Icon size={15} /></span>
+                  <div className="font-semibold text-sm text-[var(--text)]">{s.label}</div>
+                  <div className="text-xs text-[var(--text-3)]">{s.desc}</div>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </section>
+      </ScrollReveal>
+
+      {/* ════ WHAT YOU CAN DO ════ */}
+      <ScrollReveal>
+        <section className="max-w-[1280px] mx-auto px-5 pb-16 md:pb-20">
+          <div className="section-rule"><span className="kicker">What you can do</span></div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <FeatureRow to="/register" icon={<FilePlus size={16} />} title="Create a proof" description="Fingerprint your work and commit a clear ownership signal to Arbitrum in a single guided flow." cta="Start registration" />
+            <FeatureRow to="/verify" icon={<Search size={16} />} title="Inspect authenticity" description="Check for exact matches, visual derivatives, and provenance signals before you trust a file." cta="Run verification" />
+            <FeatureRow href={`${ARBITRUM_SEPOLIA.explorer}/address/${CONTRACT_ADDRESS}`} icon={<Shield size={16} />} title="Public by design" description="Every registration is time-stamped and independently auditable through an on-chain registry." cta="View the contract" />
+          </div>
+        </section>
+      </ScrollReveal>
 
       {/* ════ SUPPORTED FORMATS ════ */}
-      <ScrollReveal variant="fade-up">
-        <section className="max-w-[1280px] mx-auto px-5 py-12">
-          <Card className="card-hover-glow">
-            <div className="px-5 py-4 border-b border-[var(--border-2)]">
-              <h2 className="text-sm font-bold flex items-center gap-2 text-[var(--text)]"><Database size={16} className="text-[var(--accent)]" /> Supported File Formats</h2>
-            </div>
-            <CardBody>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                {Object.entries(SUPPORTED_FILES).map(([key, cat]) => (
-                  <div key={key} className="format-preview-card">
-                    <FormatPreview type={key} />
-                    <div className="min-w-0 flex-1">
-                      <div className="font-semibold text-sm mb-2 text-[var(--text)]">{cat.label}</div>
-                      <div className="flex flex-wrap gap-1.5">
-                        {cat.extensions.map(ext => (
-                          <span key={ext} className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[var(--bg-2)] border border-[var(--border)] text-[var(--text-3)]">{ext}</span>
-                        ))}
-                      </div>
+      <ScrollReveal>
+        <section className="max-w-[1280px] mx-auto px-5 pb-16 md:pb-20">
+          <div className="section-rule"><span className="kicker">Supported file formats</span></div>
+          <div className="panel grid grid-cols-1 sm:grid-cols-3 overflow-hidden">
+            {Object.entries(SUPPORTED_FILES).map(([key, cat], i) => {
+              const Icon = FORMAT_ICONS[key] || FileText
+              return (
+                <div key={key} className={cn('flex items-start gap-4 p-5', i > 0 && 'border-t sm:border-t-0 sm:border-l border-[var(--border)]')}>
+                  <span className="w-10 h-10 rounded-[8px] border border-[var(--border-2)] bg-[var(--surface-2)] flex items-center justify-center text-[var(--accent)] flex-shrink-0">
+                    <Icon size={18} />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="font-semibold text-sm mb-2 text-[var(--text)]">{cat.label}</div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {cat.extensions.map(ext => <span key={ext} className="chip">{ext}</span>)}
                     </div>
                   </div>
-                ))}
-              </div>
-            </CardBody>
-          </Card>
+                </div>
+              )
+            })}
+          </div>
         </section>
       </ScrollReveal>
 
       {/* ════ BOTTOM CTA ════ */}
-      <ScrollReveal variant="zoom">
-        <section className="max-w-[1280px] mx-auto px-5 pb-16">
-          <MouseTiltCard className="cta-glow-ring cta-glass-card relative overflow-hidden rounded-3xl">
-            {/* layered blurred depth blobs */}
-            <div className="absolute -top-24 -left-16 w-72 h-72 rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(var(--accent-rgb),0.30), transparent 70%)', filter: 'blur(10px)' }} />
-            <div className="absolute -bottom-32 right-12 w-64 h-64 rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(var(--accent-rgb),0.22), transparent 70%)', filter: 'blur(10px)' }} />
-
-            <div className="relative grid grid-cols-1 md:grid-cols-[1.3fr_1fr] items-center gap-8 md:gap-10 p-8 sm:p-12">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6 }}
-                className="text-center md:text-left"
-              >
-                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full mb-4 border border-[var(--accent)]/25" style={{ background: 'rgba(var(--accent-rgb),0.10)' }}>
-                  <span className="w-1.5 h-1.5 rounded-full" style={{ background: 'var(--success-text)', boxShadow: '0 0 8px var(--success-text)' }} />
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--accent-dark)]">Open registry</span>
-                </div>
-
-                <h2 className="text-2xl sm:text-3xl font-extrabold mb-3 text-[var(--text)] leading-tight">Ready to anchor your first proof?</h2>
-                <p className="text-sm text-[var(--text-3)] max-w-lg mx-auto md:mx-0 mb-6">Join the open registry. Every proof you create is permanently verifiable and tamper-evident.</p>
-                <div className="flex gap-3 justify-center md:justify-start flex-wrap">
-                  <MagneticButton>
-                    <Link to="/register">
-                      <Button variant="primary" size="lg" className="shadow-[0_10px_24px_-6px_rgba(var(--accent-rgb),0.5)]">
-                        <Sparkles size={18} /> Get started
-                      </Button>
-                    </Link>
-                  </MagneticButton>
-                  <Link to="/verify">
-                    <Button variant="outline" size="lg">
-                      <Search size={18} /> Try verification
-                    </Button>
-                  </Link>
-                </div>
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, scale: 0.85 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: 0.15 }}
-                className="flex items-center justify-center"
-              >
-                <VerificationSeal />
-              </motion.div>
+      <ScrollReveal>
+        <section className="max-w-[1280px] mx-auto px-5 pb-6">
+          <div className="ink-panel grid grid-cols-1 md:grid-cols-[1.3fr_1fr] gap-8 md:gap-10 p-7 sm:p-10">
+            <div>
+              <div className="kicker mb-4"><span className="live-dot" aria-hidden="true" /> Open registry</div>
+              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight leading-[1.05] mb-3">Ready to anchor your first proof?</h2>
+              <p className="text-sm max-w-lg mb-6 m-0 opacity-80">Join the open registry. Every proof you create is permanently verifiable and tamper-evident.</p>
+              <div className="flex gap-2.5 flex-wrap">
+                <Link to="/register" className="inline-flex"><Button variant="primary" size="lg" as="span"><FilePlus size={16} /> Get started</Button></Link>
+                <Link to="/verify" className="inline-flex"><Button variant="outline" size="lg" as="span"><Search size={16} /> Try verification</Button></Link>
+              </div>
             </div>
-          </MouseTiltCard>
+
+            <dl className="ink-dl m-0 font-mono text-xs self-center rounded-[10px]">
+              <div className="grid grid-cols-[6rem_1fr] gap-3 px-4 py-3">
+                <dt className="kicker">Network</dt>
+                <dd className="m-0 flex items-center gap-1.5"><ArbitrumLogo size={11} /> {ARBITRUM_SEPOLIA.name}</dd>
+              </div>
+              <div className="grid grid-cols-[6rem_1fr] gap-3 px-4 py-3">
+                <dt className="kicker">Chain ID</dt>
+                <dd className="m-0">{ARBITRUM_SEPOLIA.chainId}</dd>
+              </div>
+              <div className="grid grid-cols-[6rem_1fr] gap-3 px-4 py-3">
+                <dt className="kicker">Contract</dt>
+                <dd className="m-0 break-all">
+                  <a href={`${ARBITRUM_SEPOLIA.explorer}/address/${CONTRACT_ADDRESS}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-start gap-1.5 hover:underline underline-offset-4">
+                    {CONTRACT_ADDRESS} <ExternalLink size={11} className="mt-0.5 flex-shrink-0" />
+                  </a>
+                </dd>
+              </div>
+            </dl>
+          </div>
         </section>
       </ScrollReveal>
     </>
+  )
+}
+
+/* ─── Chain console: head block + anchor blocks + the latest proofs from the contract ─── */
+function ChainConsole({ events, loading }) {
+  const { block: head } = useChainStatus(8000)
+  const latest = events.slice(0, 5)
+  const anchorBlocks = [...new Set(events.map(e => e.blockNumber))].slice(0, 7).reverse()
+  const cells = [...anchorBlocks.map(b => ({ n: b, proof: true })), { n: head, head: true }]
+
+  return (
+    <div className="panel overflow-hidden">
+      <div className="panel-head">
+        <span className="kicker kicker-accent"><span className="live-dot" aria-hidden="true" /> Latest anchored proofs</span>
+        <span className="font-mono text-[10.5px] text-[var(--text-4)]">ContentRegistered · {ARBITRUM_SEPOLIA.name}</span>
+      </div>
+
+      <div className="px-4 pt-4 pb-3 border-b border-[var(--border)]">
+        <div className="flex items-center justify-between mb-2.5">
+          <span className="kicker"><Blocks size={12} /> Anchor blocks</span>
+          <span className="font-mono text-[10.5px] text-[var(--text-3)]">head <b className="text-[var(--success-text)] font-medium tnum">{head ? `#${head.toLocaleString()}` : '…'}</b></span>
+        </div>
+        <div className="block-strip" aria-label="Recent blocks containing registry events">
+          {cells.map((c, i) => (
+            <div key={i} className={cn('block-cell', c.proof && 'has-proof', c.head && 'is-head')} title={c.n ? `Block #${c.n}` : ''}>
+              <span className="block-mark" />
+              <span className="block-num tnum">{c.n ? `#${String(c.n).slice(-6)}` : '······'}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        {loading && latest.length === 0 ? (
+          [0, 1, 2, 3, 4].map(i => (
+            <div key={i} className="feed-row">
+              <div className="skeleton w-[1.4rem] h-[1.4rem] !rounded-full" />
+              <div><div className="skeleton h-3 w-2/3 mb-1.5" /><div className="skeleton h-2.5 w-1/3" /></div>
+              <div className="skeleton h-4 w-16" />
+            </div>
+          ))
+        ) : latest.length === 0 ? (
+          <div className="px-4 py-6 text-xs text-[var(--text-3)]">No registrations found yet.</div>
+        ) : (
+          latest.map((e) => (
+            <a key={e.txHash} href={`${ARBITRUM_SEPOLIA.explorer}/tx/${e.txHash}`} target="_blank" rel="noopener noreferrer" className="feed-row" title={e.sha256}>
+              <Identicon address={e.creator} size={22} />
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="feed-hash truncate">{shortHex(e.sha256, 10, 6)}</span>
+                  {e.aiTool ? <Badge variant="warning">{e.aiTool}</Badge> : <Badge variant="success">Authentic</Badge>}
+                </div>
+                <div className="feed-meta mt-0.5">by {shortHex(e.creator)} · block #{e.blockNumber.toLocaleString()} · {timeAgo(e.timestamp)}</div>
+              </div>
+              <span className="chip !text-[var(--success-text)] !border-[var(--success-border)] !bg-[var(--success-bg)]"><CheckCircle2 size={10} /> Confirmed</span>
+            </a>
+          ))
+        )}
+      </div>
+
+      <Link to="/library" className="flex items-center justify-between px-4 py-2.5 border-t border-[var(--border)] bg-[var(--surface-2)] text-xs font-medium text-[var(--accent)] hover:bg-[var(--row-hover)] rounded-b-[12px]">
+        Open the full ledger <ArrowRight size={13} />
+      </Link>
+    </div>
   )
 }
 
@@ -660,7 +324,7 @@ function SearchFilterDropdown({ value, onChange }) {
   const toggleOpen = () => {
     if (!open && buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect()
-      setMenuRect({ top: rect.bottom + 8, left: rect.left })
+      setMenuRect({ top: rect.bottom + 6, left: rect.left })
     }
     setOpen(v => !v)
   }
@@ -683,14 +347,14 @@ function SearchFilterDropdown({ value, onChange }) {
         type="button"
         onClick={toggleOpen}
         className={cn(
-          'flex items-center gap-1.5 px-4 py-3.5 text-sm font-semibold border-r border-[var(--border)] transition-colors outline-none whitespace-nowrap h-full',
-          open ? 'text-[var(--accent)] bg-[var(--arb-bg)]' : 'text-[var(--text-2)] bg-[var(--bg-2)] hover:text-[var(--text)] hover:bg-[var(--bg-3)]'
+          'flex items-center gap-1.5 px-3.5 h-full text-xs font-medium border-r border-[var(--border)] whitespace-nowrap bg-[var(--surface-2)]',
+          open ? 'text-[var(--text)]' : 'text-[var(--text-2)] hover:text-[var(--text)]'
         )}
         aria-haspopup="listbox"
         aria-expanded={open}
       >
         {current.label}
-        <ChevronDown size={14} className={cn('transition-transform flex-shrink-0', open ? 'text-[var(--accent)] rotate-180' : 'text-[var(--text-3)]')} />
+        <ChevronDown size={13} className={cn('transition-transform flex-shrink-0 text-[var(--text-3)]', open && 'rotate-180')} />
       </button>
 
       {createPortal(
@@ -700,12 +364,12 @@ function SearchFilterDropdown({ value, onChange }) {
               <div className="fixed inset-0 z-[998]" onClick={() => setOpen(false)} />
               <motion.div
                 role="listbox"
-                initial={{ opacity: 0, y: -8, scale: 0.98 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -8, scale: 0.98 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                style={{ position: 'fixed', top: menuRect.top, left: menuRect.left }}
-                className="w-48 glass rounded-xl shadow-xl p-1.5 z-[999] origin-top-left"
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: .15 }}
+                style={{ position: 'fixed', top: menuRect.top, left: menuRect.left, boxShadow: 'var(--shadow-lg)' }}
+                className="w-44 bg-[var(--surface)] border border-[var(--border-2)] rounded-[8px] p-1 z-[999]"
               >
                 {SEARCH_FILTER_OPTIONS.map((opt) => (
                   <button
@@ -715,10 +379,8 @@ function SearchFilterDropdown({ value, onChange }) {
                     aria-selected={opt.value === value}
                     onClick={() => { onChange(opt.value); setOpen(false) }}
                     className={cn(
-                      'w-full text-left px-3 py-2 text-sm rounded-lg transition-colors border-none',
-                      opt.value === value
-                        ? 'text-[var(--accent)] bg-[var(--arb-bg)] font-semibold'
-                        : 'text-[var(--text-2)] hover:bg-[var(--bg-2)] hover:text-[var(--text)]'
+                      'w-full text-left px-2.5 py-2 text-sm rounded-[6px]',
+                      opt.value === value ? 'text-[var(--text)] bg-[var(--bg-2)] font-medium' : 'text-[var(--text-2)] hover:bg-[var(--bg-2)] hover:text-[var(--text)]'
                     )}
                   >
                     {opt.label}
@@ -734,228 +396,44 @@ function SearchFilterDropdown({ value, onChange }) {
   )
 }
 
-/* ─── Mouse-tilt interactive proof preview card, for the bottom CTA ─── */
-/* ─── Abstract verification-seal illustration for the CTA card ─── */
-function VerificationSeal() {
-  return (
-    <svg width="200" height="200" viewBox="0 0 220 220" style={{ filter: 'drop-shadow(0 12px 30px rgba(var(--accent-rgb),0.35))' }}>
-      <circle cx="110" cy="110" r="95" fill="none" stroke="rgba(var(--accent-rgb),0.15)" strokeWidth="1.5" />
-      <circle cx="110" cy="110" r="75" fill="none" stroke="rgba(var(--accent-rgb),0.28)" strokeWidth="1.5" strokeDasharray="6 8" style={{ transformOrigin: '110px 110px', animation: 'proof-orbit 20s linear infinite' }} />
-      <circle cx="110" cy="110" r="55" fill="url(#veritrace-seal-grad)" />
-      <path d="M92 110l13 13 24-26" fill="none" stroke="#ffffff" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
-      <defs>
-        <linearGradient id="veritrace-seal-grad" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="var(--accent-light)" />
-          <stop offset="1" stopColor="var(--accent-dark)" />
-        </linearGradient>
-      </defs>
-    </svg>
-  )
-}
-
-function MouseTiltCard({ children, className = '', maxTilt = 4 }) {
-  const cardRef = useRef(null)
-  const prefersReducedMotion = useReducedMotion()
-  const rotateX = useMotionValue(0)
-  const rotateY = useMotionValue(0)
-  const springRotateX = useSpring(rotateX, { stiffness: 150, damping: 20 })
-  const springRotateY = useSpring(rotateY, { stiffness: 150, damping: 20 })
-
-  const handleMouseMove = (e) => {
-    if (!cardRef.current || prefersReducedMotion) return
-    const rect = cardRef.current.getBoundingClientRect()
-    const px = (e.clientX - rect.left) / rect.width - 0.5
-    const py = (e.clientY - rect.top) / rect.height - 0.5
-    rotateY.set(px * maxTilt * 2)
-    rotateX.set(py * -maxTilt * 2)
-  }
-
-  const handleMouseLeave = () => {
-    rotateX.set(0)
-    rotateY.set(0)
-  }
-
-  return (
-    <motion.div
-      ref={cardRef}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      style={{ rotateX: springRotateX, rotateY: springRotateY, transformPerspective: 1200, willChange: 'transform' }}
-      className={className}
-    >
-      {children}
-    </motion.div>
-  )
-}
-
 /* ════ Helper components ════ */
 
-function FormatPreview({ type }) {
-  if (type === 'image') return (
-    <div className="format-preview format-image" aria-label="Image preview">
-      <div className="format-sun" />
-      <div className="format-mountain format-mountain-one" />
-      <div className="format-mountain format-mountain-two" />
-      <ImageIcon size={14} className="format-preview-icon" />
-    </div>
-  )
-  if (type === 'video') return (
-    <div className="format-preview format-video" aria-label="Video preview">
-      <div className="format-video-frame"><div /><div /><div /></div>
-      <span className="format-play"><Play size={11} fill="currentColor" /></span>
-      <div className="format-timeline"><span /></div>
-      <Video size={14} className="format-preview-icon" />
-    </div>
-  )
+function StatCell({ icon, label, value, suffix }) {
   return (
-    <div className="format-preview format-document" aria-label="Document preview">
-      <div className="format-document-sheet"><span /><span /><span /><span /></div>
-      <FileText size={14} className="format-preview-icon" />
-      <div className="format-document-seal" />
-    </div>
-  )
-}
-
-function StatItem({ icon, color, label, value, suffix, border }) {
-  return (
-    <div className={`flex items-center gap-3 px-5 py-4 ${border ? 'sm:border-l sm:border-r border-[var(--border)]' : ''}`}>
-      <div className="flex-shrink-0 icon-idle-float">
-        <motion.div
-          className="w-10 h-10 rounded-full flex items-center justify-center"
-          style={{ background: `${color}15`, color }}
-          whileHover={{ scale: 1.1, boxShadow: `0 0 16px ${color}40` }}
-          transition={{ type: 'spring', stiffness: 400, damping: 15 }}
-        >
-          {icon}
-        </motion.div>
+    <div className="stat-cell">
+      <div className="kicker mb-3"><span className="text-[var(--accent)]">{icon}</span>{label}</div>
+      <div className="stat-value">
+        {value === null ? <span className="text-[var(--text-4)]">···</span> : <CounterUp value={value} />}
       </div>
-      <div>
-        <div className="text-[11px] font-semibold uppercase tracking-wider text-[var(--text-3)] mb-0.5">{label}</div>
-        <div className="text-xl font-bold text-[var(--text)]">
-          {typeof value === 'number' ? <CounterUp value={value} /> : value}
-          <span className="text-[11px] font-normal text-[var(--text-4)] ml-1">{suffix}</span>
-        </div>
-      </div>
+      <div className="font-mono text-[11px] text-[var(--text-4)] mt-1.5">{suffix}</div>
     </div>
   )
 }
 
-function IntegritySignal({ icon, label, value, detail, color }) {
+function IntegritySignal({ icon, label, value, detail }) {
   return (
-    <motion.div
-      className="integrity-signal px-5 py-5 border-b sm:border-b-0 sm:border-r last:border-r-0 border-[var(--border)] h-full flex flex-col justify-center"
-      whileHover={{ backgroundColor: `rgba(var(--accent-rgb),0.05)` }}
-      transition={{ duration: 0.2 }}
-    >
-      <div className="flex items-center gap-2 text-[var(--text-3)] text-[11px] font-semibold uppercase tracking-wider"><span style={{ color }}>{icon}</span>{label}</div>
-      <div className="text-sm font-bold text-[var(--text)] mt-2">{value}</div>
-      <div className="text-[11px] text-[var(--text-4)] mt-0.5">{detail}</div>
-    </motion.div>
+    <div className="px-4 py-4 border-b sm:border-b-0 sm:border-r last:border-r-0 last:border-b-0 border-[var(--border)] flex flex-col justify-center">
+      <div className="kicker"><span className="text-[var(--accent)]">{icon}</span>{label}</div>
+      <div className="text-sm font-semibold text-[var(--text)] mt-2">{value}</div>
+      <div className="text-[11px] text-[var(--text-3)] mt-0.5">{detail}</div>
+    </div>
   )
 }
 
-function FeatureCard({ to, href, icon, color, title, description, cta }) {
+function FeatureRow({ to, href, icon, title, description, cta }) {
   const content = (
-    <SpotlightCard className="h-full">
-      <Card hover className="h-full cursor-pointer group card-hover-glow card-border-animate flex flex-col">
-        <CardBody className="p-6 flex-1 flex flex-col">
-          <div className="mb-3 icon-idle-float">
-            <motion.div
-              className="w-11 h-11 rounded-xl flex items-center justify-center"
-              style={{ background: `color-mix(in srgb, ${color} 15%, transparent)`, color }}
-              whileHover={{ scale: 1.1, rotate: 5 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 15 }}
-            >
-              {icon}
-            </motion.div>
-          </div>
-          <h3 className="text-base font-bold mb-2 text-[var(--text)]">{title}</h3>
-          <p className="text-sm text-[var(--text-3)] leading-relaxed flex-1">{description}</p>
-        </CardBody>
-        <CardFooter className="text-[var(--accent)] group-hover:bg-[var(--arb-bg)] transition-colors mt-auto">
-          {cta} <ArrowRight size={14} className="ml-1 group-hover:translate-x-1 transition-transform" />
-        </CardFooter>
-      </Card>
-    </SpotlightCard>
+    <>
+      <div className="p-6 flex-1">
+        <span className="w-9 h-9 rounded-[8px] border border-[var(--accent-border)] bg-[var(--accent-bg)] flex items-center justify-center text-[var(--accent)] mb-4">{icon}</span>
+        <h3 className="text-lg font-bold mb-1.5 text-[var(--text)] tracking-tight">{title}</h3>
+        <p className="text-sm text-[var(--text-2)] leading-relaxed m-0">{description}</p>
+      </div>
+      <div className="px-6 py-3 border-t border-[var(--border)] text-sm font-medium text-[var(--accent)] flex items-center gap-1.5 bg-[var(--surface-2)] rounded-b-[12px]">
+        {cta} <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" />
+      </div>
+    </>
   )
-
-  if (to) return <Link to={to} className="no-underline">{content}</Link>
-  return <a href={href} target="_blank" rel="noopener noreferrer" className="no-underline">{content}</a>
-}
-
-function WorkflowNode({ icon, label, desc, color, step, isActive }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.5, delay: step * 0.08, ease: [0.22, 1, 0.36, 1] }}
-      className="relative z-10 flex items-center gap-4 xl:flex-col xl:items-center xl:gap-0 xl:w-[148px] xl:shrink-0 xl:text-center"
-    >
-      <div className="relative shrink-0">
-        <motion.div
-          className="w-14 h-14 rounded-2xl flex items-center justify-center"
-          style={{ background: `color-mix(in srgb, ${color} 15%, transparent)`, color, border: `1px solid color-mix(in srgb, ${color} 40%, transparent)` }}
-          animate={{
-            scale: isActive ? [1, 1.1, 1.02] : 1,
-            boxShadow: isActive
-              ? [`0 0 0px color-mix(in srgb, ${color} 0%, transparent)`, `0 0 28px color-mix(in srgb, ${color} 70%, transparent)`, `0 0 12px color-mix(in srgb, ${color} 35%, transparent)`]
-              : '0 0 0px transparent',
-          }}
-          whileHover={{ scale: 1.08, boxShadow: `0 0 24px color-mix(in srgb, ${color} 50%, transparent)` }}
-          transition={{ duration: 0.7, ease: 'easeOut' }}
-        >
-          {icon}
-        </motion.div>
-        <motion.div
-          className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center text-white ring-2 ring-[var(--surface)]"
-          style={{ background: color }}
-          initial={{ scale: 0 }}
-          whileInView={{ scale: 1 }}
-          viewport={{ once: true }}
-          transition={{ type: 'spring', stiffness: 500, damping: 15, delay: step * 0.08 + 0.2 }}
-        >
-          {step}
-        </motion.div>
-      </div>
-      <div className="xl:mt-2.5">
-        <div className="font-bold text-sm transition-colors duration-300" style={{ color: isActive ? color : 'var(--text)' }}>{label}</div>
-        <div className="text-[11px] text-[var(--text-3)]">{desc}</div>
-      </div>
-    </motion.div>
-  )
-}
-
-/* Connects two adjacent WorkflowNodes with an animated dashed line + traveling dot.
-   Renders vertically while steps stack in a column (below xl), and horizontally once
-   they sit in a single row (xl+) — so every step is joined, with no gaps at any width.
-   The dot only plays while `isActive` is true, i.e. it's this segment's turn in the chain. */
-function WorkflowConnector({ isActive }) {
-  const lineStyle = { borderColor: isActive ? 'var(--accent)' : 'var(--border)' }
-  return (
-    <div className="relative flex-shrink-0 flex items-center justify-center w-full h-9 pl-7 xl:h-auto xl:w-auto xl:flex-1 xl:mt-7 xl:mx-1 xl:pl-0">
-      <div className="xl:hidden relative w-0 h-full border-l-2 border-dashed transition-colors duration-300" style={lineStyle}>
-        {isActive && (
-          <motion.span
-            key="v"
-            className="absolute left-1/2 w-1.5 h-1.5 rounded-full -translate-x-1/2 -translate-y-1/2 bg-[var(--accent)]"
-            initial={{ top: '0%', opacity: 0 }}
-            animate={{ top: '100%', opacity: [0, 1, 1, 0] }}
-            transition={{ duration: 0.5, ease: 'easeInOut' }}
-          />
-        )}
-      </div>
-      <div className="hidden xl:block relative w-full h-0 border-t-2 border-dashed transition-colors duration-300" style={lineStyle}>
-        {isActive && (
-          <motion.span
-            key="h"
-            className="absolute top-1/2 w-1.5 h-1.5 rounded-full -translate-y-1/2 -translate-x-1/2 bg-[var(--accent)]"
-            initial={{ left: '0%', opacity: 0 }}
-            animate={{ left: '100%', opacity: [0, 1, 1, 0] }}
-            transition={{ duration: 0.5, ease: 'easeInOut' }}
-          />
-        )}
-      </div>
-    </div>
-  )
+  const cls = 'panel group flex flex-col overflow-hidden hover:border-[var(--border-2)]'
+  if (to) return <Link to={to} className={cls}>{content}</Link>
+  return <a href={href} target="_blank" rel="noopener noreferrer" className={cls}>{content}</a>
 }

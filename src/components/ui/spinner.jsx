@@ -1,14 +1,14 @@
 import { cn } from '@/lib/utils'
 
-export function Spinner({ size = 24, className }) {
+const SIZES = { xs: 12, sm: 16, md: 22, lg: 32 }
+
+export function Spinner({ size = 22, className }) {
+  const px = typeof size === 'number' ? size : (SIZES[size] || 22)
   return (
-    <div
-      className={cn('animate-spin rounded-full border-2 border-[var(--bg-3)]', className)}
-      style={{
-        width: size,
-        height: size,
-        borderTopColor: 'var(--accent)',
-      }}
+    <span
+      className={cn('inline-block animate-spin rounded-full border-2 border-[var(--border-2)]', className)}
+      style={{ width: px, height: px, borderTopColor: 'var(--accent)' }}
+      aria-hidden="true"
     />
   )
 }

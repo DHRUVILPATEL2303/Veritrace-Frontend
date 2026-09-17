@@ -2,39 +2,17 @@ import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
 /**
- * ScrollReveal — wraps any content and animates it into view on scroll.
- *
- * @param {'fade-up'|'fade-down'|'fade-left'|'fade-right'|'zoom'|'blur'} variant
- * @param {number} delay — stagger delay in seconds
- * @param {number} duration — animation duration
- * @param {boolean} once — only animate once (default true)
+ * ScrollReveal — a quiet fade/rise as content enters the viewport.
+ * Kept deliberately small: 10px of travel, no blur, no scale.
  */
 
 const variants = {
-  'fade-up': {
-    hidden: { opacity: 0, y: 40, filter: 'blur(4px)', scale: 0.98 },
-    visible: { opacity: 1, y: 0, filter: 'blur(0px)', scale: 1 },
-  },
-  'fade-down': {
-    hidden: { opacity: 0, y: -40, filter: 'blur(4px)', scale: 0.98 },
-    visible: { opacity: 1, y: 0, filter: 'blur(0px)', scale: 1 },
-  },
-  'fade-left': {
-    hidden: { opacity: 0, x: -40, filter: 'blur(4px)' },
-    visible: { opacity: 1, x: 0, filter: 'blur(0px)' },
-  },
-  'fade-right': {
-    hidden: { opacity: 0, x: 40, filter: 'blur(4px)' },
-    visible: { opacity: 1, x: 0, filter: 'blur(0px)' },
-  },
-  zoom: {
-    hidden: { opacity: 0, scale: 0.88, filter: 'blur(4px)' },
-    visible: { opacity: 1, scale: 1, filter: 'blur(0px)' },
-  },
-  blur: {
-    hidden: { opacity: 0, filter: 'blur(8px)' },
-    visible: { opacity: 1, filter: 'blur(0px)' },
-  },
+  'fade-up': { hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0 } },
+  'fade-down': { hidden: { opacity: 0, y: -10 }, visible: { opacity: 1, y: 0 } },
+  'fade-left': { hidden: { opacity: 0, x: -10 }, visible: { opacity: 1, x: 0 } },
+  'fade-right': { hidden: { opacity: 0, x: 10 }, visible: { opacity: 1, x: 0 } },
+  zoom: { hidden: { opacity: 0 }, visible: { opacity: 1 } },
+  blur: { hidden: { opacity: 0 }, visible: { opacity: 1 } },
 }
 
 export function ScrollReveal({
@@ -42,9 +20,8 @@ export function ScrollReveal({
   className,
   variant = 'fade-up',
   delay = 0,
-  duration = 0.6,
   once = true,
-  amount = 0.15,
+  amount = 0.12,
   as = 'div',
   ...props
 }) {
@@ -56,15 +33,8 @@ export function ScrollReveal({
       whileInView="visible"
       viewport={{ once, amount }}
       variants={variants[variant] || variants['fade-up']}
-      transition={{
-        type: 'spring',
-        stiffness: 120,
-        damping: 22,
-        mass: 0.9,
-        delay,
-      }}
-      className={cn('transform-gpu', className)}
-      style={{ willChange: 'transform, opacity, filter' }}
+      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1], delay }}
+      className={cn(className)}
       {...props}
     >
       {children}
@@ -72,46 +42,15 @@ export function ScrollReveal({
   )
 }
 
-/**
- * ScrollRevealGroup — staggers multiple children with increasing delays.
- */
-export function ScrollRevealGroup({
-  children,
-  className,
-  variant = 'fade-up',
-  stagger = 0.1,
-  duration = 0.5,
-  once = true,
-  ...props
-}) {
-  const container = {
-    hidden: {},
-    visible: {
-      transition: {
-        staggerChildren: stagger,
-      },
-    },
-  }
-
+export function ScrollRevealGroup({ children, className, variant = 'fade-up', stagger = 0.08, once = true, ...props }) {
+  const container = { hidden: {}, visible: { transition: { staggerChildren: stagger } } }
   const item = variants[variant] || variants['fade-up']
 
   return (
-    <motion.div
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once, amount: 0.1 }}
-      variants={container}
-      className={cn('transform-gpu', className)}
-      {...props}
-    >
+    <motion.div initial="hidden" whileInView="visible" viewport={{ once, amount: 0.1 }} variants={container} className={cn(className)} {...props}>
       {Array.isArray(children)
         ? children.map((child, i) => (
-          <motion.div
-            key={i}
-            variants={item}
-            transition={{ type: 'spring', stiffness: 120, damping: 22, mass: 0.9 }}
-            className="transform-gpu"
-          >
+          <motion.div key={i} variants={item} transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}>
             {child}
           </motion.div>
         ))

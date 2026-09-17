@@ -1,173 +1,121 @@
 import { Link, useLocation } from 'react-router-dom'
-import { useState, useEffect, useRef } from 'react'
-import { motion, AnimatePresence, useScroll, useSpring } from 'framer-motion'
+import { useState, useEffect } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import { useAccount, useConnect, useDisconnect, useSwitchChain } from 'wagmi'
-import { Home, FilePlus, Search, Library, Info, Menu, X, ChevronDown, Wallet, Sun, Moon, Copy, LogOut, Check, User, Database } from 'lucide-react'
+import { Menu, X, ChevronDown, Wallet, Copy, LogOut, Check, User } from 'lucide-react'
 import { toast } from 'sonner'
 import { ARBITRUM_SEPOLIA } from '../config'
 import { VeriTraceLogo, ArbitrumLogo } from './ArbitrumLogo'
 import { cn } from '@/lib/utils'
-import { useTheme } from './providers/ExperienceProvider'
 import ThemeToggle from './ThemeToggle'
+import { Identicon } from './chain/Identicon'
 
 const navItems = [
-  { path: '/', label: 'Home', icon: Home },
-  { path: '/register', label: 'Register', icon: FilePlus },
-  { path: '/verify', label: 'Verify', icon: Search },
-  { path: '/library', label: 'Library', icon: Library },
-  { path: '/enterprise', label: 'Enterprise', icon: Database },
-  { path: '/profile', label: 'Profile', icon: User },
-  { path: '/about', label: 'About', icon: Info },
+  { path: '/', label: 'Home' },
+  { path: '/register', label: 'Register' },
+  { path: '/verify', label: 'Verify' },
+  { path: '/library', label: 'Library' },
+  { path: '/enterprise', label: 'Enterprise' },
+  { path: '/profile', label: 'Profile' },
+  { path: '/about', label: 'About' },
 ]
-
-function ScrollProgress() {
-  const { scrollYProgress } = useScroll()
-  const scaleX = useSpring(scrollYProgress, { stiffness: 100, damping: 30, restDelta: 0.001 })
-  return (
-    <motion.div
-      className="absolute bottom-0 left-3 right-3 h-[2px] rounded-full origin-left"
-      style={{ scaleX, opacity: 1, background: 'linear-gradient(to right, var(--accent), var(--success-bg), var(--accent-dark))' }}
-      aria-hidden="true"
-    />
-  )
-}
 
 export default function Navbar() {
   const location = useLocation()
-  const [scrolled, setScrolled] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
-  const { theme, toggleTheme } = useTheme()
-  const navRef = useRef(null)
-
-  useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 20)
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
 
   useEffect(() => { setMobileOpen(false) }, [location])
 
   const isActive = (path) => location.pathname === path
 
   return (
-    <>
-      {/* Floating navbar */}
-      <motion.nav
-        ref={navRef}
-        initial={{ y: -20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ type: 'spring', stiffness: 300, damping: 28 }}
-        className={cn(
-          'fixed top-4 left-1/2 -translate-x-1/2 z-[999]',
-          'w-[calc(100vw-2rem)] max-w-[1200px]'
-        )}
-        style={{ willChange: 'transform, opacity' }}
-      >
-        <div className={cn(
-          'relative flex items-center justify-between h-14 px-2 sm:px-4 rounded-2xl transition-all duration-500',
-          scrolled
-            ? 'glass shadow-[0_8px_32px_rgba(0,0,0,0.4)] border-2 border-[var(--accent)]'
-            : 'glass border-2 border-white/20'
-        )}>
-          {/* Scroll progress bar */}
-          {scrolled && <ScrollProgress />}
+    <header className="site-nav">
+      <div className="max-w-[1280px] mx-auto px-5 h-14 flex items-center justify-between gap-4">
+        {/* Wordmark */}
+        <Link to="/" className="flex items-center gap-2 flex-shrink-0 text-[var(--text)]">
+          <VeriTraceLogo size={26} />
+          <span className="wordmark">VeriTrace</span>
+          <span className="hidden lg:inline kicker ml-1">Protocol</span>
+        </Link>
 
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-2.5 pl-1 flex-shrink-0 min-w-0">
-            <VeriTraceLogo size={28} />
-            <span className="text-base font-extrabold tracking-tight whitespace-nowrap">
-              <span className="gradient-arb">Veri</span><span className="text-[var(--text)]">Trace</span><span className="hidden lg:inline ml-2 text-[9px] uppercase tracking-[.16em] text-[var(--text-4)]">Protocol</span>
-            </span>
-          </Link>
+        {/* Desktop nav */}
+        <nav className="hidden lg:flex items-stretch h-full" aria-label="Primary">
+          {navItems.map((item) => (
+            <Link key={item.path} to={item.path} className="nav-link" aria-current={isActive(item.path) ? 'page' : undefined}>
+              {item.label}
+            </Link>
+          ))}
+        </nav>
 
-          {/* Desktop nav */}
-          <motion.div initial="hidden" animate="visible" variants={{ hidden: {}, visible: { transition: { staggerChildren: .04, delayChildren: 0.1 } } }} className="hidden lg:flex items-center gap-0.5 flex-shrink min-w-0 overflow-hidden">
-            {navItems.map((item) => {
-              const Icon = item.icon
-              return (
-                <motion.div key={item.path} variants={{ hidden: { opacity: 0, y: -6 }, visible: { opacity: 1, y: 0 } }}>
+        {/* Right side */}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <ThemeToggle />
+          <WalletButton />
+          <button
+            type="button"
+            className="lg:hidden w-9 h-9 rounded-[5px] border border-[var(--border)] flex items-center justify-center text-[var(--text-2)] hover:text-[var(--text)]"
+            onClick={() => setMobileOpen(!mobileOpen)}
+            aria-expanded={mobileOpen}
+            aria-label="Toggle navigation"
+          >
+            {mobileOpen ? <X size={18} /> : <Menu size={18} />}
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile menu */}
+      <AnimatePresence>
+        {mobileOpen && (
+          <motion.nav
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: .2 }}
+            className="lg:hidden overflow-hidden border-t border-[var(--border)] bg-[var(--surface)]"
+            aria-label="Primary"
+          >
+            <div className="max-w-[1280px] mx-auto px-5 py-2 flex flex-col">
+              {navItems.map((item) => (
                 <Link
+                  key={item.path}
                   to={item.path}
                   className={cn(
-                    'flex items-center gap-1.5 px-2.5 py-2 text-[13px] font-medium rounded-xl transition-all duration-200 whitespace-nowrap',
-                    isActive(item.path)
-                      ? 'text-[var(--accent)] bg-[var(--arb-bg)]'
-                      : 'text-[var(--text-2)] hover:text-[var(--text)] hover:bg-[var(--bg-2)]'
+                    'flex items-center justify-between px-2 py-3 text-sm font-medium border-b border-[var(--border)] last:border-b-0',
+                    isActive(item.path) ? 'text-[var(--text)]' : 'text-[var(--text-2)]'
                   )}
+                  aria-current={isActive(item.path) ? 'page' : undefined}
                 >
-                  {Icon && <Icon size={13} />}
                   {item.label}
-                  {isActive(item.path) && (
-                    <motion.div
-                      layoutId="nav-active"
-                      className="absolute bottom-0 left-2 right-2 h-0.5 rounded-full bg-[var(--accent)]"
-                      style={{ position: 'relative', marginTop: '2px' }}
-                    />
-                  )}
+                  {isActive(item.path) && <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)]" />}
                 </Link>
-                </motion.div>
-              )
-            })}
+              ))}
+            </div>
+          </motion.nav>
+        )}
+      </AnimatePresence>
+    </header>
+  )
+}
+
+function Menu_({ open, onClose, children, className }) {
+  return (
+    <AnimatePresence>
+      {open && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={onClose} />
+          <motion.div
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: .15 }}
+            className={cn('absolute top-full right-0 mt-2 bg-[var(--surface)] border border-[var(--border-2)] rounded-[6px] p-1.5 z-50', className)}
+            style={{ boxShadow: 'var(--shadow-lg)' }}
+          >
+            {children}
           </motion.div>
-
-          {/* Right side — flex-shrink-0 to prevent overflow */}
-          <div className="flex items-center gap-1.5 flex-shrink-0">
-            <ThemeToggle />
-            <WalletButton />
-            {/* Mobile menu button */}
-            <button
-              className="lg:hidden w-9 h-9 rounded-xl flex items-center justify-center text-[var(--text-2)] hover:bg-[var(--bg-2)] active:scale-95 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-              onClick={() => setMobileOpen(!mobileOpen)}
-            >
-              {mobileOpen ? <X size={18} /> : <Menu size={18} />}
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile menu */}
-        <AnimatePresence>
-          {mobileOpen && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ type: 'spring', stiffness: 350, damping: 30 }}
-              className="lg:hidden overflow-hidden glass mt-2 rounded-2xl transform-gpu"
-            >
-              <div className="px-3 py-3 flex flex-col gap-1">
-                {navItems.map((item, i) => {
-                  const Icon = item.icon
-                  return (
-                    <motion.div
-                      key={item.path}
-                      initial={{ opacity: 0, x: -12 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: i * 0.04, duration: 0.25 }}
-                    >
-                      <Link
-                        to={item.path}
-                        className={cn(
-                          'flex items-center gap-2.5 px-3 py-2.5 text-sm font-medium rounded-xl transition-colors',
-                          isActive(item.path)
-                            ? 'text-[var(--accent)] bg-[var(--arb-bg)]'
-                            : 'text-[var(--text-2)] hover:bg-[var(--bg-2)]'
-                        )}
-                      >
-                        {Icon && <Icon size={16} />}
-                        {item.label}
-                      </Link>
-                    </motion.div>
-                  )
-                })}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.nav>
-
-      {/* Spacer so page content starts below the floating navbar */}
-      <div className="h-20" />
-    </>
+        </>
+      )}
+    </AnimatePresence>
   )
 }
 
@@ -185,7 +133,7 @@ function WalletButton() {
     }
   }, [isConnected, chain, switchChain])
 
-  const formatAddress = (addr) => `${addr.slice(0, 6)}...${addr.slice(-4)}`
+  const formatAddress = (addr) => `${addr.slice(0, 6)}…${addr.slice(-4)}`
 
   const copyAddress = async () => {
     if (!address) return
@@ -199,54 +147,41 @@ function WalletButton() {
     }
   }
 
+  const itemClass = 'w-full flex items-center gap-2 px-2.5 py-2 rounded-[4px] text-left text-sm text-[var(--text-2)] hover:text-[var(--text)] hover:bg-[var(--bg-2)]'
+
   if (isConnected && address) {
     return (
       <div className="relative flex-shrink-0">
         <button
+          type="button"
           onClick={() => setShowDropdown(value => !value)}
-          className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-xl bg-[var(--surface)] border border-[var(--border)] text-[var(--text)] shadow-sm hover:border-[var(--accent)]/50 hover:shadow-md active:scale-[.98] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] whitespace-nowrap"
+          className="btn btn-outline h-[2.1rem] px-2.5 text-xs font-mono font-medium"
           aria-expanded={showDropdown}
           aria-label="Open wallet account menu"
         >
-          <span className="w-2 h-2 rounded-full bg-[var(--success-text)] shadow-[0_0_8px_var(--success-text)] flex-shrink-0" />
-          <span className="font-mono font-medium text-[var(--text)] hidden sm:inline">{formatAddress(address)}</span>
-          <ArbitrumLogo size={14} />
-          <ChevronDown size={12} className={cn('transition-transform text-[var(--text-3)] flex-shrink-0', showDropdown && 'rotate-180')} />
+          <Identicon address={address} size={16} />
+          <span className="hidden sm:inline">{formatAddress(address)}</span>
+          <span className="w-1.5 h-1.5 rounded-full bg-[var(--success-text)] flex-shrink-0" title="Connected" />
+          <ChevronDown size={12} className={cn('transition-transform text-[var(--text-3)]', showDropdown && 'rotate-180')} />
         </button>
 
-        <AnimatePresence>
-          {showDropdown && (
-            <>
-              <div className="fixed inset-0 z-40" onClick={() => setShowDropdown(false)} />
-              <motion.div
-                initial={{ opacity: 0, y: -8, scale: .98 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -8, scale: .98 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                className="absolute top-full right-0 mt-2 w-[calc(100vw-2rem)] max-w-[280px] sm:w-72 glass rounded-2xl shadow-2xl p-2 z-50 origin-top-right transform-gpu"
-              >
-                <div className="px-3 py-2.5 border-b border-[var(--border)]">
-                  <div className="text-[10px] uppercase tracking-[.14em] font-bold text-[var(--text-4)]">Connected wallet</div>
-                  <div className="font-mono text-xs text-[var(--text)] mt-1 break-all">{address}</div>
-                </div>
-                <Link
-                  to="/profile"
-                  onClick={() => setShowDropdown(false)}
-                  className="w-full mt-1.5 flex items-center gap-2 px-3 py-2.5 rounded-xl text-left text-sm font-medium text-[var(--text-2)] hover:text-[var(--text)] hover:bg-[var(--bg-2)] active:scale-[.98] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-                >
-                  <User size={15} /> View profile
-                </Link>
-                <button onClick={copyAddress} className="w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl text-left text-sm font-medium text-[var(--text-2)] hover:text-[var(--text)] hover:bg-[var(--bg-2)] active:scale-[.98] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]">
-                  <span className="flex items-center gap-2"><Copy size={15} /> Copy address</span>
-                  {copied ? <Check size={15} className="text-[var(--success-text)]" /> : <span className="text-[10px] font-mono text-[var(--text-4)]">{formatAddress(address)}</span>}
-                </button>
-                <button onClick={() => { disconnect(); setShowDropdown(false) }} className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-left text-sm font-medium text-[var(--danger-text)] hover:bg-[var(--danger-bg)] active:scale-[.98] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--danger-text)]">
-                  <LogOut size={15} /> Disconnect wallet
-                </button>
-              </motion.div>
-            </>
-          )}
-        </AnimatePresence>
+        <Menu_ open={showDropdown} onClose={() => setShowDropdown(false)} className="w-[calc(100vw-2rem)] max-w-[280px] sm:w-72">
+          <div className="px-2.5 py-2 border-b border-[var(--border)] mb-1">
+            <div className="kicker">Connected wallet</div>
+            <div className="flex items-start gap-2 mt-1.5"><Identicon address={address} size={22} /><div className="font-mono text-[11px] text-[var(--text)] break-all">{address}</div></div>
+            <div className="mt-1.5 flex items-center gap-1.5 text-[10.5px] font-mono text-[var(--text-3)]"><ArbitrumLogo size={10} /> {ARBITRUM_SEPOLIA.name}</div>
+          </div>
+          <Link to="/profile" onClick={() => setShowDropdown(false)} className={itemClass}>
+            <User size={14} /> View profile
+          </Link>
+          <button type="button" onClick={copyAddress} className={cn(itemClass, 'justify-between')}>
+            <span className="flex items-center gap-2"><Copy size={14} /> Copy address</span>
+            {copied ? <Check size={14} className="text-[var(--success-text)]" /> : <span className="font-mono text-[10px] text-[var(--text-4)]">{formatAddress(address)}</span>}
+          </button>
+          <button type="button" onClick={() => { disconnect(); setShowDropdown(false) }} className={cn(itemClass, 'text-[var(--danger-text)] hover:text-[var(--danger-text)] hover:bg-[var(--danger-bg)]')}>
+            <LogOut size={14} /> Disconnect wallet
+          </button>
+        </Menu_>
       </div>
     )
   }
@@ -254,44 +189,34 @@ function WalletButton() {
   return (
     <div className="relative flex-shrink-0">
       <button
+        type="button"
         onClick={() => setShowDropdown(!showDropdown)}
-        className="flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-xl text-white transition-all hover:shadow-lg whitespace-nowrap"
-        style={{ background: 'linear-gradient(135deg, var(--accent), var(--accent-dark))' }}
+        className="btn btn-primary h-[2.1rem] px-3 text-sm"
+        aria-expanded={showDropdown}
       >
         <Wallet size={14} />
         <span className="hidden sm:inline">Connect</span>
-        <ChevronDown size={12} className={cn('transition-transform flex-shrink-0', showDropdown && 'rotate-180')} />
+        <ChevronDown size={12} className={cn('transition-transform', showDropdown && 'rotate-180')} />
       </button>
 
-      <AnimatePresence>
-        {showDropdown && (
-          <>
-            <div className="fixed inset-0 z-40" onClick={() => setShowDropdown(false)} />
-            <motion.div
-              initial={{ opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-              className="absolute top-full right-0 mt-2 w-[calc(100vw-3rem)] max-w-[220px] sm:w-56 glass rounded-xl shadow-xl p-2 z-50 origin-top-right transform-gpu"
+      <Menu_ open={showDropdown} onClose={() => setShowDropdown(false)} className="w-[calc(100vw-3rem)] max-w-[240px] sm:w-60">
+        <div className="kicker px-2.5 py-1.5">Choose a wallet</div>
+        {connectors.length > 0 ? (
+          connectors.map((connector) => (
+            <button
+              key={connector.uid}
+              type="button"
+              onClick={() => { connect({ connector }); setShowDropdown(false) }}
+              className={cn(itemClass, 'text-[var(--text)]')}
             >
-              {connectors.length > 0 ? (
-                connectors.map((connector) => (
-                  <button
-                    key={connector.uid}
-                    onClick={() => { connect({ connector }); setShowDropdown(false) }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm font-medium rounded-lg text-left text-[var(--text)] hover:bg-[var(--bg-2)] transition-colors"
-                  >
-                    {connector.icon && <img src={connector.icon} alt={connector.name} className="w-5 h-5" />}
-                    {connector.name}
-                  </button>
-                ))
-              ) : (
-                <div className="px-3 py-3 text-sm text-[var(--text-3)] text-center">No wallets found</div>
-              )}
-            </motion.div>
-          </>
+              {connector.icon && <img src={connector.icon} alt="" className="w-4 h-4" />}
+              {connector.name}
+            </button>
+          ))
+        ) : (
+          <div className="px-3 py-3 text-sm text-[var(--text-3)]">No wallets found</div>
         )}
-      </AnimatePresence>
+      </Menu_>
     </div>
   )
 }

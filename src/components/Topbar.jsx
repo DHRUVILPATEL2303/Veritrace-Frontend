@@ -1,22 +1,41 @@
-import { motion } from 'framer-motion'
+import { CONTRACT_ADDRESS, ARBITRUM_SEPOLIA } from '../config'
+import { useIntegrityTone } from './providers/ExperienceProvider'
+import { useChainStatus } from './chain/useChainStatus'
+import { shortHex } from './chain/Address'
 import { ArbitrumLogo } from './ArbitrumLogo'
 
+/** Network status bar: chain, head block, gas, contract, integrity state. */
 export default function Topbar() {
+  const { integrityTone } = useIntegrityTone()
+  const { block, gasGwei, ok } = useChainStatus()
+  const isAlert = integrityTone === 'alert'
+
   return (
-    <div className="bg-[var(--bg-2)] border-b border-[var(--border)]">
-      <div className="max-w-[1280px] mx-auto px-5 flex items-center justify-between h-8">
-        <div className="flex items-center gap-2 text-[11px] text-[var(--text-3)] font-medium">
-          <motion.span
-            animate={{ opacity: [1, 0.4, 1] }}
-            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-            className="live-dot"
-          />
-          Arbitrum Sepolia Testnet
+    <div className="status-strip" data-tone={integrityTone}>
+      <div className="max-w-[1280px] mx-auto px-5 h-7 flex items-center justify-between gap-4 overflow-hidden">
+        <div className="flex items-center gap-3 min-w-0">
+          <span className="status-item">
+            <span className="live-dot" aria-hidden="true" />
+            {isAlert ? 'Integrity alert — review flagged matches' : <><ArbitrumLogo size={10} /> {ARBITRUM_SEPOLIA.name}</>}
+          </span>
+          {!isAlert && (
+            <>
+              <span className="status-sep hidden sm:block" />
+              <span className="status-item hidden sm:inline-flex">Block <b className="tnum">{block ? `#${block.toLocaleString()}` : ok ? '…' : 'offline'}</b></span>
+              <span className="status-sep hidden md:block" />
+              <span className="status-item hidden md:inline-flex">Gas <b className="tnum">{gasGwei != null ? `${gasGwei < 1 ? gasGwei.toFixed(3) : gasGwei.toFixed(2)} gwei` : '…'}</b></span>
+            </>
+          )}
         </div>
-        <div className="flex items-center gap-1.5 text-[11px] text-[var(--text-3)] font-medium">
-          <ArbitrumLogo size={12} />
-          <span className="hidden sm:inline">Powered by Arbitrum Stylus</span>
-        </div>
+        <a
+          href={`${ARBITRUM_SEPOLIA.explorer}/address/${CONTRACT_ADDRESS}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="status-item hover:text-[var(--text)]"
+          title={CONTRACT_ADDRESS}
+        >
+          <span className="opacity-70">Registry</span> <b>{shortHex(CONTRACT_ADDRESS)}</b>
+        </a>
       </div>
     </div>
   )

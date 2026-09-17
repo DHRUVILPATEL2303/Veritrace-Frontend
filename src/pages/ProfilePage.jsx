@@ -24,6 +24,8 @@ import { ScrollReveal } from '../components/ui/scroll-reveal'
 import { CONTRACT_ADDRESS, CONTRACT_ABI, ARBITRUM_SEPOLIA, CORE_BACKEND_API } from '../config'
 import { downloadCertificate } from '../utils/generateCertificate'
 import { cn } from '@/lib/utils'
+import { Identicon } from '../components/chain/Identicon'
+import { Address } from '../components/chain/Address'
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -61,7 +63,7 @@ function getGatewayUrl(url) {
 function fileTypeIcon(ipfsCid, aiTool) {
   if (aiTool?.toLowerCase().includes('video')) return <Video size={14} className="text-[var(--accent)]" />
   if (aiTool?.toLowerCase().includes('pdf') || aiTool?.toLowerCase().includes('doc')) return <FileText size={14} className="text-[var(--success-text)]" />
-  return <ImageIcon size={14} className="text-violet-500" />
+  return <ImageIcon size={14} className="text-[var(--text-2)]" />
 }
 
 // ─── Certificate Generator ───────────────────────────────────────────────────
@@ -84,21 +86,10 @@ async function generateCertificate(item, displayName, address) {
 
 function StatCard({ icon: Icon, label, value, color = 'var(--accent)' }) {
   return (
-    <motion.div
-      whileHover={{ y: -3, scale: 1.02 }}
-      transition={{ type: 'spring', stiffness: 260, damping: 22 }}
-    >
-      <Card hover className="card-hover-glow p-5 flex items-center gap-4">
-        <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-          style={{ background: `${color}18` }}>
-          <Icon size={18} style={{ color }} />
-        </div>
-        <div>
-          <div className="text-xl font-extrabold text-[var(--text)] leading-none">{value}</div>
-          <div className="text-xs text-[var(--text-3)] mt-1">{label}</div>
-        </div>
-      </Card>
-    </motion.div>
+    <Card className="p-5">
+      <div className="kicker mb-3"><Icon size={13} className="text-[var(--accent)]" />{label}</div>
+      <div className="stat-value !text-[1.5rem]">{value}</div>
+    </Card>
   )
 }
 
@@ -124,11 +115,12 @@ function AssetRow({ item, index, onDownloadCert, onView, address }) {
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.04, type: 'spring', stiffness: 260, damping: 24 }}
-      className="group flex items-center gap-4 px-4 py-3.5 rounded-2xl border border-[var(--border)] bg-[var(--surface)] hover:border-[var(--border-2)] hover:bg-[var(--surface-2)] transition-all duration-200"
+      className="ledger-row group flex items-center gap-4 px-4 py-3"
     >
-      {/* File type icon */}
-      <div className="w-9 h-9 rounded-xl bg-[var(--bg-2)] flex items-center justify-center flex-shrink-0">
+      {/* Creator identicon + file type icon */}
+      <div className="relative w-8 h-8 rounded-[6px] border border-[var(--border)] bg-[var(--surface-2)] flex items-center justify-center flex-shrink-0">
         {fileTypeIcon(item.ipfsCid, item.aiTool)}
+        <Identicon address={item.creator} size={12} className="absolute -bottom-1 -right-1 ring-2 ring-[var(--surface)]" />
       </div>
 
       {/* Hash */}
@@ -140,9 +132,7 @@ function AssetRow({ item, index, onDownloadCert, onView, address }) {
           <Calendar size={9} />
           {formatTs(item.timestamp)}
           {item.aiTool && (
-            <span className="bg-[var(--arb-bg)] text-[var(--accent)] px-1.5 py-0.5 rounded text-[9px] font-semibold uppercase tracking-wide">
-              {item.aiTool}
-            </span>
+            <span className="chip !text-[9px]">{item.aiTool}</span>
           )}
         </div>
       </div>
@@ -156,7 +146,7 @@ function AssetRow({ item, index, onDownloadCert, onView, address }) {
       <div className="flex items-center gap-1.5 transition-opacity">
         <button
           onClick={handleCopy}
-          className="w-7 h-7 rounded-lg flex items-center justify-center text-[var(--text-3)] hover:text-[var(--text)] hover:bg-[var(--bg-2)] transition-all"
+          className="w-7 h-7 rounded-[4px] flex items-center justify-center text-[var(--text-3)] hover:text-[var(--text)] hover:bg-[var(--bg-2)]"
           title="Copy hash"
         >
           {copied ? <Check size={13} className="text-[var(--success-text)]" /> : <Copy size={13} />}
@@ -165,7 +155,7 @@ function AssetRow({ item, index, onDownloadCert, onView, address }) {
           <a
             href={`${ARBITRUM_SEPOLIA.explorer}/tx/${item.txHash}`}
             target="_blank" rel="noopener noreferrer"
-            className="w-7 h-7 rounded-lg flex items-center justify-center text-[var(--text-3)] hover:text-[var(--accent)] hover:bg-[var(--arb-bg)] transition-all"
+            className="w-7 h-7 rounded-[4px] flex items-center justify-center text-[var(--text-3)] hover:text-[var(--accent)] hover:bg-[var(--bg-2)]"
             title="View on Arbiscan"
           >
             <ExternalLink size={13} />
@@ -173,7 +163,7 @@ function AssetRow({ item, index, onDownloadCert, onView, address }) {
         )}
         <button
           onClick={() => onView(item)}
-          className="w-7 h-7 rounded-lg flex items-center justify-center text-[var(--text-3)] hover:text-[var(--text)] hover:bg-[var(--bg-2)] transition-all"
+          className="w-7 h-7 rounded-[4px] flex items-center justify-center text-[var(--text-3)] hover:text-[var(--text)] hover:bg-[var(--bg-2)]"
           title="Preview asset"
         >
           <Eye size={13} />
@@ -181,7 +171,7 @@ function AssetRow({ item, index, onDownloadCert, onView, address }) {
         <button
           onClick={handleCert}
           disabled={downloading}
-          className="w-7 h-7 rounded-lg flex items-center justify-center text-[var(--text-3)] hover:text-[var(--success-text)] hover:bg-[var(--success-bg)] transition-all disabled:opacity-40"
+          className="w-7 h-7 rounded-[4px] flex items-center justify-center text-[var(--text-3)] hover:text-[var(--success-text)] hover:bg-[var(--bg-2)] disabled:opacity-40"
           title="Download certificate"
         >
           {downloading ? <Spinner size="xs" /> : <Download size={13} />}
@@ -208,17 +198,17 @@ function AvatarUpload({ avatar, onAvatarChange }) {
 
   return (
     <div className="relative group cursor-pointer" onClick={() => inputRef.current?.click()}>
-      <div className="w-24 h-24 rounded-full border-2 border-[var(--border-2)] overflow-hidden bg-[var(--bg-2)] flex items-center justify-center">
+      <div className="w-24 h-24 rounded-[8px] border border-[var(--border-2)] overflow-hidden bg-[var(--bg-2)] flex items-center justify-center">
         {avatar
           ? <img src={avatar} alt="Profile" className="w-full h-full object-cover" />
           : <User size={36} className="text-[var(--text-4)]" />
         }
       </div>
-      <div className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+      <div className="absolute inset-0 rounded-[8px] bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
         <Camera size={18} className="text-white" />
       </div>
-      <div className="absolute -bottom-0.5 -right-0.5 w-7 h-7 rounded-full bg-[var(--accent)] border-2 border-[var(--bg)] flex items-center justify-center">
-        <Camera size={12} className="text-white" />
+      <div className="absolute -bottom-1.5 -right-1.5 w-7 h-7 rounded-[5px] bg-[var(--ink)] border-2 border-[var(--surface)] flex items-center justify-center">
+        <Camera size={12} className="text-[var(--ink-text)]" />
       </div>
       <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
     </div>
@@ -288,7 +278,7 @@ function AssetModal({ item, onClose, displayName, address, onDownloadCert }) {
       <ModalHeader title="Asset Record" onClose={onClose} icon={<Shield size={18} className="text-[var(--accent)]" />} />
       <div className="p-4 sm:p-5 space-y-4 overflow-y-auto">
         {/* Media preview container with fixed max height */}
-        <div className="relative w-full h-44 sm:h-52 rounded-xl bg-[var(--bg-2)] overflow-hidden flex items-center justify-center border border-[var(--border)]">
+        <div className="relative w-full h-44 sm:h-52 rounded-[6px] bg-[var(--bg-2)] overflow-hidden flex items-center justify-center border border-[var(--border)]">
           {loading ? (
             <div className="text-center"><Spinner /><div className="text-xs text-[var(--text-3)] mt-2">Retrieving media from IPFS...</div></div>
           ) : mediaUrl ? (
@@ -318,8 +308,8 @@ function AssetModal({ item, onClose, displayName, address, onDownloadCert }) {
             { label: 'IPFS CID', value: item.ipfsCid || '—', mono: true },
             { label: 'pHash', value: item.phash || '—', mono: true },
           ].map(({ label, value, mono }) => (
-            <div key={label} className="bg-[var(--bg-2)] rounded-xl p-3">
-              <div className="text-[10px] font-semibold uppercase tracking-wide text-[var(--text-4)] mb-1">{label}</div>
+            <div key={label} className="border border-[var(--border)] rounded-[5px] p-3">
+              <div className="kicker mb-1">{label}</div>
               <div className={cn('text-xs text-[var(--text)] break-all', mono && 'font-mono')}>{value}</div>
             </div>
           ))}
@@ -333,7 +323,7 @@ function AssetModal({ item, onClose, displayName, address, onDownloadCert }) {
             </a>
           )}
           <Button
-            variant="success"
+            variant="accent"
             size="sm"
             disabled={certDl}
             onClick={async () => {
@@ -450,8 +440,8 @@ export default function ProfilePage() {
   const stats = [
     { icon: Layers, label: 'Total Registrations', value: myUploads.length, color: 'var(--accent)' },
     { icon: Award, label: 'Certificates Available', value: myUploads.length, color: 'var(--success-text)' },
-    { icon: Clock, label: 'First Registration', value: myUploads.length ? formatTs(myUploads[myUploads.length - 1]?.timestamp) : '—', color: '#6366f1' },
-    { icon: TrendingUp, label: 'On-Chain Records', value: registrations.length, color: '#f59e0b' },
+    { icon: Clock, label: 'First Registration', value: myUploads.length ? formatTs(myUploads[myUploads.length - 1]?.timestamp) : '—', color: 'var(--accent)' },
+    { icon: TrendingUp, label: 'On-Chain Records', value: registrations.length, color: 'var(--accent)' },
   ]
 
   const tabs = [
@@ -470,10 +460,10 @@ export default function ProfilePage() {
           transition={{ type: 'spring', stiffness: 100, damping: 15 }}
           className="text-center max-w-sm"
         >
-          <div className="w-16 h-16 rounded-2xl bg-[var(--arb-bg)] border border-[var(--arb-border)] flex items-center justify-center mx-auto mb-5">
-            <Wallet size={28} className="text-[var(--accent)]" />
+          <div className="w-14 h-14 rounded-[6px] border border-dashed border-[var(--border-2)] flex items-center justify-center mx-auto mb-5">
+            <Wallet size={24} className="text-[var(--accent)]" />
           </div>
-          <h2 className="text-xl font-extrabold text-[var(--text)] mb-2">Connect your wallet</h2>
+          <h2 className="text-2xl font-bold text-[var(--text)] mb-2">Connect your wallet</h2>
           <p className="text-sm text-[var(--text-3)] leading-relaxed">
             Connect a Web3 wallet to view your profile, content library, and download authenticity certificates.
           </p>
@@ -494,13 +484,12 @@ export default function ProfilePage() {
       >
         <Card className="overflow-hidden">
           {/* Banner */}
-          <div className="h-28 bg-gradient-to-r from-indigo-500/20 via-sky-500/10 to-emerald-500/10 relative">
-            <div className="absolute inset-0"
-              style={{ backgroundImage: 'linear-gradient(90deg,rgba(99,102,241,.06) 1px,transparent 1px),linear-gradient(rgba(99,102,241,.06) 1px,transparent 1px)', backgroundSize: '28px 28px' }} />
+          <div className="h-20 bg-[var(--bg-2)] border-b border-[var(--border)] flex items-center px-6">
+            <span className="kicker">Creator profile · Arbitrum Sepolia</span>
           </div>
 
           <CardBody className="pt-0 px-6 pb-6">
-            <div className="flex flex-col sm:flex-row sm:items-end gap-4 -mt-12">
+            <div className="flex flex-col sm:flex-row sm:items-end gap-4 -mt-10">
               {/* Avatar */}
               <AvatarUpload avatar={profile.avatar} onAvatarChange={handleAvatarChange} />
 
@@ -514,27 +503,28 @@ export default function ProfilePage() {
                       onChange={e => setNameInput(e.target.value)}
                       onKeyDown={e => { if (e.key === 'Enter') saveName(); if (e.key === 'Escape') setEditingName(false) }}
                       placeholder="Display name…"
-                      className="bg-[var(--bg-2)] border border-[var(--border-2)] rounded-xl px-3 py-1.5 text-sm text-[var(--text)] outline-none focus:border-[var(--accent)] w-full max-w-xs"
+                      className="bg-[var(--surface)] border border-[var(--border-2)] rounded-[5px] px-3 py-1.5 text-sm text-[var(--text)] outline-none focus:border-[var(--accent)] w-full max-w-xs"
                     />
-                    <button onClick={saveName} className="w-7 h-7 rounded-lg bg-[var(--success-text)]/15 text-[var(--success-text)] flex items-center justify-center hover:bg-[var(--success-text)]/25 transition-colors"><Save size={13} /></button>
-                    <button onClick={() => setEditingName(false)} className="w-7 h-7 rounded-lg bg-[var(--bg-2)] text-[var(--text-3)] flex items-center justify-center hover:bg-[var(--bg-3)] transition-colors"><X size={13} /></button>
+                    <button onClick={saveName} aria-label="Save name" className="w-7 h-7 rounded-[4px] border border-[var(--success-border)] bg-[var(--success-bg)] text-[var(--success-text)] flex items-center justify-center"><Save size={13} /></button>
+                    <button onClick={() => setEditingName(false)} aria-label="Cancel" className="w-7 h-7 rounded-[4px] border border-[var(--border)] text-[var(--text-3)] flex items-center justify-center hover:bg-[var(--bg-2)]"><X size={13} /></button>
                   </div>
                 ) : (
                   <div className="flex items-center gap-2 mb-1">
-                    <h1 className="text-xl font-extrabold text-[var(--text)] truncate">
+                    <h1 className="text-2xl font-bold text-[var(--text)] truncate">
                       {profile.displayName || 'Anonymous Creator'}
                     </h1>
                     <button
                       onClick={() => { setNameInput(profile.displayName || ''); setEditingName(true) }}
-                      className="w-6 h-6 rounded-lg text-[var(--text-4)] hover:text-[var(--text)] hover:bg-[var(--bg-2)] flex items-center justify-center transition-colors"
+                      className="w-6 h-6 rounded-[4px] text-[var(--text-4)] hover:text-[var(--text)] hover:bg-[var(--bg-2)] flex items-center justify-center"
+                      aria-label="Edit display name"
                     >
                       <Edit3 size={11} />
                     </button>
                   </div>
                 )}
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-mono text-xs text-[var(--text-3)] bg-[var(--bg-2)] px-2.5 py-1 rounded-lg border border-[var(--border)]">
-                    {address}
+                  <span className="font-mono text-xs text-[var(--text-2)] bg-[var(--surface-2)] px-2.5 py-1 rounded-[6px] border border-[var(--border)] break-all inline-flex items-center gap-2">
+                    <Identicon address={address} size={16} />{address}
                   </span>
                   <ArbitrumLogo size={14} />
                   <Badge variant="success" className="text-[10px]">Connected</Badge>
@@ -544,7 +534,7 @@ export default function ProfilePage() {
               {/* Disconnect */}
               <button
                 onClick={() => disconnect()}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium text-[var(--danger-text)] hover:bg-[var(--danger-bg)] transition-all border border-transparent hover:border-[var(--danger-border)] sm:self-start sm:mt-1"
+                className="btn btn-outline text-xs px-3 py-2 !text-[var(--danger-text)] hover:!border-[var(--danger-border)] sm:self-start sm:mt-1"
               >
                 <LogOut size={13} /> Disconnect
               </button>
@@ -573,22 +563,22 @@ export default function ProfilePage() {
 
             {/* Tabs & Bulk Action */}
             <div className="flex items-center gap-3">
-              <div className="flex rounded-xl bg-[var(--bg-2)] border border-[var(--border)] p-0.5 gap-0.5">
+              <div className="flex rounded-[5px] bg-[var(--surface)] border border-[var(--border-2)] p-0.5 gap-0.5">
                 {tabs.map(t => (
                   <button
                     key={t.id}
                     onClick={() => setActiveTab(t.id)}
                     className={cn(
-                      'flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-xs font-semibold transition-all',
+                      'flex items-center gap-1.5 px-3 py-1.5 rounded-[4px] text-xs font-semibold',
                       activeTab === t.id
-                        ? 'bg-[var(--surface)] text-[var(--text)] shadow-sm'
+                        ? 'bg-[var(--ink)] text-[var(--ink-text)]'
                         : 'text-[var(--text-3)] hover:text-[var(--text)]'
                     )}
                   >
                     {t.label}
                     <span className={cn(
-                      'px-1.5 py-0.5 rounded-full text-[10px] font-bold',
-                      activeTab === t.id ? 'bg-[var(--accent)]/15 text-[var(--accent)]' : 'bg-[var(--bg-3)] text-[var(--text-4)]'
+                      'px-1.5 py-0.5 rounded-[3px] font-mono text-[10px]',
+                      activeTab === t.id ? 'bg-[var(--ink-2)] text-[var(--ink-text)]' : 'bg-[var(--bg-2)] text-[var(--text-4)]'
                     )}>
                       {loading ? '…' : t.count}
                     </span>
@@ -599,7 +589,7 @@ export default function ProfilePage() {
               {myUploads.length > 0 && (
                 <Button
                   size="sm"
-                  variant="success"
+                  variant="accent"
                   disabled={certGenerating}
                   onClick={async () => {
                     if (certGenerating) return
@@ -630,12 +620,12 @@ export default function ProfilePage() {
             {loading ? (
               <div className="space-y-2">
                 {[...Array(5)].map((_, i) => (
-                  <div key={i} className="h-14 rounded-2xl skeleton" style={{ animationDelay: `${i * 0.1}s` }} />
+                  <div key={i} className="h-12 skeleton" style={{ animationDelay: `${i * 0.1}s` }} />
                 ))}
               </div>
             ) : displayItems.length === 0 ? (
               <div className="py-14 text-center">
-                <div className="w-14 h-14 rounded-2xl bg-[var(--bg-2)] border border-[var(--border)] flex items-center justify-center mx-auto mb-4">
+                <div className="w-12 h-12 rounded-[6px] border border-dashed border-[var(--border-2)] flex items-center justify-center mx-auto mb-4">
                   <Hash size={22} className="text-[var(--text-4)]" />
                 </div>
                 <p className="font-semibold text-sm text-[var(--text)]">
@@ -648,7 +638,7 @@ export default function ProfilePage() {
                 </p>
               </div>
             ) : (
-              <div className="space-y-2">
+              <div className="border border-[var(--border)] rounded-[6px] overflow-hidden">
                 {displayItems.map((item, i) => (
                   <AssetRow
                     key={item.txHash || i}

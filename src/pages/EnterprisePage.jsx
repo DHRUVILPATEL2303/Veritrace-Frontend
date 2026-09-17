@@ -17,6 +17,7 @@ import PageHero from '../components/PageHero'
 import { ScrollReveal } from '../components/ui/scroll-reveal'
 import { Database, Shield, CheckCircle2, AlertTriangle, ExternalLink, Download, Globe, Building, Check, FileText, Copy } from 'lucide-react'
 import { CORE_BACKEND_API, CONTRACT_ADDRESS, CONTRACT_ABI, ARBITRUM_SEPOLIA } from '../config'
+import { Address } from '../components/chain/Address'
 
 // Mock USDC Address on Sepolia (usually provided by environment, hardcoded for demo)
 const MOCK_USDC_ADDRESS = '0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d'
@@ -234,35 +235,34 @@ export default function EnterprisePage() {
       <div className="max-w-[1280px] mx-auto px-5 pt-7 pb-20">
         
         {isConnected && (
-          <div className="mb-5 flex items-center gap-3 px-4 py-3 rounded-2xl border border-[var(--arb-border)] bg-[var(--arb-bg)]">
-            <AlertTriangle size={15} className="text-[var(--accent)] flex-shrink-0" />
-            <p className="text-xs text-[var(--text-2)] leading-relaxed">
+          <div className="mb-5 flex items-center gap-3 px-4 py-3 rounded-[6px] border border-[var(--warning-border)] bg-[var(--surface)]">
+            <AlertTriangle size={15} className="text-[var(--warning-text)] flex-shrink-0" />
+            <p className="text-xs text-[var(--text-2)] leading-relaxed m-0">
               Purchasing requires Sepolia USDC. This is a testnet demo. Ensure you have approved the VeriTrace registry to spend your test tokens.
             </p>
           </div>
         )}
 
-        <div className="flex border-b border-[var(--border)] mb-6 gap-2">
-          <button
-            onClick={() => setActiveTab('dataset')}
-            className={`py-3 px-6 text-sm font-semibold border-b-2 transition-all ${
-              activeTab === 'dataset'
-                ? 'border-[var(--accent)] text-[var(--accent)] bg-[var(--accent)]/5 rounded-t-xl'
-                : 'border-transparent text-[var(--text-3)] hover:text-[var(--text-2)]'
-            }`}
-          >
-            📂 Dataset Licensing Market
-          </button>
-          <button
-            onClick={() => setActiveTab('publisher')}
-            className={`py-3 px-6 text-sm font-semibold border-b-2 transition-all ${
-              activeTab === 'publisher'
-                ? 'border-[var(--accent)] text-[var(--accent)] bg-[var(--accent)]/5 rounded-t-xl'
-                : 'border-transparent text-[var(--text-3)] hover:text-[var(--text-2)]'
-            }`}
-          >
-            🏢 Verified Publisher Network
-          </button>
+        <div className="flex border-b border-[var(--border)] mb-6 gap-1" role="tablist">
+          {[
+            { id: 'dataset', label: 'Dataset Licensing Market', icon: Database },
+            { id: 'publisher', label: 'Verified Publisher Network', icon: Building },
+          ].map(tab => (
+            <button
+              key={tab.id}
+              role="tab"
+              aria-selected={activeTab === tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`relative flex items-center gap-2 py-3 px-4 text-sm font-semibold -mb-px border-b-2 ${
+                activeTab === tab.id
+                  ? 'border-[var(--accent)] text-[var(--text)]'
+                  : 'border-transparent text-[var(--text-3)] hover:text-[var(--text)]'
+              }`}
+            >
+              <tab.icon size={14} className={activeTab === tab.id ? 'text-[var(--accent)]' : ''} />
+              {tab.label}
+            </button>
+          ))}
         </div>
 
         {activeTab === 'dataset' && (
@@ -289,7 +289,7 @@ export default function EnterprisePage() {
                       type="number" 
                       value={quantity} 
                       onChange={(e) => setQuantity(Number(e.target.value))}
-                      className="w-full px-3.5 py-2.5 text-sm rounded-xl bg-[var(--bg-2)] border border-[var(--border)] text-[var(--text)] outline-none focus:border-[var(--accent)]"
+                      className="w-full px-3 py-2.5 text-sm rounded-[5px] bg-[var(--surface)] border border-[var(--border-2)] text-[var(--text)] outline-none focus:border-[var(--accent)]"
                       min="1"
                     />
                   </div>
@@ -300,7 +300,7 @@ export default function EnterprisePage() {
                       value={searchQuery} 
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder='e.g. "cyberpunk cityscapes" or "rainy weather"'
-                      className="w-full px-3.5 py-2.5 text-sm rounded-xl bg-[var(--bg-2)] border border-[var(--border)] text-[var(--text)] outline-none focus:border-[var(--accent)]"
+                      className="w-full px-3 py-2.5 text-sm rounded-[5px] bg-[var(--surface)] border border-[var(--border-2)] text-[var(--text)] outline-none focus:border-[var(--accent)]"
                     />
                     <p className="text-[10px] text-[var(--text-3)] mt-1.5 leading-relaxed">
                       Powered by AI vector search. Leave blank to fetch a random selection.
@@ -320,9 +320,9 @@ export default function EnterprisePage() {
           {/* Results & Checkout */}
           <div className="flex flex-col gap-5">
             <SpotlightCard>
-              <Card className="card-hover-glow card-border-animate">
+              <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2"><Shield size={16} className="text-[var(--accent)]" /> Dataset Checkout</CardTitle>
+                  <CardTitle className="flex items-center gap-2"><Shield size={15} className="text-[var(--accent)]" /> Dataset Checkout</CardTitle>
                 </CardHeader>
                 <CardBody>
                   <AnimatePresence mode="wait">
@@ -343,8 +343,8 @@ export default function EnterprisePage() {
                       <motion.div key="results" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="flex flex-col gap-4">
                         <Alert variant="success">{datasetData.message}</Alert>
 
-                        <div className="bg-[var(--bg-2)] rounded-xl p-4 border border-[var(--border)]">
-                          <div className="text-[11px] font-semibold uppercase tracking-wider text-[var(--text-3)] mb-3 flex items-center gap-1.5">
+                        <div className="bg-[var(--surface)] rounded-[6px] p-4 border border-[var(--border)]">
+                          <div className="kicker mb-3">
                             <ArbitrumLogo size={12} /> Purchase Summary
                           </div>
                           
@@ -363,12 +363,12 @@ export default function EnterprisePage() {
                             </div>
                             
                             {datasetData.creators.length > 0 && (
-                              <div className="mt-3 p-3 rounded-lg bg-[var(--surface-3)] border border-[var(--border-2)]">
-                                <div className="text-[10px] font-semibold text-[var(--text-3)] uppercase tracking-wider mb-2">Creator Payouts</div>
+                              <div className="mt-3 p-3 rounded-[5px] bg-[var(--bg-2)] border border-[var(--border)]">
+                                <div className="kicker mb-2">Creator Payouts</div>
                                 <div className="max-h-[100px] overflow-y-auto no-scrollbar flex flex-col gap-2">
                                   {datasetData.creators.map((c, idx) => (
                                     <div key={idx} className="flex justify-between items-center text-xs">
-                                      <span className="font-mono text-[var(--text-2)]">{c.slice(0, 8)}...{c.slice(-6)}</span>
+                                      <Address address={c} head={8} tail={6} size={16} />
                                       <span className="font-semibold text-[var(--success-text)]">${(Number(datasetData.amounts[idx]) / 1000000).toFixed(2)}</span>
                                     </div>
                                   ))}
@@ -379,18 +379,18 @@ export default function EnterprisePage() {
 
                           <div className="flex justify-between items-end mb-1">
                             <span className="text-[var(--text-3)] font-semibold">Total Cost</span>
-                            <span className="text-2xl font-bold text-[var(--success-text)]">${(datasetData.total_usdc / 1000000).toFixed(2)} USDC</span>
+                            <span className="stat-value !text-2xl">${(datasetData.total_usdc / 1000000).toFixed(2)} <span className="font-mono text-sm font-medium text-[var(--text-3)]">USDC</span></span>
                           </div>
                         </div>
 
                         {datasetData.captions && Object.keys(datasetData.captions).length > 0 && (
-                          <div className="mb-4 p-4 rounded-xl bg-[var(--surface-3)] border border-[var(--border-2)] max-h-64 overflow-y-auto">
-                            <div className="text-[11px] font-semibold text-[var(--text-3)] uppercase tracking-wider mb-3">
+                          <div className="mb-4 p-4 rounded-[6px] bg-[var(--surface)] border border-[var(--border)] max-h-64 overflow-y-auto">
+                            <div className="kicker mb-3">
                               Dataset Human Previews
                             </div>
                             <div className="flex flex-col gap-2">
                               {Object.entries(datasetData.captions).map(([hash, caption]) => (
-                                <div key={hash} className="text-sm p-3 rounded-lg bg-[var(--bg-2)] border border-[var(--border)]">
+                                <div key={hash} className="text-sm p-3 rounded-[5px] bg-[var(--bg-2)] border border-[var(--border)]">
                                   <span className="font-mono text-xs text-[var(--accent)] block mb-1">Hash: {hash.slice(0, 12)}...</span>
                                   <span className="text-[var(--text)] italic">"{caption}"</span>
                                 </div>
@@ -407,7 +407,7 @@ export default function EnterprisePage() {
                             <Button 
                               variant="outline" 
                               size="sm" 
-                              className="w-full border-[var(--accent)]/30 hover:border-[var(--accent)] hover:bg-[var(--accent)]/10 text-[var(--accent)]" 
+                              className="w-full"
                               onClick={() => {
                                 const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(datasetData.semantic_embeddings, null, 2));
                                 const downloadAnchorNode = document.createElement('a');
@@ -424,7 +424,7 @@ export default function EnterprisePage() {
                         )}
 
                         <Button 
-                          variant="success" 
+                          variant="accent"
                           size="lg" 
                           className="w-full" 
                           onClick={handlePurchase}
@@ -437,13 +437,13 @@ export default function EnterprisePage() {
 
                     {purchaseSuccess && (
                       <motion.div key="success" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-4">
-                        <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.1, type: 'spring' }} className="w-14 h-14 rounded-full bg-[var(--success-bg)] text-[var(--success-text)] flex items-center justify-center mx-auto mb-3">
+                        <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.1, type: 'spring' }} className="w-14 h-14 rounded-[6px] border border-[var(--success-border)] bg-[var(--success-bg)] text-[var(--success-text)] flex items-center justify-center mx-auto mb-3">
                           <CheckCircle2 size={28} />
                         </motion.div>
                         <div className="font-bold text-lg mb-1 text-[var(--text)]">Dataset Unlocked!</div>
                         <div className="text-xs text-[var(--text-3)] mb-4">Payment distributed to {datasetData.creators.length} creators via Arbitrum Sepolia.</div>
 
-                        <div className="bg-[var(--bg-2)] rounded-xl p-4 border border-[var(--border)] text-left text-xs mb-4">
+                        <div className="bg-[var(--surface)] rounded-[6px] p-4 border border-[var(--border)] text-left text-xs mb-4">
                           <div className="flex justify-between mb-2">
                             <span className="text-[var(--text-3)]">Tx Hash</span>
                             <a href={`${ARBITRUM_SEPOLIA.explorer}/tx/${txHash}`} target="_blank" rel="noopener noreferrer" className="text-[var(--accent)] hover:opacity-80 font-mono">
@@ -510,7 +510,7 @@ export default function EnterprisePage() {
                           value={publisherOrg}
                           onChange={(e) => setPublisherOrg(e.target.value)}
                           placeholder='e.g. "Associated Press"'
-                          className="w-full px-3.5 py-2.5 text-sm rounded-xl bg-[var(--bg-2)] border border-[var(--border)] text-[var(--text)] outline-none focus:border-[var(--accent)]"
+                          className="w-full px-3 py-2.5 text-sm rounded-[5px] bg-[var(--surface)] border border-[var(--border-2)] text-[var(--text)] outline-none focus:border-[var(--accent)]"
                           required
                         />
                       </div>
@@ -521,7 +521,7 @@ export default function EnterprisePage() {
                           value={publisherDomain}
                           onChange={(e) => setPublisherDomain(e.target.value)}
                           placeholder='e.g. "apnews.com"'
-                          className="w-full px-3.5 py-2.5 text-sm rounded-xl bg-[var(--bg-2)] border border-[var(--border)] text-[var(--text)] outline-none focus:border-[var(--accent)]"
+                          className="w-full px-3 py-2.5 text-sm rounded-[5px] bg-[var(--surface)] border border-[var(--border-2)] text-[var(--text)] outline-none focus:border-[var(--accent)]"
                           required
                         />
                       </div>
@@ -531,7 +531,7 @@ export default function EnterprisePage() {
                           type="text"
                           value={address || '0x70997970C51812dc3A010C7d01b50e0d17dc79C8'}
                           disabled
-                          className="w-full px-3.5 py-2.5 text-sm rounded-xl bg-[var(--bg-2)] border border-[var(--border)] text-[var(--text-3)] font-mono outline-none cursor-not-allowed"
+                          className="w-full px-3 py-2.5 text-sm rounded-[5px] bg-[var(--bg-2)] border border-[var(--border)] text-[var(--text-3)] font-mono outline-none cursor-not-allowed"
                         />
                       </div>
                       <Button variant="primary" size="lg" className="w-full mt-2" type="submit" disabled={verifyingPublisher}>
@@ -544,21 +544,21 @@ export default function EnterprisePage() {
 
               {/* JSON Template Card */}
               <SpotlightCard>
-                <Card className="border-[var(--accent)]/20 bg-[var(--accent)]/5">
+                <Card>
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[var(--accent)]">
-                      <FileText size={14} /> HTTPS DID Requirement
+                    <CardTitle className="flex items-center gap-2">
+                      <FileText size={15} className="text-[var(--accent)]" /> HTTPS DID Requirement
                     </CardTitle>
                   </CardHeader>
                   <CardBody className="text-xs text-[var(--text-2)] flex flex-col gap-3">
                     <p>
                       Before clicking verify, you must host a JSON metadata file on your domain at:
                     </p>
-                    <div className="bg-[var(--bg-2)] p-2 rounded font-mono text-[10px] text-[var(--accent)] break-all border border-[var(--border)]">
+                    <div className="code-block px-3 py-2 text-[11px] text-[var(--accent)] break-all">
                       https://{publisherDomain || "[your-domain]"}/.well-known/veritrace.json
                     </div>
                     <p>File content format:</p>
-                    <pre className="bg-[var(--bg-2)] p-3 rounded-lg font-mono text-[10px] text-[var(--text)] overflow-x-auto border border-[var(--border)] relative group">
+                    <pre className="code-block p-3 text-[11px] text-[var(--text)] m-0">
                       {JSON.stringify({
                         organization_name: publisherOrg || "Associated Press",
                         domain: publisherDomain || "apnews.com",
@@ -581,7 +581,7 @@ export default function EnterprisePage() {
                   </CardHeader>
                   <CardBody className="flex flex-col gap-4">
                     {fetchingPublishers ? (
-                      <div className="text-center py-8 text-[var(--text-3)] text-sm flex flex-col items-center gap-2">
+                      <div className="text-center py-8 text-[var(--text-3)] text-sm flex flex-col items-center gap-3">
                         <Spinner /> Retrieving trusted directory...
                       </div>
                     ) : publishersList.length === 0 ? (
@@ -589,16 +589,13 @@ export default function EnterprisePage() {
                         No verified publishers registered yet. Use the form to verify.
                       </div>
                     ) : (
-                      <div className="flex flex-col gap-3">
+                      <div className="border border-[var(--border)] rounded-[6px] overflow-hidden">
                         {publishersList.map((pub) => (
-                          <div key={pub.creator_address} className="p-4 rounded-2xl bg-[var(--surface-2)] border border-[var(--border)] flex flex-col gap-2 relative overflow-hidden group">
-                            <div className="absolute top-0 right-0 w-[4px] h-full bg-[var(--accent)]" />
-                            <div className="flex items-center justify-between">
-                              <span className="font-bold text-sm text-[var(--text)] flex items-center gap-1.5">
-                                🏢 {pub.organization_name}
-                                <Badge variant="success" className="bg-[var(--accent)]/10 text-[var(--accent)] border-[var(--accent)]/20 text-[9px] py-0 px-1.5 flex items-center gap-0.5">
-                                  ✓ DID Bound
-                                </Badge>
+                          <div key={pub.creator_address} className="ledger-row p-4 flex flex-col gap-2 relative">
+                            <div className="flex items-center justify-between gap-3 flex-wrap">
+                              <span className="font-semibold text-sm text-[var(--text)] flex items-center gap-2">
+                                <Building size={14} className="text-[var(--text-3)]" /> {pub.organization_name}
+                                <Badge variant="arb"><Check size={10} /> DID Bound</Badge>
                               </span>
                               <a href={`https://${pub.domain}`} target="_blank" rel="noopener noreferrer" className="text-xs text-[var(--accent)] hover:underline flex items-center gap-1">
                                 {pub.domain} <ExternalLink size={10} />
@@ -607,9 +604,9 @@ export default function EnterprisePage() {
                             <div className="text-[10px] text-[var(--text-3)] font-mono truncate">
                               Wallet: {pub.creator_address}
                             </div>
-                            <div className="text-[9px] text-[var(--text-3)] flex items-center justify-between mt-1 border-t border-[var(--border)] pt-2">
+                            <div className="font-mono text-[10px] text-[var(--text-3)] flex items-center justify-between mt-1 border-t border-dashed border-[var(--border)] pt-2">
                               <span>Verified: {new Date(pub.verified_at * 1000).toLocaleDateString()}</span>
-                              <span className="text-[var(--success-text)] font-bold">✓ On-Chain Registry</span>
+                              <span className="text-[var(--success-text)] inline-flex items-center gap-1"><Check size={10} /> On-Chain Registry</span>
                             </div>
                           </div>
                         ))}

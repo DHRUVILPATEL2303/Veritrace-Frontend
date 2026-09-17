@@ -87,11 +87,8 @@ export default function OnboardingTour() {
   }, [])
 
   const goNext = () => {
-    if (stepIndex === steps.length - 1) {
-      finish()
-    } else {
-      setStepIndex((i) => i + 1)
-    }
+    if (stepIndex === steps.length - 1) finish()
+    else setStepIndex((i) => i + 1)
   }
 
   const goBack = () => setStepIndex((i) => Math.max(0, i - 1))
@@ -117,84 +114,67 @@ export default function OnboardingTour() {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.2 }}
-        className="fixed inset-0 z-[1100] flex items-center justify-center p-4"
-        style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(2px)' }}
+        className="overlay-scrim fixed inset-0 z-[1100] flex items-center justify-center p-4"
       >
         <motion.div
           key={`onboarding-card-${stepIndex}`}
-          initial={{ opacity: 0, scale: 0.95, y: 12 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.97, y: -6 }}
-          transition={{ duration: 0.2, ease: 'easeOut' }}
-          className="relative w-full max-w-md bg-[var(--surface)] border border-[var(--border-2)] rounded-2xl shadow-2xl overflow-hidden"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -4 }}
+          transition={{ duration: 0.18, ease: 'easeOut' }}
+          className="relative w-full max-w-md bg-[var(--surface)] border border-[var(--border-2)] rounded-[12px] overflow-hidden"
           role="dialog"
           aria-modal="true"
           aria-label="Welcome tour"
         >
-          {/* Skip */}
-          <button
-            onClick={finish}
-            className="absolute top-3 right-3 z-10 flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-lg text-[var(--text-3)] hover:text-[var(--text)] hover:bg-[var(--bg-2)] transition-colors"
-          >
-            Skip <X size={14} />
-          </button>
-
-          <div className="px-6 pt-8 pb-6">
-            <div
-              className="w-12 h-12 rounded-xl flex items-center justify-center mb-4 text-white shadow-md"
-              style={{ background: 'linear-gradient(135deg, var(--accent), var(--accent-dark))' }}
+          <div className="flex items-center justify-between px-5 py-2.5 border-b border-[var(--border)] bg-[var(--surface-2)]">
+            <span className="kicker">Tour · {String(stepIndex + 1).padStart(2, '0')} / {String(steps.length).padStart(2, '0')}</span>
+            <button
+              type="button"
+              onClick={finish}
+              className="flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-[4px] text-[var(--text-3)] hover:text-[var(--text)] hover:bg-[var(--bg-3)]"
             >
-              <Icon size={22} />
+              Skip <X size={13} />
+            </button>
+          </div>
+
+          <div className="px-6 pt-6 pb-6">
+            <div className="w-10 h-10 rounded-[8px] border border-[var(--accent-border)] bg-[var(--accent-bg)] flex items-center justify-center mb-4 text-[var(--accent)]">
+              <Icon size={18} />
             </div>
 
-            <h2 className="text-lg font-bold text-[var(--text)] mb-2">{step.title}</h2>
-            <p className="text-sm leading-relaxed text-[var(--text-2)]">{step.description}</p>
+            <h2 className="text-xl font-bold text-[var(--text)] mb-2">{step.title}</h2>
+            <p className="text-sm leading-relaxed text-[var(--text-2)] m-0">{step.description}</p>
 
             {step.path && (
               <button
+                type="button"
                 onClick={goToStepPage}
-                className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--accent)] hover:underline"
+                className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--accent)] hover:underline underline-offset-4"
               >
                 {step.cta} <ArrowRight size={14} />
               </button>
             )}
           </div>
 
-          {/* Progress dots */}
-          <div className="flex items-center justify-center gap-1.5 pb-5">
-            {steps.map((_, i) => (
-              <span
-                key={i}
-                className={cn(
-                  'h-1.5 rounded-full transition-all duration-300',
-                  i === stepIndex ? 'w-5 bg-[var(--accent)]' : 'w-1.5 bg-[var(--border-2)]'
-                )}
-              />
-            ))}
-          </div>
-
           {/* Footer nav */}
-          <div className="flex items-center justify-between gap-3 px-6 py-4 border-t border-[var(--border)] bg-[var(--bg-2)]/40">
+          <div className="flex items-center justify-between gap-3 px-5 py-3 border-t border-[var(--border)]">
             <button
+              type="button"
               onClick={goBack}
               disabled={isFirst}
-              className={cn(
-                'flex items-center gap-1 text-xs font-semibold px-3 py-2 rounded-lg transition-colors',
-                isFirst ? 'opacity-0 pointer-events-none' : 'text-[var(--text-2)] hover:text-[var(--text)] hover:bg-[var(--bg-2)]'
-              )}
+              className={cn('btn btn-ghost text-xs px-3 py-2', isFirst && 'opacity-0 pointer-events-none')}
             >
               <ArrowLeft size={14} /> Back
             </button>
 
-            <span className="text-[11px] font-mono text-[var(--text-4)]">
-              {stepIndex + 1} / {steps.length}
-            </span>
+            <div className="flex items-center gap-1" aria-hidden="true">
+              {steps.map((_, i) => (
+                <span key={i} className={cn('h-1 rounded-[1px] transition-all duration-300', i === stepIndex ? 'w-5 bg-[var(--accent)]' : 'w-2 bg-[var(--border-2)]')} />
+              ))}
+            </div>
 
-            <button
-              onClick={goNext}
-              className="flex items-center gap-1.5 text-xs font-semibold px-4 py-2 rounded-lg text-white transition-all hover:shadow-md"
-              style={{ background: 'linear-gradient(135deg, var(--accent), var(--accent-dark))' }}
-            >
+            <button type="button" onClick={goNext} className="btn btn-primary text-xs px-4 py-2">
               {isLast ? 'Get started' : 'Next'} <ArrowRight size={14} />
             </button>
           </div>
