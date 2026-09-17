@@ -2,8 +2,9 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { CONTRACT_ADDRESS, ARBITRUM_SEPOLIA } from '../config'
 import { VeriTraceLogo } from './ArbitrumLogo'
-import { ExternalLink } from 'lucide-react'
+import { ExternalLink, Compass } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { replayTour } from './OnboardingTour'
 
 // Inline SVG component for Twitter (X) to avoid trademark icon issues
 function TwitterIcon({ size = 20, className }) {
@@ -30,9 +31,9 @@ export default function Footer() {
               <li><Link to="/register" className="text-sm text-[var(--footer-text-muted)] hover:text-[var(--footer-text)] transition-colors">Register</Link></li>
               <li><Link to="/verify" className="text-sm text-[var(--footer-text-muted)] hover:text-[var(--footer-text)] transition-colors">Verify</Link></li>
               <li><Link to="/library" className="text-sm text-[var(--footer-text-muted)] hover:text-[var(--footer-text)] transition-colors">Library</Link></li>
-              <li><Link to="/about" className="text-sm text-[var(--footer-text-muted)] hover:text-[var(--footer-text)] transition-colors">About</Link></li>
-              <li><Link to="/profile" className="text-sm text-[var(--footer-text-muted)] hover:text-[var(--footer-text)] transition-colors">Profile</Link></li>
               <li><Link to="/enterprise" className="text-sm text-[var(--footer-text-muted)] hover:text-[var(--footer-text)] transition-colors">Enterprise</Link></li>
+              <li><Link to="/profile" className="text-sm text-[var(--footer-text-muted)] hover:text-[var(--footer-text)] transition-colors">Profile</Link></li>
+              <li><Link to="/about" className="text-sm text-[var(--footer-text-muted)] hover:text-[var(--footer-text)] transition-colors">About</Link></li>
             </ul>
           </div>
 
@@ -59,6 +60,15 @@ export default function Footer() {
                 >
                   <ExternalLink size={14} /> Arbitrum.io
                 </a>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  onClick={replayTour}
+                  className="text-sm text-[var(--footer-text-muted)] hover:text-[var(--footer-text)] transition-colors inline-flex items-center gap-1.5"
+                >
+                  <Compass size={14} /> Take the tour
+                </button>
               </li>
             </ul>
           </div>

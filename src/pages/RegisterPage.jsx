@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ethers } from 'ethers'
 import { useAccount, useWriteContract, useConfig, useSwitchChain } from 'wagmi'
@@ -15,7 +15,6 @@ import { Progress } from '../components/ui/progress'
 import { Spinner } from '../components/ui/spinner'
 import { Select } from '../components/ui/input'
 import { Skeleton } from '../components/ui/skeleton'
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '../components/ui/tabs'
 import { toast } from 'sonner'
 import { SpotlightCard } from '../components/aceternity/SpotlightCard'
 import { ArbitrumLogo } from '../components/ArbitrumLogo'
@@ -24,7 +23,7 @@ import { ScrollReveal } from '../components/ui/scroll-reveal'
 import { useUpload } from '../context/UploadContext'
 import { downloadCertificate } from '../utils/generateCertificate'
 import { cn } from '@/lib/utils'
-import { Upload, Fingerprint, Shield, CircleCheck as CheckCircle2, FilePlus, TriangleAlert as AlertTriangle, ExternalLink, Award, Bot, Webhook, FileText, Type, Gem, Sparkles, Link2 } from 'lucide-react'
+import { Upload, Fingerprint, Shield, CircleCheck as CheckCircle2, FilePlus, TriangleAlert as AlertTriangle, ExternalLink, Award, Bot, Webhook, Gem, Sparkles, Link2 } from 'lucide-react'
 import {
   HASH_ENGINE_API, CORE_BACKEND_API, CONTRACT_ADDRESS, CONTRACT_ABI, ARBITRUM_SEPOLIA,
 } from '../config'
@@ -56,27 +55,12 @@ export default function RegisterPage() {
 
   const [allowAiTraining, setAllowAiTraining] = useState(true)
   const [webhookUrl, setWebhookUrl] = useState('')
-  const [inputType, setInputType] = useState('media')
-  const [textContent, setTextContent] = useState('')
   const [showAllKeyframes, setShowAllKeyframes] = useState(false)
 
   // NFT minting state
   const [nftMinting, setNftMinting] = useState(false)
   const [nftResult, setNftResult] = useState(null) // { tokenId, txHash }
   const [nftError, setNftError] = useState(null)
-
-  // Dynamically create a file from text input
-  useEffect(() => {
-    if (inputType === 'text') {
-      if (textContent.trim()) {
-        const textBlob = new Blob([textContent], { type: 'text/plain' })
-        const newFile = new File([textBlob], 'article.txt', { type: 'text/plain' })
-        setFile(newFile)
-      } else {
-        setFile(null)
-      }
-    }
-  }, [textContent, inputType, setFile])
 
   let maxConf = hashes?.aiConfidenceScore || 0
   if (hashes?.keyframes) {
@@ -364,22 +348,7 @@ export default function RegisterPage() {
                 </CardTitle>
               </CardHeader>
               <CardBody className="flex flex-col gap-4">
-                <Tabs value={inputType} onValueChange={(val) => { setInputType(val); setFile(null); setStep(1); setHashes(null); setError(null) }} className="w-full">
-                  <TabsList className="grid w-full grid-cols-2 mb-4 bg-[var(--bg-2)] border border-[var(--border)] rounded-xl">
-                    <TabsTrigger value="media" className="data-[state=active]:bg-[var(--surface)] rounded-lg py-1.5"><FileText size={16} className="mr-2" /> Media File</TabsTrigger>
-                    <TabsTrigger value="text" className="data-[state=active]:bg-[var(--surface)] rounded-lg py-1.5"><Type size={16} className="mr-2" /> Text Article</TabsTrigger>
-                  </TabsList>
-                  
-                  <TabsContent value="media">
-                    <FileUpload onFileSelected={handleFileSelected} label="Drop an original to begin its proof" />
-                  </TabsContent>
-                  
-                  <TabsContent value="text" className="flex flex-col gap-2 mt-0">
-                    <textarea className="w-full h-32 p-3 bg-[var(--bg-2)] border border-[var(--border)] rounded-xl text-sm focus:border-[var(--accent)] focus:outline-none resize-none" placeholder="Paste your article or text content here to register it on the blockchain..." value={textContent} onChange={(e) => setTextContent(e.target.value)} />
-                    <div className="text-[10px] text-[var(--text-3)] text-right">{textContent.length} characters</div>
-                    <Button onClick={() => handleFileSelected(file)} disabled={!textContent.trim()}>Generate Hash</Button>
-                  </TabsContent>
-                </Tabs>
+                <FileUpload onFileSelected={handleFileSelected} label="Drop an original to begin its proof" />
               </CardBody>
             </Card>
           </SpotlightCard>

@@ -563,7 +563,7 @@ export default function HomePage() {
       <ScrollReveal variant="fade-up">
         <section className="max-w-[1280px] mx-auto px-5 py-12">
           <Card className="card-hover-glow">
-            <div className="px-5 py-4 border-b border-[var(--border)]">
+            <div className="px-5 py-4 border-b border-[var(--border-2)]">
               <h2 className="text-sm font-bold flex items-center gap-2 text-[var(--text)]"><Database size={16} className="text-[var(--accent)]" /> Supported File Formats</h2>
             </div>
             <CardBody>

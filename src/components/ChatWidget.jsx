@@ -3,9 +3,18 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { MessageSquare, X, Send, Bot, CornerDownLeft, Sparkles, ArrowUp } from 'lucide-react'
 import { RAG_BOT_API } from '../config'
 
+export const OPEN_CHAT_EVENT = 'veritrace:open-chat'
+
 export default function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false)
   const [showScrollTop, setShowScrollTop] = useState(false)
+
+  // Let other components (e.g. the onboarding tour) open the chat on demand.
+  useEffect(() => {
+    const handleOpen = () => setIsOpen(true)
+    window.addEventListener(OPEN_CHAT_EVENT, handleOpen)
+    return () => window.removeEventListener(OPEN_CHAT_EVENT, handleOpen)
+  }, [])
 
   // Track scroll position for "Back to top" arrow
   useEffect(() => {

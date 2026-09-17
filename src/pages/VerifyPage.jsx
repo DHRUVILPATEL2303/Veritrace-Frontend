@@ -7,9 +7,7 @@ import { HashDisplay } from '../components/ui/hash-display'
 import SearchResults from '../components/SearchResults'
 import { Card, CardHeader, CardTitle, CardBody } from '../components/ui/card'
 import { Badge } from '../components/ui/badge'
-import { Button } from '../components/ui/button'
 import { Skeleton } from '../components/ui/skeleton'
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '../components/ui/tabs'
 import { toast } from 'sonner'
 import { Progress } from '../components/ui/progress'
 import { SpotlightCard } from '../components/aceternity/SpotlightCard'
@@ -22,7 +20,7 @@ import { config } from '../wagmiConfig'
 import {
   HASH_ENGINE_API, CONTRACT_ADDRESS, CONTRACT_ABI, ARBITRUM_SEPOLIA, CORE_BACKEND_API,
 } from '../config'
-import { Search, Shield, Database, Info, CircleCheck as CheckCircle2, FileText, Type, ExternalLink } from 'lucide-react'
+import { Search, Shield, Database, Info, CircleCheck as CheckCircle2, ExternalLink } from 'lucide-react'
 
 export default function VerifyPage() {
   const {
@@ -37,22 +35,6 @@ export default function VerifyPage() {
     verFullHashes: fullHashes, setVerFullHashes: setFullHashes,
   } = useUpload()
   const { setIntegrityTone } = useIntegrityTone()
-
-  const [inputType, setInputType] = useState('media')
-  const [textContent, setTextContent] = useState('')
-
-  // Dynamically create a file from text input
-  useEffect(() => {
-    if (inputType === 'text') {
-      if (textContent.trim()) {
-        const textBlob = new Blob([textContent], { type: 'text/plain' })
-        const newFile = new File([textBlob], 'article.txt', { type: 'text/plain' })
-        setFile(newFile)
-      } else {
-        setFile(null)
-      }
-    }
-  }, [textContent, inputType, setFile])
 
   useEffect(() => {
     const hasIntegrityAlert = error || dbResults?.some(result => result.isDeepfake || result.matchType === 'deepfake')
@@ -239,22 +221,7 @@ export default function VerifyPage() {
                 </CardTitle>
               </CardHeader>
               <CardBody className="flex flex-col gap-4">
-                <Tabs value={inputType} onValueChange={(val) => { setInputType(val); setFile(null); setLocalSha256(null); setPhash(null); setBlockchainRecord(null); setDbResults(null); setError(null) }} className="w-full">
-                  <TabsList className="grid w-full grid-cols-2 mb-4 bg-[var(--bg-2)] border border-[var(--border)] rounded-xl">
-                    <TabsTrigger value="media" className="data-[state=active]:bg-[var(--surface)] rounded-lg py-1.5"><FileText size={16} className="mr-2" /> Media File</TabsTrigger>
-                    <TabsTrigger value="text" className="data-[state=active]:bg-[var(--surface)] rounded-lg py-1.5"><Type size={16} className="mr-2" /> Text Article</TabsTrigger>
-                  </TabsList>
-                  
-                  <TabsContent value="media">
-                    <FileUpload onFileSelected={handleFileSelected} label="Drop a file to inspect its provenance" />
-                  </TabsContent>
-                  
-                  <TabsContent value="text" className="flex flex-col gap-2 mt-0">
-                    <textarea className="w-full h-32 p-3 bg-[var(--bg-2)] border border-[var(--border)] rounded-xl text-sm focus:border-[var(--accent)] focus:outline-none resize-none" placeholder="Paste your article or text content here to check it against the registry..." value={textContent} onChange={(e) => setTextContent(e.target.value)} />
-                    <div className="text-[10px] text-[var(--text-3)] text-right">{textContent.length} characters</div>
-                    <Button onClick={() => handleFileSelected(file)} disabled={!textContent.trim()}>Run provenance check</Button>
-                  </TabsContent>
-                </Tabs>
+                <FileUpload onFileSelected={handleFileSelected} label="Drop a file to inspect its provenance" />
               </CardBody>
             </Card>
           </SpotlightCard>
@@ -376,7 +343,7 @@ export default function VerifyPage() {
       </div>
 
       <Card className="card-hover-glow border-[var(--border)] overflow-hidden mt-5">
-        <CardHeader className="border-b border-[var(--border)] bg-[var(--bg-2)]/30">
+        <CardHeader className="border-b border-[var(--border-2)] bg-[var(--bg-2)]/30">
           <CardTitle className="flex items-center gap-2 text-sm font-semibold tracking-tight">
             <Info size={15} className="text-[var(--accent)]" />
             Verification Thresholds

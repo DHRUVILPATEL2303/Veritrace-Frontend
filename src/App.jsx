@@ -12,6 +12,7 @@ import AdminPage from './pages/AdminPage'
 import { Toaster } from './components/ui/sonner'
 import AppShell from './components/AppShell'
 import ChatWidget from './components/ChatWidget'
+import OnboardingTour from './components/OnboardingTour'
 
 // Scroll to top on route change
 function ScrollToTop() {
@@ -52,9 +53,9 @@ function App() {
             <Route path="/register" element={<PageWrapper><RegisterPage /></PageWrapper>} />
             <Route path="/verify" element={<PageWrapper><VerifyPage /></PageWrapper>} />
             <Route path="/library" element={<PageWrapper><LibraryPage /></PageWrapper>} />
-            <Route path="/about" element={<PageWrapper><AboutPage /></PageWrapper>} />
-            <Route path="/profile" element={<PageWrapper><ProfilePage /></PageWrapper>} />
             <Route path="/enterprise" element={<PageWrapper><EnterprisePage /></PageWrapper>} />
+            <Route path="/profile" element={<PageWrapper><ProfilePage /></PageWrapper>} />
+            <Route path="/about" element={<PageWrapper><AboutPage /></PageWrapper>} />
             <Route path="/admin/owner" element={<PageWrapper><AdminPage /></PageWrapper>} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
@@ -62,6 +63,7 @@ function App() {
       </AppShell>
       <ChatWidget />
       <Toaster />
+      <OnboardingTour />
     </>
   )
 }
