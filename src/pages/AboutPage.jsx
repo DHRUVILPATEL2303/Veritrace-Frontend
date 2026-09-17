@@ -1,38 +1,41 @@
 import { Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
-import { VeriTraceLogo, ArbitrumLogo, ArbitrumOrbit } from '../components/ArbitrumLogo'
+import { VeriTraceLogo } from '../components/ArbitrumLogo'
 import { Button } from '../components/ui/button'
-import { Card, CardBody } from '../components/ui/card'
-import { Badge } from '../components/ui/badge'
-import { AuroraBackground } from '../components/aceternity/AuroraBackground'
-import { ParticleField } from '../components/aceternity/ParticleField'
-import { SpotlightCard } from '../components/aceternity/SpotlightCard'
-import { BeamLine } from '../components/aceternity/BeamLine'
-import { InfiniteMovingCards } from '../components/aceternity/InfiniteMovingCards'
-import { FilePlus, Search, FingerprintPattern as Fingerprint, Shield, Database, Server, Cpu, Bot, ArrowRight, ChevronDown, Upload, Pin, Check, Layers, Zap, Eye, TriangleAlert as AlertTriangle } from 'lucide-react'
+import { FilePlus, Search, FingerprintPattern as Fingerprint, Shield, Database, Server, Cpu, ArrowRight, Upload, Pin, Check, TriangleAlert as AlertTriangle } from 'lucide-react'
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../components/ui/accordion'
+import { ScrollReveal } from '../components/ui/scroll-reveal'
+import { cn } from '@/lib/utils'
 
 const REGISTER_STEPS = [
-  { num: '01', title: 'Upload Your File', desc: 'Drag and drop or select any image, video, or document on the Register page. The file is sent to the Hash Engine API.', icon: Upload, color: 'var(--accent)' },
-  { num: '02', title: 'Fingerprint Extraction', desc: 'The Hash Engine computes a SHA-256 cryptographic hash, a 64-bit perceptual hash (pHash), semantic embeddings, ArcFace biometrics, and wav2vec2 audio vectors.', icon: Fingerprint, color: 'var(--accent-2)' },
-  { num: '03', title: 'Pin to IPFS & S3', desc: 'Your media file is pinned to IPFS via Pinata and backed up to S3. A metadata JSON containing all fingerprints is also pinned, giving you a permanent ipfsCid.', icon: Pin, color: 'var(--accent-dark)' },
-  { num: '04', title: 'Sign Blockchain Transaction', desc: 'Connect MetaMask on Arbitrum Sepolia and call registerContent(sha256, phash, ipfsCid, aiTool) on the VeriTrace Registry smart contract.', icon: Shield, color: 'var(--success-text)' },
-  { num: '05', title: 'Indexed & Protected', desc: "The Go backend's EVM listener picks up the ContentRegistered event and indexes your asset in PostgreSQL, Redis, and Qdrant — ready for instant verification.", icon: Database, color: 'var(--warning-text)' },
+  { num: '01', title: 'Upload Your File', desc: 'Drag and drop or select any image, video, or document on the Register page. The file is sent to the Hash Engine API.', icon: Upload },
+  { num: '02', title: 'Fingerprint Extraction', desc: 'The Hash Engine computes a SHA-256 cryptographic hash, a 64-bit perceptual hash (pHash), semantic embeddings, ArcFace biometrics, and wav2vec2 audio vectors.', icon: Fingerprint },
+  { num: '03', title: 'Pin to IPFS & S3', desc: 'Your media file is pinned to IPFS via Pinata and backed up to S3. A metadata JSON containing all fingerprints is also pinned, giving you a permanent ipfsCid.', icon: Pin },
+  { num: '04', title: 'Sign Blockchain Transaction', desc: 'Connect MetaMask on Arbitrum Sepolia and call registerContent(sha256, phash, ipfsCid, aiTool) on the VeriTrace Registry smart contract.', icon: Shield },
+  { num: '05', title: 'Indexed & Protected', desc: "The Go backend's EVM listener picks up the ContentRegistered event and indexes your asset in PostgreSQL, Redis, and Qdrant — ready for instant verification.", icon: Database },
 ]
 
 const VERIFY_STEPS = [
-  { num: '01', title: 'Upload Suspect File', desc: "Go to the Verify page and drop in any file you want to check — whether it's an original, copy, or modified version.", icon: Upload, color: 'var(--accent)' },
-  { num: '02', title: 'Exact Match Check', desc: 'The SHA-256 hash is compared against the registry. A hit means a 100% exact match — the file is byte-for-byte identical to a registered original.', icon: Check, color: 'var(--accent-2)' },
-  { num: '03', title: 'Fuzzy / Segment Match', desc: 'If exact match fails, pHash Hamming distance search runs via Qdrant KNN. For videos, every keyframe is individually compared using Manhattan (L1) distance.', icon: Search, color: '#B388FF' },
-  { num: '04', title: 'Deepfake Detection', desc: 'Face embeddings (ArcFace) and audio vectors (wav2vec2) are matched even when visual similarity is low — catching AI-generated deepfakes and voice clones.', icon: AlertTriangle, color: 'var(--danger-text)' },
-  { num: '05', title: 'Result & Certificate', desc: 'View Exact Match, Derivative Match (with similarity %), or Unregistered. Download a signed JSON verification certificate for legal proof.', icon: FilePlus, color: 'var(--success-text)' },
+  { num: '01', title: 'Upload Suspect File', desc: "Go to the Verify page and drop in any file you want to check — whether it's an original, copy, or modified version.", icon: Upload },
+  { num: '02', title: 'Exact Match Check', desc: 'The SHA-256 hash is compared against the registry. A hit means a 100% exact match — the file is byte-for-byte identical to a registered original.', icon: Check },
+  { num: '03', title: 'Fuzzy / Segment Match', desc: 'If exact match fails, pHash Hamming distance search runs via Qdrant KNN. For videos, every keyframe is individually compared using Manhattan (L1) distance.', icon: Search },
+  { num: '04', title: 'Deepfake Detection', desc: 'Face embeddings (ArcFace) and audio vectors (wav2vec2) are matched even when visual similarity is low — catching AI-generated deepfakes and voice clones.', icon: AlertTriangle, tone: 'var(--danger-text)' },
+  { num: '05', title: 'Result & Certificate', desc: 'View Exact Match, Derivative Match (with similarity %), or Unregistered. Download a signed JSON verification certificate for legal proof.', icon: FilePlus },
 ]
 
 const HASH_TYPES = [
-  { tag: 'SHA-256', color: 'var(--accent)', title: 'Cryptographic Hash', desc: 'A deterministic 256-bit fingerprint of the raw file bytes. Any single changed byte produces a completely different hash. Used for exact-match detection.', use: 'Exact match • Duplicate detection • Blockchain registration' },
-  { tag: 'pHash', color: 'var(--success-text)', title: 'Perceptual Hash', desc: 'A 64-bit integer derived from the visual structure of an image or video frame (DCT-based). Similar images produce hashes with low Hamming distance.', use: 'Fuzzy image matching • Video keyframe comparison • Compression-resistant' },
-  { tag: 'SEM', color: '#B388FF', title: 'Semantic Embedding', desc: 'A high-dimensional float vector encoding the semantic meaning of visual content, generated by a vision transformer model. Resists cropping, color shifts, and style transfers.', use: 'Semantic similarity • Style-transfer detection • Cross-modal search' },
-  { tag: 'FACE', color: 'var(--success-text)', title: 'ArcFace Biometric', desc: 'A 512-dimensional face identity embedding produced by the ArcFace model. Matches faces across lighting, age, pose, and cosmetic changes.', use: 'Deepfake detection • Face swap detection • Identity verification' },
-  { tag: 'AUD', color: 'var(--warning-text)', title: 'wav2vec2 Voice Print', desc: "A 768-dimensional biometric vector of vocal frequencies and speech patterns from Facebook's wav2vec2-base model. Unique to each speaker.", use: 'Audio deepfake detection • Voice clone detection • Speaker verification' },
+  { tag: 'SHA-256', title: 'Cryptographic Hash', desc: 'A deterministic 256-bit fingerprint of the raw file bytes. Any single changed byte produces a completely different hash. Used for exact-match detection.', use: 'Exact match • Duplicate detection • Blockchain registration' },
+  { tag: 'pHash', title: 'Perceptual Hash', desc: 'A 64-bit integer derived from the visual structure of an image or video frame (DCT-based). Similar images produce hashes with low Hamming distance.', use: 'Fuzzy image matching • Video keyframe comparison • Compression-resistant' },
+  { tag: 'SEM', title: 'Semantic Embedding', desc: 'A high-dimensional float vector encoding the semantic meaning of visual content, generated by a vision transformer model. Resists cropping, color shifts, and style transfers.', use: 'Semantic similarity • Style-transfer detection • Cross-modal search' },
+  { tag: 'FACE', title: 'ArcFace Biometric', desc: 'A 512-dimensional face identity embedding produced by the ArcFace model. Matches faces across lighting, age, pose, and cosmetic changes.', use: 'Deepfake detection • Face swap detection • Identity verification' },
+  { tag: 'AUD', title: 'wav2vec2 Voice Print', desc: "A 768-dimensional biometric vector of vocal frequencies and speech patterns from Facebook's wav2vec2-base model. Unique to each speaker.", use: 'Audio deepfake detection • Voice clone detection • Speaker verification' },
+]
+
+const ARCHITECTURE = [
+  { icon: Cpu, label: 'Hash Engine', sub: 'Port 8081' },
+  { icon: Pin, label: 'IPFS + S3', sub: 'Pinata / MinIO' },
+  { icon: Shield, label: 'Arbitrum', sub: 'Smart Contract' },
+  { icon: Server, label: 'Go Backend', sub: 'EVM Listener' },
+  { icon: Database, label: 'PG + Redis + Qdrant', sub: 'Storage Layer' },
 ]
 
 const FAQ = [
@@ -43,165 +46,159 @@ const FAQ = [
   { q: 'Is the verification free?', a: 'Verification (exact, fuzzy, segmented) is free — it only hits the Go backend API. Only registration requires a gas-paid blockchain transaction.' },
 ]
 
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../components/ui/accordion'
-import { ScrollReveal } from '../components/ui/scroll-reveal'
-
 export default function AboutPage() {
   return (
     <div className="min-h-screen">
       {/* HERO */}
-      <AuroraBackground className="py-20 text-center">
-        <div className="max-w-[1280px] mx-auto px-5">
-          <ParticleField density={30} />
-          <div className="flex items-center justify-center gap-3 mb-5">
-            <VeriTraceLogo size={44} />
-            <span className="font-extrabold text-lg uppercase tracking-widest gradient-arb">VeriTrace</span>
-          </div>
-          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="text-4xl md:text-5xl font-extrabold leading-tight mb-4 text-[var(--text)]">
-            Proof, not promises.
-          </motion.h1>
-          <p className="text-base text-[var(--text-2)] max-w-2xl mx-auto leading-relaxed mb-8">
-            VeriTrace combines cryptographic proof with perceptual intelligence, making ownership and authenticity verifiable even after content changes hands.
-          </p>
-          <div className="flex gap-3 justify-center flex-wrap">
-            <Link to="/register"><Button variant="primary" size="lg"><FilePlus size={18} /> Register Content</Button></Link>
-            <Link to="/verify"><Button variant="outline" size="lg"><Search size={18} /> Verify Content</Button></Link>
+      <section className="page-hero">
+        <div className="max-w-[1280px] mx-auto px-5 py-14 md:py-20 grid grid-cols-1 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,.8fr)] gap-10 items-end">
+          <div>
+            <div className="flex items-center gap-2.5 mb-6 text-[var(--text)]">
+              <VeriTraceLogo size={30} />
+              <span className="kicker">VeriTrace · About</span>
+            </div>
+            <h1 className="home-title mb-5" style={{ fontSize: 'clamp(2.3rem, 5vw, 4rem)' }}>Proof, not promises.</h1>
+            <p className="text-[15px] sm:text-base text-[var(--text-2)] max-w-2xl leading-relaxed mb-7 m-0">
+              VeriTrace combines cryptographic proof with perceptual intelligence, making ownership and authenticity verifiable even after content changes hands.
+            </p>
+            <div className="flex gap-2.5 flex-wrap">
+              <Link to="/register" className="inline-flex"><Button variant="primary" size="lg" as="span"><FilePlus size={16} /> Register Content</Button></Link>
+              <Link to="/verify" className="inline-flex"><Button variant="outline" size="lg" as="span"><Search size={16} /> Verify Content</Button></Link>
+            </div>
           </div>
         </div>
-      </AuroraBackground>
+      </section>
 
       {/* ARCHITECTURE */}
-      <ScrollReveal variant="fade-up">
-        <section className="max-w-[1280px] mx-auto px-5 py-16">
-          <h2 className="text-center text-3xl font-extrabold mb-2 text-[var(--text)]">Built to preserve context.</h2>
-          <p className="text-center text-sm text-[var(--text-3)] mb-10">Five purpose-built layers convert an upload into an enduring, verifiable proof.</p>
-          <div className="flex items-stretch justify-center gap-0 flex-wrap overflow-x-auto">
-            {[
-              { icon: Cpu, label: 'Hash Engine', sub: 'Port 8081', color: 'var(--accent)' },
-              { icon: Pin, label: 'IPFS + S3', sub: 'Pinata / MinIO', color: 'var(--accent-2)' },
-              { icon: Shield, label: 'Arbitrum', sub: 'Smart Contract', color: 'var(--accent-dark)' },
-              { icon: Server, label: 'Go Backend', sub: 'EVM Listener', color: 'var(--success-text)' },
-              { icon: Database, label: 'PG + Redis + Qdrant', sub: 'Storage Layer', color: 'var(--warning-text)' },
-            ].map((node, i, arr) => (
-              <div key={i} className="flex items-center">
-                <motion.div initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-5 text-center min-w-[130px] hover:border-[var(--border-2)] transition-colors">
-                  <node.icon size={28} className="mx-auto mb-1.5" style={{ color: node.color }} />
-                  <div className="font-bold text-sm text-[var(--text)]">{node.label}</div>
-                  <div className="text-[11px] text-[var(--text-3)]">{node.sub}</div>
-                </motion.div>
-                {i < arr.length - 1 && <ArrowRight size={20} className="mx-1 text-[var(--text-4)] flex-shrink-0" />}
+      <ScrollReveal>
+        <section className="max-w-[1280px] mx-auto px-5 pt-14 pb-16">
+          <div className="section-rule"><span className="kicker">Architecture</span></div>
+          <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)] gap-4 md:gap-10 mb-7 items-end">
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-[var(--text)] leading-[1.05]">Built to preserve context.</h2>
+            <p className="text-sm text-[var(--text-2)] m-0 max-w-xl">Five purpose-built layers convert an upload into an enduring, verifiable proof.</p>
+          </div>
+          <ol className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 border border-[var(--border)] rounded-[8px] bg-[var(--surface)] overflow-hidden list-none m-0 p-0">
+            {ARCHITECTURE.map((node, i) => (
+              <li key={node.label} className={cn('relative p-5 border-[var(--border)]', i > 0 && 'border-t sm:border-t-0 lg:border-l', i > 0 && i % 2 === 1 && 'sm:border-l', i >= 2 && 'sm:border-t lg:border-t-0')}>
+                <div className="flex items-center justify-between mb-4">
+                  <span className="w-9 h-9 rounded-[5px] border border-[var(--border-2)] flex items-center justify-center text-[var(--accent)]"><node.icon size={17} /></span>
+                  <span className="font-mono text-[11px] text-[var(--text-4)]">{String(i + 1).padStart(2, '0')}</span>
+                </div>
+                <div className="font-semibold text-sm text-[var(--text)]">{node.label}</div>
+                <div className="font-mono text-[11px] text-[var(--text-3)] mt-0.5">{node.sub}</div>
+                {i < ARCHITECTURE.length - 1 && (
+                  <ArrowRight size={14} className="hidden lg:block absolute -right-[7px] top-1/2 -translate-y-1/2 text-[var(--text-4)] bg-[var(--surface)] z-10" aria-hidden="true" />
+                )}
+              </li>
+            ))}
+          </ol>
+        </section>
+      </ScrollReveal>
+
+      {/* CORE WORKFLOW */}
+      <ScrollReveal>
+        <section className="max-w-[1280px] mx-auto px-5 pb-16">
+          <div className="section-rule"><span className="kicker">Core workflow</span></div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+            <StepList icon={FilePlus} title="How to Register" steps={REGISTER_STEPS} />
+            <StepList icon={Search} title="How to Verify" steps={VERIFY_STEPS} />
+          </div>
+        </section>
+      </ScrollReveal>
+
+      {/* HASH TYPES */}
+      <ScrollReveal>
+        <section className="max-w-[1280px] mx-auto px-5 pb-16">
+          <div className="section-rule"><span className="kicker">Evidence signals</span></div>
+          <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)] gap-4 md:gap-10 mb-7 items-end">
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-[var(--text)] leading-[1.05]">Evidence that survives change.</h2>
+            <p className="text-sm text-[var(--text-2)] m-0 max-w-xl">Each signal catches a different kind of transformation—from exact duplicates to sophisticated synthetic edits.</p>
+          </div>
+          <div className="border border-[var(--border)] rounded-[8px] bg-[var(--surface)] overflow-hidden">
+            {HASH_TYPES.map((h, i) => (
+              <div key={h.tag} className={cn('grid grid-cols-1 md:grid-cols-[8rem_1fr_minmax(0,18rem)] gap-3 md:gap-6 px-5 py-4', i > 0 && 'border-t border-[var(--border)]')}>
+                <div className="flex items-center md:items-start gap-3">
+                  <span className="chip !text-[var(--accent)] !border-[var(--arb-border)]">{h.tag}</span>
+                </div>
+                <div>
+                  <div className="font-semibold text-sm text-[var(--text)] mb-1">{h.title}</div>
+                  <p className="text-xs text-[var(--text-2)] leading-relaxed m-0">{h.desc}</p>
+                </div>
+                <div className="font-mono text-[11px] text-[var(--text-3)] leading-relaxed md:pl-5 md:border-l border-[var(--border)]">
+                  <div className="mb-1"><span className="kicker">Use cases</span></div>{h.use}
+                </div>
               </div>
             ))}
           </div>
         </section>
       </ScrollReveal>
 
-      {/* CORE WORKFLOW */}
-      <ScrollReveal variant="fade-up">
-        <section className="max-w-[1280px] mx-auto px-5 pb-16 space-y-10">
-          <div>
-            <div className="flex items-center gap-2.5 mb-4 px-2">
-              <span className="bg-[var(--arb-bg)] text-[var(--accent)] rounded-xl p-2"><FilePlus size={20} /></span>
-              <h2 className="text-2xl font-extrabold text-[var(--text)]">How to Register</h2>
-            </div>
-            <InfiniteMovingCards items={REGISTER_STEPS} speed="normal" direction="left" renderItem={(s) => (
-              <div className="w-[320px] sm:w-[360px] h-full">
-                <StepCard {...s} delay={0} />
-              </div>
-            )} />
-          </div>
-
-          <div>
-            <div className="flex items-center gap-2.5 mb-4 px-2">
-              <span className="bg-[var(--success-bg)] text-[var(--success-text)] rounded-xl p-2"><Search size={20} /></span>
-              <h2 className="text-2xl font-extrabold text-[var(--text)]">How to Verify</h2>
-            </div>
-            <InfiniteMovingCards items={VERIFY_STEPS} speed="normal" direction="left" renderItem={(s) => (
-              <div className="w-[320px] sm:w-[360px] h-full">
-                <StepCard {...s} delay={0} />
-              </div>
-            )} />
-          </div>
-        </section>
-      </ScrollReveal>
-
-      {/* ARCHITECTURE MAP */}
-      <ScrollReveal variant="fade-up">
-        <section className="max-w-[1280px] mx-auto px-5 pb-16">
-          <h2 className="text-center text-3xl font-extrabold mb-2 text-[var(--text)]">Evidence that survives change.</h2>
-          <p className="text-center text-sm text-[var(--text-3)] mb-8">Each signal catches a different kind of transformation—from exact duplicates to sophisticated synthetic edits.</p>
-          <InfiniteMovingCards items={HASH_TYPES} speed="normal" direction="left" renderItem={(h) => (
-            <div className="w-[320px] sm:w-[360px] h-full">
-              <SpotlightCard className="h-full">
-                <Card hover className="h-full min-h-[140px] card-hover-glow">
-                  <CardBody className="p-5 flex flex-col justify-between gap-2 h-full">
-                    <div className="flex flex-col gap-2">
-                      <div className="flex items-center gap-2">
-                        <span className="px-2 py-0.5 rounded text-xs font-bold" style={{ background: `${h.color}15`, color: h.color }}>{h.tag}</span>
-                        <span className="font-bold text-sm text-[var(--text)]">{h.title}</span>
-                      </div>
-                      <p className="text-xs text-[var(--text-3)] leading-relaxed m-0">{h.desc}</p>
-                    </div>
-                    <div className="text-[11px] rounded px-2 py-1 mt-auto" style={{ background: `${h.color}10`, color: h.color }}>Use cases: {h.use}</div>
-                  </CardBody>
-                </Card>
-              </SpotlightCard>
-            </div>
-          )} />
-        </section>
-      </ScrollReveal>
-
       {/* FAQ */}
-      <ScrollReveal variant="fade-up">
-      <section className="max-w-[760px] mx-auto px-5 pb-16">
-        <h2 className="text-center text-3xl font-extrabold mb-2 text-[var(--text)]">Questions, answered clearly.</h2>
-        <p className="text-center text-sm text-[var(--text-3)] mb-8">The practical details behind VeriTrace, from storage to verification thresholds.</p>
-        <Accordion type="single" collapsible className="w-full">
-          {FAQ.map((f, i) => <FaqItem key={i} {...f} i={i} />)}
-        </Accordion>
-      </section>
+      <ScrollReveal>
+        <section className="max-w-[1280px] mx-auto px-5 pb-16">
+          <div className="section-rule"><span className="kicker">Questions</span></div>
+          <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,.8fr)_minmax(0,1.2fr)] gap-6 lg:gap-12">
+            <div>
+              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-[var(--text)] leading-[1.05] mb-3">Questions, answered clearly.</h2>
+              <p className="text-sm text-[var(--text-2)] m-0 max-w-md">The practical details behind VeriTrace, from storage to verification thresholds.</p>
+            </div>
+            <Accordion type="single" collapsible className="w-full border-t border-[var(--border)]">
+              {FAQ.map((f, i) => <FaqItem key={i} {...f} i={i} />)}
+            </Accordion>
+          </div>
+        </section>
       </ScrollReveal>
 
       {/* BOTTOM CTA */}
-      <ScrollReveal variant="fade-up">
-      <AuroraBackground className="py-20 text-center border-t border-[var(--border)]">
-        <div className="max-w-[1280px] mx-auto px-5">
-          <h2 className="text-3xl font-extrabold mb-3 text-[var(--text)]">Your work deserves durable proof.</h2>
-          <p className="text-sm text-[var(--text-2)] mb-8">Create an ownership record today, then verify it anywhere tomorrow.</p>
-          <div className="flex gap-3 justify-center flex-wrap">
-            <Link to="/register"><Button variant="primary" size="lg"><FilePlus size={18} /> Get Started</Button></Link>
-            <Link to="/verify"><Button variant="outline" size="lg"><Search size={18} /> Verify Content</Button></Link>
+      <ScrollReveal>
+        <section className="max-w-[1280px] mx-auto px-5 pb-6">
+          <div className="ink-panel p-7 sm:p-10 grid grid-cols-1 md:grid-cols-[1.4fr_auto] gap-6 items-center">
+            <div>
+              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight leading-[1.05] mb-2">Your work deserves durable proof.</h2>
+              <p className="text-sm m-0 opacity-80">Create an ownership record today, then verify it anywhere tomorrow.</p>
+            </div>
+            <div className="flex gap-2.5 flex-wrap">
+              <Link to="/register" className="inline-flex"><Button variant="primary" size="lg" as="span"><FilePlus size={16} /> Get Started</Button></Link>
+              <Link to="/verify" className="inline-flex"><Button variant="outline" size="lg" as="span"><Search size={16} /> Verify Content</Button></Link>
+            </div>
           </div>
-        </div>
-      </AuroraBackground>
+        </section>
       </ScrollReveal>
     </div>
   )
 }
 
-function StepCard({ num, title, desc, icon: Icon, color, delay }) {
+function StepList({ icon: Icon, title, steps }) {
   return (
-    <motion.div initial={{ opacity: 0, y: 8 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay }} className="h-full">
-      <SpotlightCard className="h-full">
-        <Card hover className="flex gap-3 items-start p-4 card-hover-glow h-full min-h-[110px]">
-          <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[var(--bg-2)] flex items-center justify-center font-extrabold text-sm" style={{ color }}>{num}</div>
-          <div className="flex-1 flex flex-col justify-center">
-            <div className="flex items-center gap-1.5 font-bold text-sm mb-1 text-[var(--text)]"><Icon size={14} style={{ color }} /> {title}</div>
-            <div className="text-xs text-[var(--text-3)] leading-relaxed">{desc}</div>
-          </div>
-        </Card>
-      </SpotlightCard>
-    </motion.div>
+    <div className="border border-[var(--border)] rounded-[8px] bg-[var(--surface)] overflow-hidden">
+      <div className="flex items-center gap-2 px-5 py-3 border-b border-[var(--border)] bg-[var(--bg-2)]">
+        <Icon size={15} className="text-[var(--accent)]" />
+        <h3 className="font-sans text-sm font-semibold text-[var(--text)] tracking-normal">{title}</h3>
+      </div>
+      <ol className="list-none m-0 p-0">
+        {steps.map((s) => (
+          <li key={s.num} className="grid grid-cols-[2.5rem_1fr] gap-3 px-5 py-4 border-b border-[var(--border)] last:border-b-0">
+            <span className="font-mono text-xs text-[var(--text-4)] pt-0.5">{s.num}</span>
+            <div>
+              <div className="flex items-center gap-1.5 font-semibold text-sm mb-1 text-[var(--text)]">
+                <s.icon size={13} style={{ color: s.tone || 'var(--accent)' }} /> {s.title}
+              </div>
+              <div className="text-xs text-[var(--text-2)] leading-relaxed">{s.desc}</div>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </div>
   )
 }
 
 function FaqItem({ q, a, i }) {
   return (
-    <AccordionItem value={`item-${i}`} className="bg-[var(--surface)] border-2 border-[var(--border)] rounded-2xl overflow-hidden hover:border-[var(--border-2)] transition-colors mb-3">
-      <AccordionTrigger className="p-4 font-semibold text-sm hover:no-underline text-[var(--text)] data-[state=open]:text-[var(--accent)] [&[data-state=open]>svg]:rotate-180">
-        {q}
+    <AccordionItem value={`item-${i}`} className="border-b border-[var(--border)]">
+      <AccordionTrigger className="py-4 font-semibold text-sm text-[var(--text)] data-[state=open]:text-[var(--accent)]">
+        <span className="flex items-start gap-3"><span className="font-mono text-[11px] text-[var(--text-4)] pt-0.5">{String(i + 1).padStart(2, '0')}</span>{q}</span>
       </AccordionTrigger>
-      <AccordionContent className="px-4 pb-4 text-xs text-[var(--text-3)] leading-relaxed border-t border-[var(--border)] pt-3">
+      <AccordionContent className="pl-8 pb-5 text-sm text-[var(--text-2)] leading-relaxed">
         {a}
       </AccordionContent>
     </AccordionItem>

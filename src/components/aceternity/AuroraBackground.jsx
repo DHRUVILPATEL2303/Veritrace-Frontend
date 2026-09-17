@@ -1,26 +1,10 @@
-import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
-/**
- * AuroraBackground — Animated gradient aurora behind content
- */
-export function AuroraBackground({ children, className }) {
+/** Plain section wrapper. The animated aurora was retired in the ledger redesign. */
+export const AuroraBackground = ({ className, children, showRadialGradient, ...props }) => {
   return (
-    <div className={cn('relative overflow-hidden', className)}>
-      <div className="absolute inset-0 aurora opacity-60" />
-      <div className="absolute inset-0 grid-pattern grid-breathe" />
-      <div className="relative z-10">{children}</div>
-    </div>
-  )
-}
-
-/**
- * GlowCard — Card with animated glowing border
- */
-export function GlowCard({ children, className, color = 'var(--accent)' }) {
-  return (
-    <div className={cn('animated-border', className)}>
-      <div className="relative z-10 h-full">{children}</div>
+    <div className={cn('relative', className)} {...props}>
+      {children}
     </div>
   )
 }

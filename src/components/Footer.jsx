@@ -3,125 +3,105 @@ import { Link } from 'react-router-dom'
 import { CONTRACT_ADDRESS, ARBITRUM_SEPOLIA } from '../config'
 import { VeriTraceLogo } from './ArbitrumLogo'
 import { ExternalLink, Compass } from 'lucide-react'
+import { ArbitrumLogo } from './ArbitrumLogo'
 import { cn } from '@/lib/utils'
 import { replayTour } from './OnboardingTour'
 
 // Inline SVG component for Twitter (X) to avoid trademark icon issues
-function TwitterIcon({ size = 20, className }) {
+function TwitterIcon({ size = 18, className }) {
   return (
-    <svg viewBox="0 0 24 24" width={size} height={size} fill="currentColor" className={className}>
+    <svg viewBox="0 0 24 24" width={size} height={size} fill="currentColor" className={className} aria-hidden="true">
       <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
     </svg>
   )
 }
 
+const PAGES = [
+  { to: '/', label: 'Home' },
+  { to: '/register', label: 'Register' },
+  { to: '/verify', label: 'Verify' },
+  { to: '/library', label: 'Library' },
+  { to: '/enterprise', label: 'Enterprise' },
+  { to: '/profile', label: 'Profile' },
+  { to: '/about', label: 'About' },
+]
+
+const linkClass = 'text-sm text-[var(--footer-text-muted)] hover:text-[var(--footer-text)] inline-flex items-center gap-1.5'
+
 export default function Footer() {
   const [isHighlighted, setIsHighlighted] = useState(false)
 
   return (
-    <footer className="border-t border-[var(--border)] bg-[var(--footer-bg)] text-[var(--footer-text)] mt-16 overflow-hidden transition-colors duration-300">
-      <div className="max-w-[1280px] mx-auto px-6 pt-16 pb-10">
-        {/* Responsive grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-          {/* Column 1: Pages */}
+    <footer className="border-t border-[var(--border)] bg-[var(--footer-bg)] text-[var(--footer-text)] mt-16 overflow-hidden">
+      <div className="max-w-[1280px] mx-auto px-5 pt-12 pb-8">
+        <div className="grid grid-cols-1 md:grid-cols-[1.4fr_1fr_1fr] gap-10 md:gap-8">
+          {/* Brand */}
           <div>
-            <h3 className="text-sm font-bold text-[var(--footer-text)] mb-4">Pages</h3>
-            <ul className="flex flex-col gap-2.5">
-              <li><Link to="/" className="text-sm text-[var(--footer-text-muted)] hover:text-[var(--footer-text)] transition-colors">Home</Link></li>
-              <li><Link to="/register" className="text-sm text-[var(--footer-text-muted)] hover:text-[var(--footer-text)] transition-colors">Register</Link></li>
-              <li><Link to="/verify" className="text-sm text-[var(--footer-text-muted)] hover:text-[var(--footer-text)] transition-colors">Verify</Link></li>
-              <li><Link to="/library" className="text-sm text-[var(--footer-text-muted)] hover:text-[var(--footer-text)] transition-colors">Library</Link></li>
-              <li><Link to="/enterprise" className="text-sm text-[var(--footer-text-muted)] hover:text-[var(--footer-text)] transition-colors">Enterprise</Link></li>
-              <li><Link to="/profile" className="text-sm text-[var(--footer-text-muted)] hover:text-[var(--footer-text)] transition-colors">Profile</Link></li>
-              <li><Link to="/about" className="text-sm text-[var(--footer-text-muted)] hover:text-[var(--footer-text)] transition-colors">About</Link></li>
+            <div className="flex items-center gap-2 mb-3 text-[var(--footer-text)]">
+              <VeriTraceLogo size={22} />
+              <span className="wordmark">VeriTrace</span>
+            </div>
+            <p className="text-sm text-[var(--footer-text-muted)] leading-relaxed max-w-[300px]">
+              Decentralized authenticity verification and multi-modal digital fingerprinting. Built on Arbitrum.
+            </p>
+            <div className="flex items-center gap-4 mt-5 text-[var(--footer-text-muted)]">
+              <a href="https://x.com/veritrace_arb" target="_blank" rel="noopener noreferrer" className="hover:text-[var(--footer-text)]" aria-label="X (formerly Twitter)">
+                <TwitterIcon size={18} />
+              </a>
+            </div>
+          </div>
+
+          {/* Pages */}
+          <div>
+            <div className="kicker mb-4">Pages</div>
+            <ul className="flex flex-col gap-2 m-0 p-0 list-none">
+              {PAGES.map(p => (
+                <li key={p.to}><Link to={p.to} className={linkClass}>{p.label}</Link></li>
+              ))}
             </ul>
           </div>
 
-          {/* Column 2: Resources */}
+          {/* Resources */}
           <div>
-            <h3 className="text-sm font-bold text-[var(--footer-text)] mb-4">Resources</h3>
-            <ul className="flex flex-col gap-2.5">
+            <div className="kicker mb-4">Resources</div>
+            <ul className="flex flex-col gap-2 m-0 p-0 list-none">
               <li>
-                <a 
-                  href={`${ARBITRUM_SEPOLIA.explorer}/address/${CONTRACT_ADDRESS}`} 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="text-sm text-[var(--footer-text-muted)] hover:text-[var(--footer-text)] transition-colors inline-flex items-center gap-1.5"
-                >
-                  <ExternalLink size={14} /> Contract on Arbiscan
+                <a href={`${ARBITRUM_SEPOLIA.explorer}/address/${CONTRACT_ADDRESS}`} target="_blank" rel="noopener noreferrer" className={linkClass}>
+                  <ExternalLink size={13} /> Contract on Arbiscan
                 </a>
               </li>
               <li>
-                <a 
-                  href="https://www.arbitrum.io/" 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="text-sm text-[var(--footer-text-muted)] hover:text-[var(--footer-text)] transition-colors inline-flex items-center gap-1.5"
-                >
-                  <ExternalLink size={14} /> Arbitrum.io
+                <a href="https://www.arbitrum.io/" target="_blank" rel="noopener noreferrer" className={linkClass}>
+                  <ExternalLink size={13} /> Arbitrum.io
                 </a>
               </li>
               <li>
-                <button
-                  type="button"
-                  onClick={replayTour}
-                  className="text-sm text-[var(--footer-text-muted)] hover:text-[var(--footer-text)] transition-colors inline-flex items-center gap-1.5"
-                >
-                  <Compass size={14} /> Take the tour
+                <button type="button" onClick={replayTour} className={linkClass}>
+                  <Compass size={13} /> Take the tour
                 </button>
               </li>
             </ul>
           </div>
-
-          {/* Column 3: Brand Logo, Description, Socials */}
-          <div className="md:pl-4">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 rounded-lg bg-[var(--accent)] text-white flex items-center justify-center shadow-md">
-                <VeriTraceLogo size={18} className="text-white" />
-              </div>
-              <span className="text-lg font-bold text-[var(--footer-text)] tracking-tight">VeriTrace</span>
-            </div>
-            <p className="text-sm text-[var(--footer-text-muted)] mb-6 leading-relaxed max-w-[280px]">
-              Decentralized authenticity verification and multi-modal digital fingerprinting. Built on Arbitrum.
-            </p>
-            <div className="flex items-center gap-4 text-[var(--footer-text-muted)]">
-              <a
-                href="https://x.com/veritrace_arb"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-[var(--footer-text)] transition-colors hover:scale-110 duration-200"
-                aria-label="X (formerly Twitter)"
-              >
-                <TwitterIcon size={20} />
-              </a>
-            </div>
-          </div>
         </div>
 
-        {/* Center copyright & contract */}
-        <div className="mt-12 pt-8 border-t border-[var(--border)] flex flex-col items-center gap-2 text-center">
-          <p className="text-sm text-[var(--footer-text-muted)]">
+        {/* Colophon */}
+        <div className="mt-10 pt-5 border-t border-[var(--border)] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <p className="text-xs text-[var(--footer-text-muted)] m-0">
             © {new Date().getFullYear()} VeriTrace. All rights reserved.
           </p>
-          <p className="text-[10px] font-mono text-[var(--text-4)] break-all max-w-lg">
-            Contract: {CONTRACT_ADDRESS}
+          <p className="font-mono text-[10.5px] text-[var(--text-4)] break-all m-0 inline-flex items-center gap-1.5">
+            <ArbitrumLogo size={10} /> {ARBITRUM_SEPOLIA.name} · Contract: {CONTRACT_ADDRESS}
           </p>
         </div>
       </div>
 
-      {/* Giant Bottom Highlight Brand Title */}
+      {/* Wordmark bleed */}
       <div
         onClick={() => setIsHighlighted(!isHighlighted)}
-        className="w-full flex justify-center overflow-hidden h-[9vw] cursor-pointer select-none mt-8 border-t border-[var(--border)] pt-8 relative animate-duration-500"
+        className="max-w-[1280px] mx-auto px-5 overflow-hidden h-[7vw] min-h-[44px] cursor-pointer select-none"
+        aria-hidden="true"
       >
-        <div
-          className={cn(
-            "text-[15vw] font-black leading-[0.75] tracking-tighter transition-all duration-700 ease-out select-none text-[var(--footer-text)]",
-            isHighlighted
-              ? "[text-shadow:0_0_30px_rgba(var(--accent-rgb),0.6),0_0_60px_rgba(var(--accent-rgb),0.3)] opacity-100"
-              : "opacity-10 hover:opacity-20"
-          )}
-        >
+        <div className={cn('footer-wordmark', isHighlighted ? 'opacity-100 text-[var(--accent)]' : 'opacity-[.09] hover:opacity-20')}>
           VERITRACE
         </div>
       </div>

@@ -23,7 +23,7 @@ import { ScrollReveal } from '../components/ui/scroll-reveal'
 import { useUpload } from '../context/UploadContext'
 import { downloadCertificate } from '../utils/generateCertificate'
 import { cn } from '@/lib/utils'
-import { Upload, Fingerprint, Shield, CircleCheck as CheckCircle2, FilePlus, TriangleAlert as AlertTriangle, ExternalLink, Award, Bot, Webhook, Gem, Sparkles, Link2 } from 'lucide-react'
+import { Upload, Fingerprint, Shield, CircleCheck as CheckCircle2, FilePlus, TriangleAlert as AlertTriangle, ExternalLink, Award, Bot, Webhook, Gem, Link2 } from 'lucide-react'
 import {
   HASH_ENGINE_API, CORE_BACKEND_API, CONTRACT_ADDRESS, CONTRACT_ABI, ARBITRUM_SEPOLIA,
 } from '../config'
@@ -325,9 +325,9 @@ export default function RegisterPage() {
 
       {/* Faucet notice — shown when wallet is connected */}
       {isConnected && (
-        <div className="mb-5 flex items-center gap-3 px-4 py-3 rounded-2xl border border-[var(--arb-border)] bg-[var(--arb-bg)]">
-          <AlertTriangle size={15} className="text-[var(--accent)] flex-shrink-0" />
-          <p className="text-xs text-[var(--text-2)] leading-relaxed">
+        <div className="mb-5 flex items-center gap-3 px-4 py-3 rounded-[6px] border border-[var(--warning-border)] bg-[var(--surface)]">
+          <AlertTriangle size={15} className="text-[var(--warning-text)] flex-shrink-0" />
+          <p className="text-xs text-[var(--text-2)] leading-relaxed m-0">
             Registration requires a small amount of testnet ETH for gas.{' '}
             <a href="https://faucet.lamprosdao.com/" target="_blank" rel="noopener noreferrer" className="text-[var(--accent)] font-semibold hover:underline inline-flex items-center gap-1">
               Get free ETH from the Lampros DAO Faucet <ExternalLink size={10} />
@@ -363,9 +363,9 @@ export default function RegisterPage() {
                   </CardHeader>
                   <CardBody className="flex flex-col gap-3">
                     {processing ? (
-                      <div className="p-3 rounded-xl bg-[var(--bg-2)] border border-[var(--border)]">
-                        <div className="text-[11px] font-semibold uppercase tracking-wider text-[var(--text-3)] mb-2">SHA-256 CRYPTOGRAPHIC HASH</div>
-                        <Skeleton className="h-9 rounded-lg w-full bg-[var(--border)]" />
+                      <div className="p-3 rounded-[5px] bg-[var(--surface)] border border-[var(--border)]">
+                        <div className="kicker mb-2">SHA-256 Cryptographic Hash</div>
+                        <Skeleton className="h-9 w-full" />
                       </div>
                     ) : (
                       <>
@@ -409,15 +409,15 @@ export default function RegisterPage() {
                               <span className="text-xs font-semibold text-[var(--text-3)]">Extracted Keyframes ({hashes.keyframes.length})</span>
                               <button onClick={() => setShowAllKeyframes(!showAllKeyframes)} className="text-xs text-[var(--accent)] hover:opacity-80">{showAllKeyframes ? 'Show Less' : 'Show All'}</button>
                             </div>
-                            <div className="max-h-[220px] overflow-y-auto p-2 rounded-lg bg-[var(--bg-2)] border border-[var(--border)] flex flex-col gap-1 font-mono text-xs">
+                            <div className="max-h-[220px] overflow-y-auto p-2 rounded-[5px] bg-[var(--surface)] border border-[var(--border)] flex flex-col gap-1 font-mono text-xs">
                               {(showAllKeyframes ? hashes.keyframes : hashes.keyframes.slice(0, 2)).map((kf, i) => {
                                 const offset = kf.offset ?? kf.Offset
                                 const phash = kf.phash ?? kf.PHash
                                 return (
                                   <div key={i} className="flex flex-col gap-0.5 pb-1 border-b border-[var(--border)] last:border-0">
                                     <div className="flex justify-between">
-                                      <span className="text-[var(--text-3)]">⏱️ {offset}ms</span>
-                                      <span className="text-[var(--accent)]">🔑 {phash}</span>
+                                      <span className="text-[var(--text-3)]">t = {offset}ms</span>
+                                      <span className="text-[var(--accent)]">{phash}</span>
                                     </div>
                                   </div>
                                 )
@@ -437,9 +437,9 @@ export default function RegisterPage() {
         {/* RIGHT */}
         <div className="flex flex-col gap-5">
           <SpotlightCard>
-            <Card className="card-hover-glow card-border-animate">
+            <Card>
               <CardHeader>
-                <CardTitle><Shield size={16} className="text-[var(--accent)]" /> Blockchain Registration</CardTitle>
+                <CardTitle><Shield size={15} className="text-[var(--accent)]" /> Blockchain Registration</CardTitle>
               </CardHeader>
               <CardBody>
                 <AnimatePresence mode="wait">
@@ -462,9 +462,8 @@ export default function RegisterPage() {
                       ) : (
                         <div className="text-center py-4">
                           <div className="relative w-16 h-16 mx-auto flex items-center justify-center mb-3">
-                            <div className="loading-orb-outer absolute inset-0 rounded-full" style={{ border: '2.5px solid var(--border)', borderTopColor: 'var(--accent)', borderRightColor: 'var(--accent)' }} />
-                            <div className="loading-orb-inner absolute inset-1.5 rounded-full" style={{ border: '2.5px solid var(--border)', borderBottomColor: 'var(--success-text)', borderLeftColor: 'var(--success-text)' }} />
-                            <ArbitrumLogo size={20} animated />
+                            <div className="loading-orb-outer absolute inset-0 rounded-full" style={{ border: '2px solid var(--border)', borderTopColor: 'var(--accent)' }} />
+                            <ArbitrumLogo size={20} />
                           </div>
                           <div className="font-semibold text-sm text-[var(--text)]">Extracting & Hashing...</div>
                           <div className="text-xs text-[var(--text-3)] mt-1">Generating signatures. This may take up to a minute for larger videos.</div>
@@ -478,27 +477,27 @@ export default function RegisterPage() {
                       {error && <Alert variant="danger">{error}</Alert>}
                       <Alert variant="success">Evidence is ready. Review the record, then sign once to publish your proof on-chain.</Alert>
 
-                      <div className={cn("p-3.5 rounded-2xl border transition-all flex flex-col gap-2", showAiRequirement ? "bg-[var(--danger-text)]/10 border-[var(--danger-text)]/40 shadow-[0_0_15px_rgba(255,77,77,0.15)]" : "bg-[var(--bg-2)] border-[var(--border)]")}>
+                      <div className={cn("p-3.5 rounded-[6px] border flex flex-col gap-2", showAiRequirement ? "bg-[var(--danger-bg)] border-[var(--danger-border)]" : "bg-[var(--surface)] border-[var(--border)]")}>
                         <label className="text-xs font-bold text-[var(--text)] flex items-center justify-between">
                           <span className="flex items-center gap-1.5"><Bot size={14} className={showAiRequirement ? "text-[var(--danger-text)]" : "text-[var(--accent)]"} /> AI Generator Attribution</span>
-                          {showAiRequirement && <span className="text-[10px] uppercase tracking-wider font-extrabold text-[var(--danger-text)] bg-[var(--danger-text)]/15 px-2 py-0.5 rounded-full">Action Required</span>}
+                          {showAiRequirement && <Badge variant="danger">Action Required</Badge>}
                         </label>
                         <Select value={aiCategory} onChange={(e) => { const val = e.target.value; setAiCategory(val); if (val === 'None (Authentic Content)') setAiTool(''); else if (val !== 'Other (Custom Input)') setAiTool(val) }}>
                           {AI_MODELS.map(m => <option key={m} value={m}>{m}</option>)}
                         </Select>
                         {showAiRequirement && <div className="text-xs text-[var(--danger-text)] font-semibold flex items-center gap-1.5 mt-0.5"><AlertTriangle size={14} className="flex-shrink-0" /> AI content detected ({Math.round(maxConf * 100)}% confidence). Select the AI model (e.g. Midjourney, DALL-E, Stable Diffusion) to enable registration.</div>}
-                        {aiCategory === 'Other (Custom Input)' && <input type="text" value={aiTool} onChange={(e) => setAiTool(e.target.value)} placeholder="Enter custom AI model name (e.g. Ideogram, Runway Gen-2)" className="w-full mt-1 px-3.5 py-2.5 text-sm rounded-xl bg-[var(--surface)] border border-[var(--border)] text-[var(--text)] outline-none focus:border-[var(--accent)]" />}
+                        {aiCategory === 'Other (Custom Input)' && <input type="text" value={aiTool} onChange={(e) => setAiTool(e.target.value)} placeholder="Enter custom AI model name (e.g. Ideogram, Runway Gen-2)" className="w-full mt-1 px-3 py-2.5 text-sm rounded-[5px] bg-[var(--surface)] border border-[var(--border-2)] text-[var(--text)] outline-none focus:border-[var(--accent)]" />}
                       </div>
 
                       <label className="flex items-center gap-2 text-xs cursor-pointer text-[var(--text-2)]"><input type="checkbox" checked={allowAiTraining} onChange={(e) => setAllowAiTraining(e.target.checked)} className="accent-[var(--accent)]" /> Allow AI models to use this content for training</label>
 
                       <div>
                         <label className="text-xs font-semibold text-[var(--text-3)] block mb-1.5 flex items-center gap-1"><Webhook size={12} /> Webhook URL (Optional)</label>
-                        <input type="url" value={webhookUrl} onChange={(e) => setWebhookUrl(e.target.value)} placeholder="e.g. Discord, Slack webhook" className="w-full px-3.5 py-2.5 text-sm rounded-xl bg-[var(--bg-2)] border border-[var(--border)] text-[var(--text)] outline-none focus:border-[var(--accent)]" />
+                        <input type="url" value={webhookUrl} onChange={(e) => setWebhookUrl(e.target.value)} placeholder="e.g. Discord, Slack webhook" className="w-full px-3 py-2.5 text-sm rounded-[5px] bg-[var(--surface)] border border-[var(--border-2)] text-[var(--text)] outline-none focus:border-[var(--accent)]" />
                       </div>
 
-                      <div className="bg-[var(--bg-2)] rounded-xl p-4 border border-[var(--border)]">
-                        <div className="text-[11px] font-semibold uppercase tracking-wider text-[var(--text-3)] mb-2 flex items-center gap-1.5"><ArbitrumLogo size={12} /> Transaction Preview</div>
+                      <div className="bg-[var(--surface)] rounded-[6px] p-4 border border-[var(--border)]">
+                        <div className="kicker mb-3"><ArbitrumLogo size={12} /> Transaction Preview</div>
                         <div className="flex flex-col gap-1.5 text-xs">
                           <TxRow label="Contract" value="VeriTraceRegistry" accent />
                           <TxRow label="Method" value="registerContent(bytes32, uint64, string, string, bool)" />
@@ -509,16 +508,15 @@ export default function RegisterPage() {
                         </div>
                       </div>
 
-                      <Button variant="primary" size="lg" className="w-full" onClick={handleRegister}><Shield size={18} /> Register on Blockchain</Button>
+                      <Button variant="accent" size="lg" className="w-full" onClick={handleRegister}><Shield size={16} /> Register on Blockchain</Button>
                     </motion.div>
                   )}
 
                   {step === 3 && signing && (
                     <motion.div key="signing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-center py-8">
                       <div className="relative w-16 h-16 mx-auto flex items-center justify-center mb-3">
-                        <div className="loading-orb-outer absolute inset-0 rounded-full" style={{ border: '2.5px solid var(--border)', borderTopColor: 'var(--accent)', borderRightColor: 'var(--accent)' }} />
-                        <div className="loading-orb-inner absolute inset-1.5 rounded-full" style={{ border: '2.5px solid var(--border)', borderBottomColor: 'var(--success-text)', borderLeftColor: 'var(--success-text)' }} />
-                        <ArbitrumLogo size={20} animated />
+                        <div className="loading-orb-outer absolute inset-0 rounded-full" style={{ border: '2px solid var(--border)', borderTopColor: 'var(--accent)' }} />
+                        <ArbitrumLogo size={20} />
                       </div>
                       <div className="font-semibold text-sm text-[var(--text)]">Waiting for confirmation...</div>
                       <div className="text-xs text-[var(--text-3)] mt-1">Please confirm the transaction in your wallet</div>
@@ -527,25 +525,25 @@ export default function RegisterPage() {
 
                   {step === 4 && txResult && (
                     <motion.div key="success" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-4">
-                      <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.1, type: 'spring' }} className="w-14 h-14 rounded-full bg-[var(--success-bg)] text-[var(--success-text)] flex items-center justify-center mx-auto mb-3">
+                      <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.1, type: 'spring' }} className="w-14 h-14 rounded-[6px] border border-[var(--success-border)] bg-[var(--success-bg)] text-[var(--success-text)] flex items-center justify-center mx-auto mb-3">
                         <CheckCircle2 size={28} />
                       </motion.div>
                       <div className="font-bold text-lg mb-1 text-[var(--text)]">Successfully Registered!</div>
                       <div className="text-xs text-[var(--text-3)] mb-4">Your content has been anchored on Arbitrum Sepolia</div>
 
-                      <div className="bg-[var(--bg-2)] rounded-xl p-4 border border-[var(--border)] text-left text-xs mb-4">
+                      <div className="bg-[var(--surface)] rounded-[6px] p-4 border border-[var(--border)] text-left text-xs mb-4">
                         <TxRow label="Tx Hash"><a href={`${ARBITRUM_SEPOLIA.explorer}/tx/${txResult.hash}`} target="_blank" rel="noopener noreferrer" className="text-[var(--accent)] hover:opacity-80 font-mono">{txResult.hash.slice(0, 16)}...{txResult.hash.slice(-8)}</a></TxRow>
                         <TxRow label="Block" value={txResult.blockNumber?.toString()} />
                         <TxRow label="Status"><Badge variant="success">Confirmed</Badge></TxRow>
                         <div className="flex flex-wrap items-center gap-2 mt-3 pt-3 border-t border-[var(--border)]">
-                          {txResult.mediaS3Url && <a href={txResult.mediaS3Url?.startsWith('ipfs://') ? `https://gateway.pinata.cloud/ipfs/${txResult.mediaS3Url.slice(7)}` : txResult.mediaS3Url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--success-text)]/10 hover:bg-[var(--success-text)]/20 text-[var(--success-text)] rounded-md text-[11px] font-bold border border-[var(--success-text)]/20 transition-colors"><ExternalLink size={12} /> S3 Media</a>}
-                          {txResult.mediaIpfsUrl && <a href={txResult.mediaIpfsUrl?.startsWith('ipfs://') ? `https://gateway.pinata.cloud/ipfs/${txResult.mediaIpfsUrl.slice(7)}` : txResult.mediaIpfsUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--accent)]/10 hover:bg-[var(--accent)]/20 text-[var(--accent)] rounded-md text-[11px] font-bold border border-[var(--accent)]/20 transition-colors"><ExternalLink size={12} /> IPFS Media</a>}
-                          {txResult.ipfsCid && <a href={`https://gateway.pinata.cloud/ipfs/${txResult.ipfsCid}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--surface-3)] hover:bg-[var(--border)] text-[var(--text-2)] rounded-md text-[11px] font-bold border border-[var(--border)] transition-colors"><ExternalLink size={12} /> IPFS JSON</a>}
+                          {txResult.mediaS3Url && <a href={txResult.mediaS3Url?.startsWith('ipfs://') ? `https://gateway.pinata.cloud/ipfs/${txResult.mediaS3Url.slice(7)}` : txResult.mediaS3Url} target="_blank" rel="noopener noreferrer" className="btn btn-outline text-[11px] px-2.5 py-1.5"><ExternalLink size={12} /> S3 Media</a>}
+                          {txResult.mediaIpfsUrl && <a href={txResult.mediaIpfsUrl?.startsWith('ipfs://') ? `https://gateway.pinata.cloud/ipfs/${txResult.mediaIpfsUrl.slice(7)}` : txResult.mediaIpfsUrl} target="_blank" rel="noopener noreferrer" className="btn btn-outline text-[11px] px-2.5 py-1.5"><ExternalLink size={12} /> IPFS Media</a>}
+                          {txResult.ipfsCid && <a href={`https://gateway.pinata.cloud/ipfs/${txResult.ipfsCid}`} target="_blank" rel="noopener noreferrer" className="btn btn-outline text-[11px] px-2.5 py-1.5"><ExternalLink size={12} /> IPFS JSON</a>}
                         </div>
                       </div>
 
                       <div className="flex flex-col gap-2">
-                        <Button variant="success" size="sm" onClick={() => downloadCertificate(txResult, address, CORE_BACKEND_API)}><Award size={16} /> Download PDF Certificate</Button>
+                        <Button variant="accent" size="sm" onClick={() => downloadCertificate(txResult, address, CORE_BACKEND_API)}><Award size={15} /> Download PDF Certificate</Button>
                         <div className="flex gap-2">
                           <a href={`${ARBITRUM_SEPOLIA.explorer}/tx/${txResult.hash}`} target="_blank" rel="noopener noreferrer" className="flex-1"><Button variant="outline" size="sm" className="w-full"><ExternalLink size={14} /> Arbiscan</Button></a>
                           <Button variant="outline" size="sm" className="flex-1" onClick={resetFlow}><FilePlus size={14} /> Register Another</Button>
@@ -558,11 +556,11 @@ export default function RegisterPage() {
                           initial={{ opacity: 0, y: 16 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: 0.35 }}
-                          className="mt-2 rounded-2xl border border-violet-500/30 bg-gradient-to-br from-violet-500/10 via-purple-500/5 to-transparent p-4 flex flex-col gap-3"
+                          className="mt-2 rounded-[6px] border border-[var(--border-2)] bg-[var(--surface)] p-4 flex flex-col gap-3 text-left"
                         >
                           <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-xl bg-violet-500/20 flex items-center justify-center flex-shrink-0">
-                              <Gem size={16} className="text-violet-400" />
+                            <div className="w-8 h-8 rounded-[5px] border border-[var(--border-2)] flex items-center justify-center flex-shrink-0">
+                              <Gem size={15} className="text-[var(--accent)]" />
                             </div>
                             <div>
                               <div className="text-sm font-bold text-[var(--text)]">Mint Provenance NFT</div>
@@ -570,52 +568,48 @@ export default function RegisterPage() {
                             </div>
                           </div>
                           <div className="text-[11px] text-[var(--text-2)] leading-relaxed">
-                            Minting a <span className="font-semibold text-violet-400">VeriTrace Provenance NFT</span> locks your content fingerprint as a transferable digital asset on Arbitrum. The token's metadata automatically points to your IPFS provenance record — making ownership undeniable and tradeable.
+                            Minting a <span className="font-semibold text-[var(--text)]">VeriTrace Provenance NFT</span> locks your content fingerprint as a transferable digital asset on Arbitrum. The token's metadata automatically points to your IPFS provenance record — making ownership undeniable and tradeable.
                           </div>
                           <div className="grid grid-cols-3 gap-2 text-[10px] text-center">
                             {[['ERC-721', 'Standard NFT'], ['IPFS Metadata', 'Auto-linked'], ['Arbitrum L2', 'Low gas']].map(([title, sub]) => (
-                              <div key={title} className="bg-violet-500/10 border border-violet-500/20 rounded-xl py-2 px-1">
-                                <div className="font-bold text-violet-300">{title}</div>
+                              <div key={title} className="bg-[var(--bg-2)] border border-[var(--border)] rounded-[4px] py-2 px-1">
+                                <div className="font-mono font-medium text-[var(--text)]">{title}</div>
                                 <div className="text-[var(--text-4)] mt-0.5">{sub}</div>
                               </div>
                             ))}
                           </div>
-                          {nftError && <div className="text-xs text-[var(--danger-text)] bg-[var(--danger-text)]/10 border border-[var(--danger-text)]/20 rounded-xl px-3 py-2">{nftError}</div>}
+                          {nftError && <div className="text-xs text-[var(--danger-text)] bg-[var(--danger-bg)] border border-[var(--danger-border)] rounded-[5px] px-3 py-2">{nftError}</div>}
                           <Button
                             variant="primary"
                             size="sm"
-                            className="w-full bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 border-0"
+                            className="w-full"
                             onClick={handleMintNFT}
                             disabled={nftMinting}
                           >
                             {nftMinting
                               ? <><Spinner size="sm" /> Minting NFT...</>
-                              : <><Sparkles size={15} /> Mint Provenance NFT</>}
+                              : <><Gem size={14} /> Mint Provenance NFT</>}
                           </Button>
                         </motion.div>
                       ) : (
                         <motion.div
                           initial={{ opacity: 0, scale: 0.97 }}
                           animate={{ opacity: 1, scale: 1 }}
-                          className="mt-2 rounded-2xl border border-violet-500/40 bg-gradient-to-br from-violet-500/15 via-purple-500/10 to-transparent p-4 flex flex-col gap-3"
+                          className="mt-2 rounded-[6px] border border-[var(--success-border)] bg-[var(--surface)] p-4 flex flex-col gap-3 text-left"
                         >
                           <div className="flex items-center gap-2">
-                            <motion.div
-                              initial={{ scale: 0 }} animate={{ scale: 1 }}
-                              transition={{ type: 'spring', bounce: 0.5 }}
-                              className="w-9 h-9 rounded-xl bg-violet-500/30 flex items-center justify-center flex-shrink-0"
-                            >
-                              <Gem size={18} className="text-violet-300" />
-                            </motion.div>
+                            <div className="w-9 h-9 rounded-[5px] border border-[var(--success-border)] bg-[var(--success-bg)] flex items-center justify-center flex-shrink-0">
+                              <Gem size={17} className="text-[var(--success-text)]" />
+                            </div>
                             <div>
-                              <div className="text-sm font-bold text-violet-300">NFT Minted! 🎉</div>
+                              <div className="text-sm font-bold text-[var(--text)]">NFT Minted!</div>
                               <div className="text-[11px] text-[var(--text-3)]">VeriTrace Provenance Token #{nftResult.tokenId}</div>
                             </div>
                           </div>
-                          <div className="bg-[var(--bg-2)] rounded-xl p-3 border border-violet-500/20 text-xs flex flex-col gap-1.5">
+                          <div className="bg-[var(--bg-2)] rounded-[5px] p-3 border border-[var(--border)] text-xs flex flex-col gap-1.5">
                             <div className="flex justify-between">
                               <span className="text-[var(--text-3)]">Token ID</span>
-                              <span className="font-mono font-bold text-violet-300">#{nftResult.tokenId}</span>
+                              <span className="font-mono font-semibold text-[var(--text)]">#{nftResult.tokenId}</span>
                             </div>
                             <div className="flex justify-between">
                               <span className="text-[var(--text-3)]">Token URI</span>
@@ -625,7 +619,7 @@ export default function RegisterPage() {
                             </div>
                             <div className="flex justify-between">
                               <span className="text-[var(--text-3)]">Standard</span>
-                              <span className="text-violet-300 font-semibold">ERC-721 (Stylus)</span>
+                              <span className="font-mono text-[var(--text)]">ERC-721 (Stylus)</span>
                             </div>
                           </div>
                           <div className="flex gap-2">
@@ -634,7 +628,7 @@ export default function RegisterPage() {
                               target="_blank" rel="noopener noreferrer"
                               className="flex-1"
                             >
-                              <Button variant="outline" size="sm" className="w-full border-violet-500/30 text-violet-300 hover:border-violet-500/60">
+                              <Button variant="outline" size="sm" className="w-full">
                                 <ExternalLink size={13} /> View NFT Tx
                               </Button>
                             </a>
@@ -644,7 +638,7 @@ export default function RegisterPage() {
                                 target="_blank" rel="noopener noreferrer"
                                 className="flex-1"
                               >
-                                <Button variant="outline" size="sm" className="w-full border-violet-500/30 text-violet-300 hover:border-violet-500/60">
+                                <Button variant="outline" size="sm" className="w-full">
                                   <Link2 size={13} /> IPFS Metadata
                                 </Button>
                               </a>
@@ -663,9 +657,9 @@ export default function RegisterPage() {
               <CardHeader><CardTitle>Where your proof lives</CardTitle></CardHeader>
             <CardBody className="text-xs leading-relaxed text-[var(--text-2)]">
               <div className="flex flex-col gap-3">
-                <InfoRow label="On-Chain" color="var(--accent)" items={['SHA-256 hash (bytes32)', 'Wallet address (msg.sender)', 'Block timestamp', 'AI tool attribution', 'ERC-721 Provenance NFT (optional)']} />
-                <InfoRow label="Hash Engine" color="var(--accent-2)" items={['SHA-256 hash', 'Perceptual hash units', 'File content (for verification)', 'Asset metadata']} />
-                <InfoRow label="Backend (Postgres/Qdrant)" color="var(--success-text)" items={['Event-sourced metadata', 'pHash vectors (64-dim)', 'Redis exact-match cache']} />
+                <InfoRow label="On-Chain" items={['SHA-256 hash (bytes32)', 'Wallet address (msg.sender)', 'Block timestamp', 'AI tool attribution', 'ERC-721 Provenance NFT (optional)']} />
+                <InfoRow label="Hash Engine" items={['SHA-256 hash', 'Perceptual hash units', 'File content (for verification)', 'Asset metadata']} />
+                <InfoRow label="Backend (Postgres/Qdrant)" items={['Event-sourced metadata', 'pHash vectors (64-dim)', 'Redis exact-match cache']} />
               </div>
             </CardBody>
           </Card>
@@ -678,20 +672,18 @@ export default function RegisterPage() {
 }
 
 function Meta({ label, value, mono, color, bold }) {
-  return <div><span className="text-[var(--text-3)]">{label}: </span><span className={`${mono ? 'font-mono text-[var(--accent)]' : ''} ${color || ''} ${bold ? 'font-bold' : ''}`}>{value}</span></div>
+  return <div className="chip !normal-case !tracking-normal"><span className="text-[var(--text-4)]">{label}</span><span className={`${mono ? 'text-[var(--accent)]' : 'text-[var(--text)]'} ${color || ''} ${bold ? 'font-semibold' : ''}`}>{value}</span></div>
 }
 
 function TxRow({ label, value, accent, mono, children }) {
-  return <div className="flex justify-between items-center mb-1"><span className="text-[var(--text-3)]">{label}</span>{children || <span className={`${accent ? 'text-[var(--accent)]' : ''} ${mono ? 'font-mono' : ''}`}>{value}</span>}</div>
+  return <div className="flex justify-between items-center gap-4 py-1 border-b border-dashed border-[var(--border)] last:border-b-0"><span className="text-[var(--text-3)]">{label}</span>{children || <span className={`text-right ${accent ? 'text-[var(--accent)]' : 'text-[var(--text)]'} ${mono ? 'font-mono' : ''}`}>{value}</span>}</div>
 }
 
-function InfoRow({ label, items, color }) {
+function InfoRow({ label, items }) {
   return (
-    <div>
-      <div className="flex items-center gap-1.5 mb-1 font-semibold text-[11px] uppercase tracking-wider" style={{ color }}>
-        <span className="w-2 h-2 rounded-full bg-current opacity-60" />{label}
-      </div>
-      <ul className="pl-4 m-0 list-disc list-inside">{items.map((item, i) => <li key={i} className="text-[var(--text-2)]">{item}</li>)}</ul>
+    <div className="grid grid-cols-[9rem_1fr] gap-3 pb-3 border-b border-[var(--border)] last:border-b-0 last:pb-0">
+      <div className="kicker">{label}</div>
+      <ul className="m-0 p-0 list-none flex flex-col gap-0.5">{items.map((item, i) => <li key={i} className="text-[var(--text-2)] before:content-['—'] before:mr-1.5 before:text-[var(--text-4)]">{item}</li>)}</ul>
     </div>
   )
 }
