@@ -23,7 +23,7 @@ import { ScrollReveal } from '../components/ui/scroll-reveal'
 import { useUpload } from '../context/UploadContext'
 import { downloadCertificate } from '../utils/generateCertificate'
 import { cn } from '@/lib/utils'
-import { Upload, Fingerprint, Shield, CircleCheck as CheckCircle2, FilePlus, TriangleAlert as AlertTriangle, ExternalLink, Award, Bot, Webhook } from 'lucide-react'
+import { Upload, Fingerprint, Shield, CircleCheck as CheckCircle2, FilePlus, TriangleAlert as AlertTriangle, ExternalLink, Award, Bot, Webhook, Gem, Sparkles, Link2 } from 'lucide-react'
 import {
   HASH_ENGINE_API, CORE_BACKEND_API, CONTRACT_ADDRESS, CONTRACT_ABI, ARBITRUM_SEPOLIA,
 } from '../config'
@@ -56,6 +56,11 @@ export default function RegisterPage() {
   const [allowAiTraining, setAllowAiTraining] = useState(true)
   const [webhookUrl, setWebhookUrl] = useState('')
   const [showAllKeyframes, setShowAllKeyframes] = useState(false)
+
+  // NFT minting state
+  const [nftMinting, setNftMinting] = useState(false)
+  const [nftResult, setNftResult] = useState(null) // { tokenId, txHash }
+  const [nftError, setNftError] = useState(null)
 
   let maxConf = hashes?.aiConfidenceScore || 0
   if (hashes?.keyframes) {
@@ -142,7 +147,39 @@ export default function RegisterPage() {
       const pinFileData = await pinFileRes.json()
       const mediaIpfsUrl = pinFileData.media_ipfs_url
       const mediaS3Url = pinFileData.media_s3_url
+
+      // Convert any IPFS URL (https gateway or ipfs://) to a canonical ipfs:// URI.
+      // Wallets (MetaMask, OpenSea, Rainbow…) resolve ipfs:// natively.
+      // Using an HTTPS Pinata gateway URL as the NFT image causes broken images
+      // due to CORS restrictions, rate-limits, and gateway outages.
+      const toIpfsUri = (url) => {
+        if (!url) return null
+        if (url.startsWith('ipfs://')) return url
+        // Match https://<gateway>/ipfs/<CID>[/<path>]
+        const match = url.match(/\/ipfs\/([^/?#]+(?:\/[^?#]*)?)/)
+        if (match) return `ipfs://${match[1]}`
+        return url // fallback: return as-is if format is unrecognised
+      }
+
+      const isImage = hashes.mediaType === 'image'
+      // Use ipfs:// URI so wallets can load the image from their own IPFS gateway.
+      // For non-image types (video/doc) fall back to the VeriTrace placeholder.
+      const mediaIpfsUri = toIpfsUri(mediaIpfsUrl)
+      const previewImageIpfsUri = isImage
+        ? mediaIpfsUri
+        : 'ipfs://bafybeiemv7p2tng32a5j7o2mgsed4ifivs3l4wixgsh24b64n226sksrca/veritrace-nft-placeholder.png'
+
       const metadataPayload = {
+        name: `VeriTrace Proof: ${sha256Bytes32.slice(0, 12)}...`,
+        description: `Immutable provenance record registered via VeriTrace.\n\nSHA-256: ${sha256Bytes32}\nAI Generator: ${aiTool || 'None'}`,
+        image: previewImageIpfsUri,          // ipfs:// URI — wallets resolve this natively
+        animation_url: mediaIpfsUri,         // OpenSea uses this for audio/video/html
+        attributes: [
+          { trait_type: 'AI Generator', value: aiTool || 'None' },
+          { trait_type: 'Media Type', value: hashes.mediaType || 'image' },
+          { trait_type: 'Allows AI Training', value: allowAiTraining ? 'Yes' : 'No' }
+        ],
+        // VeriTrace custom fields
         sha256: sha256Bytes32, representative_phash: hashes.phash ? Number(hashes.phash) : 0,
         media_ipfs_url: mediaIpfsUrl, media_s3_url: mediaS3Url,
         allow_ai_training: allowAiTraining, webhook_url: webhookUrl, parent_sha256: '',
@@ -189,10 +226,95 @@ export default function RegisterPage() {
     } finally { setSigning(false) }
   }
 
+  const handleMintNFT = async () => {
+    setNftError(null)
+    if (!isConnected) { toast.error('Connect your wallet first.'); return }
+    if (!txResult?.sha256) { toast.error('Registration result missing.'); return }
+
+    try {
+      setNftMinting(true)
+
+      if (!chain || chain.id !== ARBITRUM_SEPOLIA.chainId) {
+        try { await switchChainAsync({ chainId: ARBITRUM_SEPOLIA.chainId }) }
+        catch { throw new Error('Please switch to Arbitrum Sepolia.') }
+      }
+
+      // Estimate gas fees
+      let safeMaxFee, safePriorityFee
+      try {
+        const feeProvider = new ethers.JsonRpcProvider(ARBITRUM_SEPOLIA.rpcUrl)
+        const feeData = await feeProvider.getFeeData()
+        const mult = 1000n
+        safeMaxFee = feeData.maxFeePerGas ? (feeData.maxFeePerGas * mult) / 100n : undefined
+        safePriorityFee = feeData.maxPriorityFeePerGas ? (feeData.maxPriorityFeePerGas * mult) / 100n : undefined
+      } catch {}
+
+      const sha256Bytes32 = txResult.sha256.startsWith('0x') ? txResult.sha256 : `0x${txResult.sha256}`
+
+      const nftTxHash = await writeContractAsync({
+        chainId: ARBITRUM_SEPOLIA.chainId,
+        address: CONTRACT_ADDRESS,
+        abi: parseAbi(CONTRACT_ABI),
+        functionName: 'mintProvenanceNft',
+        args: [sha256Bytes32],
+        ...(safeMaxFee || safePriorityFee ? { maxFeePerGas: safeMaxFee, maxPriorityFeePerGas: safePriorityFee } : {}),
+      })
+
+      const nftReceipt = await waitForTransactionReceipt(config, { hash: nftTxHash })
+
+      // Parse ProvenanceNFTMinted event log to get tokenId
+      let tokenId = null
+      for (const log of nftReceipt.logs) {
+        try {
+          // ProvenanceNFTMinted topic0 signature
+          if (log.topics && log.topics[1]) {
+            // tokenId is the first indexed param (topics[1])
+            tokenId = BigInt(log.topics[1]).toString()
+            break
+          }
+        } catch {}
+      }
+
+      setNftResult({ tokenId, txHash: nftTxHash })
+      toast.success(`🎉 Provenance NFT #${tokenId} minted successfully!`)
+
+      try {
+        if (window.ethereum) {
+          await window.ethereum.request({
+            method: 'wallet_watchAsset',
+            params: {
+              type: 'ERC721',
+              options: {
+                address: CONTRACT_ADDRESS,
+                tokenId: tokenId.toString(),
+                symbol: 'VTRC',
+                // Always use a static logo for the MetaMask token icon prompt
+                // MetaMask enforces a strict < 512KB limit for token logos. User uploads (like a 2.5MB PNG) will result in a broken image icon.
+                image: 'https://bafybeiemv7p2tng32a5j7o2mgsed4ifivs3l4wixgsh24b64n226sksrca.ipfs.w3s.link/veritrace-nft-placeholder.png',
+              },
+            },
+          })
+        }
+      } catch (watchErr) {
+        console.error('Failed to add NFT to wallet:', watchErr)
+      }
+    } catch (err) {
+      let msg = err.message
+      if (msg.includes('NFTAlreadyMinted')) msg = 'An NFT has already been minted for this content.'
+      else if (msg.includes('NotContentCreator')) msg = 'Only the original creator can mint the NFT.'
+      else if (msg.includes('user rejected') || msg.includes('User rejected')) msg = 'Transaction rejected in wallet.'
+      setNftError(msg)
+      toast.error(`NFT mint failed: ${msg}`)
+    } finally {
+      setNftMinting(false)
+    }
+  }
+
   const resetFlow = () => {
     setFile(null); setStep(1)
     setHashes(null)
     setTxResult(null); setError(null); setAiTool('')
+    setNftResult(null); setNftError(null)
   }
 
   return (
@@ -429,6 +551,107 @@ export default function RegisterPage() {
                           <Button variant="outline" size="sm" className="flex-1" onClick={resetFlow}><FilePlus size={14} /> Register Another</Button>
                         </div>
                       </div>
+
+                      {/* ── NFT Minting Card ─────────────────────────────── */}
+                      {!nftResult ? (
+                        <motion.div
+                          initial={{ opacity: 0, y: 16 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.35 }}
+                          className="mt-2 rounded-2xl border border-violet-500/30 bg-gradient-to-br from-violet-500/10 via-purple-500/5 to-transparent p-4 flex flex-col gap-3"
+                        >
+                          <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 rounded-xl bg-violet-500/20 flex items-center justify-center flex-shrink-0">
+                              <Gem size={16} className="text-violet-400" />
+                            </div>
+                            <div>
+                              <div className="text-sm font-bold text-[var(--text)]">Mint Provenance NFT</div>
+                              <div className="text-[11px] text-[var(--text-3)]">Turn your proof into an on-chain ERC-721 token</div>
+                            </div>
+                          </div>
+                          <div className="text-[11px] text-[var(--text-2)] leading-relaxed">
+                            Minting a <span className="font-semibold text-violet-400">VeriTrace Provenance NFT</span> locks your content fingerprint as a transferable digital asset on Arbitrum. The token's metadata automatically points to your IPFS provenance record — making ownership undeniable and tradeable.
+                          </div>
+                          <div className="grid grid-cols-3 gap-2 text-[10px] text-center">
+                            {[['ERC-721', 'Standard NFT'], ['IPFS Metadata', 'Auto-linked'], ['Arbitrum L2', 'Low gas']].map(([title, sub]) => (
+                              <div key={title} className="bg-violet-500/10 border border-violet-500/20 rounded-xl py-2 px-1">
+                                <div className="font-bold text-violet-300">{title}</div>
+                                <div className="text-[var(--text-4)] mt-0.5">{sub}</div>
+                              </div>
+                            ))}
+                          </div>
+                          {nftError && <div className="text-xs text-[var(--danger-text)] bg-[var(--danger-text)]/10 border border-[var(--danger-text)]/20 rounded-xl px-3 py-2">{nftError}</div>}
+                          <Button
+                            variant="primary"
+                            size="sm"
+                            className="w-full bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 border-0"
+                            onClick={handleMintNFT}
+                            disabled={nftMinting}
+                          >
+                            {nftMinting
+                              ? <><Spinner size="sm" /> Minting NFT...</>
+                              : <><Sparkles size={15} /> Mint Provenance NFT</>}
+                          </Button>
+                        </motion.div>
+                      ) : (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.97 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          className="mt-2 rounded-2xl border border-violet-500/40 bg-gradient-to-br from-violet-500/15 via-purple-500/10 to-transparent p-4 flex flex-col gap-3"
+                        >
+                          <div className="flex items-center gap-2">
+                            <motion.div
+                              initial={{ scale: 0 }} animate={{ scale: 1 }}
+                              transition={{ type: 'spring', bounce: 0.5 }}
+                              className="w-9 h-9 rounded-xl bg-violet-500/30 flex items-center justify-center flex-shrink-0"
+                            >
+                              <Gem size={18} className="text-violet-300" />
+                            </motion.div>
+                            <div>
+                              <div className="text-sm font-bold text-violet-300">NFT Minted! 🎉</div>
+                              <div className="text-[11px] text-[var(--text-3)]">VeriTrace Provenance Token #{nftResult.tokenId}</div>
+                            </div>
+                          </div>
+                          <div className="bg-[var(--bg-2)] rounded-xl p-3 border border-violet-500/20 text-xs flex flex-col gap-1.5">
+                            <div className="flex justify-between">
+                              <span className="text-[var(--text-3)]">Token ID</span>
+                              <span className="font-mono font-bold text-violet-300">#{nftResult.tokenId}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-[var(--text-3)]">Token URI</span>
+                              <span className="font-mono text-[var(--accent)] truncate max-w-[160px]">
+                                {txResult.ipfsCid ? `ipfs://${txResult.ipfsCid.slice(0, 14)}...` : 'ipfs://...'}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-[var(--text-3)]">Standard</span>
+                              <span className="text-violet-300 font-semibold">ERC-721 (Stylus)</span>
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <a
+                              href={`${ARBITRUM_SEPOLIA.explorer}/tx/${nftResult.txHash}`}
+                              target="_blank" rel="noopener noreferrer"
+                              className="flex-1"
+                            >
+                              <Button variant="outline" size="sm" className="w-full border-violet-500/30 text-violet-300 hover:border-violet-500/60">
+                                <ExternalLink size={13} /> View NFT Tx
+                              </Button>
+                            </a>
+                            {txResult.ipfsCid && (
+                              <a
+                                href={`https://gateway.pinata.cloud/ipfs/${txResult.ipfsCid}`}
+                                target="_blank" rel="noopener noreferrer"
+                                className="flex-1"
+                              >
+                                <Button variant="outline" size="sm" className="w-full border-violet-500/30 text-violet-300 hover:border-violet-500/60">
+                                  <Link2 size={13} /> IPFS Metadata
+                                </Button>
+                              </a>
+                            )}
+                          </div>
+                        </motion.div>
+                      )}
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -440,7 +663,7 @@ export default function RegisterPage() {
               <CardHeader><CardTitle>Where your proof lives</CardTitle></CardHeader>
             <CardBody className="text-xs leading-relaxed text-[var(--text-2)]">
               <div className="flex flex-col gap-3">
-                <InfoRow label="On-Chain" color="var(--accent)" items={['SHA-256 hash (bytes32)', 'Wallet address (msg.sender)', 'Block timestamp', 'AI tool attribution']} />
+                <InfoRow label="On-Chain" color="var(--accent)" items={['SHA-256 hash (bytes32)', 'Wallet address (msg.sender)', 'Block timestamp', 'AI tool attribution', 'ERC-721 Provenance NFT (optional)']} />
                 <InfoRow label="Hash Engine" color="var(--accent-2)" items={['SHA-256 hash', 'Perceptual hash units', 'File content (for verification)', 'Asset metadata']} />
                 <InfoRow label="Backend (Postgres/Qdrant)" color="var(--success-text)" items={['Event-sourced metadata', 'pHash vectors (64-dim)', 'Redis exact-match cache']} />
               </div>
