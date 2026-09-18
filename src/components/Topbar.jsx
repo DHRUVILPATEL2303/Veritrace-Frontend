@@ -10,6 +10,9 @@ export default function Topbar() {
   const { block, gasGwei, ok } = useChainStatus()
   const isAlert = integrityTone === 'alert'
 
+  // The network bar is gone; only the integrity alert (set by the Verify page) still needs the strip.
+  if (!isAlert) return null
+
   return (
     <div className="status-strip" data-tone={integrityTone}>
       <div className="max-w-[1280px] mx-auto px-5 h-7 flex items-center justify-between gap-4 overflow-hidden">

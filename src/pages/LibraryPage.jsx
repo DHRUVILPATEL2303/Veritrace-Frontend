@@ -15,7 +15,7 @@ import { ArbitrumLogo } from '../components/ArbitrumLogo'
 import PageHero from '../components/PageHero'
 import { ScrollReveal } from '../components/ui/scroll-reveal'
 import { CONTRACT_ADDRESS, CONTRACT_ABI, ARBITRUM_SEPOLIA } from '../config'
-import { Library as LibraryIcon, Eye, ExternalLink, Download, Lock, Shield } from 'lucide-react'
+import { Library as LibraryIcon, Eye, ExternalLink, Download, Lock, Shield, Search } from 'lucide-react'
 import { Address, TxHash, shortHex } from '../components/chain/Address'
 
 export default function LibraryPage() {
@@ -26,6 +26,8 @@ export default function LibraryPage() {
   const [modalMediaUrl, setModalMediaUrl] = useState(null)
   const [modalMediaType, setModalMediaType] = useState('image')
   const [modalLoading, setModalLoading] = useState(false)
+  const [query, setQuery] = useState('')
+  const [source, setSource] = useState('all')
 
   const getGatewayUrl = (url) => {
     if (!url) return null
@@ -71,13 +73,19 @@ export default function LibraryPage() {
     fetchEventLogs()
   }, [])
 
-  const formatAddress = (addr) => `${addr.slice(0, 6)}...${addr.slice(-4)}`
+  const q = query.trim().toLowerCase()
+  const visible = registrations.filter(r => {
+    if (source === 'authentic' && r.aiTool) return false
+    if (source === 'ai' && !r.aiTool) return false
+    if (!q) return true
+    return [r.sha256, r.creator, r.txHash, r.aiTool].some(v => (v || '').toLowerCase().includes(q))
+  })
 
   return (
     <section>
       <PageHero eyebrow="PUBLIC PROVENANCE LEDGER" title="Explore the evidence." description="A transparent, independently auditable record of every media and text proof written to the Arbitrum Sepolia registry." icon={LibraryIcon} />
       <ScrollReveal variant="fade-up">
-      <div className="max-w-[1280px] mx-auto px-5 pt-7">
+      <div className="max-w-[1280px] mx-auto px-5 pt-10 pb-6">
 
       {error && <div className="mb-5"><Alert variant="danger">{error}</Alert></div>}
 
@@ -85,10 +93,32 @@ export default function LibraryPage() {
         <Card>
           <CardHeader>
             <CardTitle>
-              <span className="flex items-center gap-2"><LibraryIcon size={15} className="text-[var(--accent)]" /> Evidence ledger <span className="font-mono font-normal text-[var(--text-4)]">({registrations.length})</span></span>
+              <span className="flex items-center gap-2"><LibraryIcon size={15} className="text-[var(--accent)]" /> Evidence ledger <span className="font-mono font-normal text-[var(--text-4)]">({visible.length}{visible.length !== registrations.length ? ` of ${registrations.length}` : ''})</span></span>
             </CardTitle>
             <Badge variant="arb"><ArbitrumLogo size={12} /> Arbitrum Sepolia</Badge>
           </CardHeader>
+
+          {!loading && registrations.length > 0 && (
+            <div className="flex flex-col sm:flex-row gap-3 sm:items-center justify-between px-4 py-3 border-b border-[var(--border)]">
+              <label className="relative flex-1 max-w-md">
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-3)]" />
+                <input
+                  type="search"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Search by hash, wallet, or transaction"
+                  spellCheck="false"
+                  aria-label="Search the ledger"
+                  className="w-full pl-9 pr-3 py-2 text-sm rounded-[6px] bg-[var(--surface)] border border-[var(--border-2)] text-[var(--text)] placeholder:text-[var(--text-4)] outline-none focus:border-[var(--accent)]"
+                />
+              </label>
+              <div className="seg" role="group" aria-label="Filter by declared source">
+                {[['all', 'All'], ['authentic', 'Authentic'], ['ai', 'AI-declared']].map(([v, label]) => (
+                  <button key={v} type="button" aria-pressed={source === v} onClick={() => setSource(v)}>{label}</button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20">
@@ -108,6 +138,8 @@ export default function LibraryPage() {
             </div>
           ) : registrations.length === 0 ? (
             <EmptyState icon={<LibraryIcon size={28} />} title="The registry is waiting for its first proof" description="Register an original to create the first public, cryptographically verifiable record." />
+          ) : visible.length === 0 ? (
+            <EmptyState icon={<Search size={28} />} title="No proofs match" description="Try a different hash, wallet address, or clear the source filter." />
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full vt-table">
@@ -119,7 +151,7 @@ export default function LibraryPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {registrations.map((item, idx) => (
+                  {visible.map((item, idx) => (
                     <motion.tr key={idx} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: Math.min(idx, 12) * 0.03 }}>
                       <td><span className="font-mono text-xs text-[var(--accent)]" title={item.sha256}>{shortHex(item.sha256, 10, 8)}</span></td>
                       <td><span className="font-mono text-xs text-[var(--text)]">{item.phash !== '0' ? item.phash : <span className="text-[var(--text-4)] italic">None</span>}</span></td>
