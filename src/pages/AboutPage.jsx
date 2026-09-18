@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom'
-import { VeriTraceLogo } from '../components/ArbitrumLogo'
 import { Button } from '../components/ui/button'
 import { FilePlus, Search, FingerprintPattern as Fingerprint, Shield, Database, Server, Cpu, ArrowRight, Upload, Pin, Check, TriangleAlert as AlertTriangle } from 'lucide-react'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../components/ui/accordion'
@@ -51,14 +50,11 @@ export default function AboutPage() {
     <div className="min-h-screen">
       {/* HERO */}
       <section className="page-hero">
-        <div className="max-w-[1280px] mx-auto px-5 py-14 md:py-20 grid grid-cols-1 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,.8fr)] gap-10 items-end">
+        <div className="max-w-[1280px] mx-auto px-5 py-10 md:py-12 grid grid-cols-1 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,.8fr)] gap-10 items-end">
           <div>
-            <div className="flex items-center gap-2.5 mb-6 text-[var(--text)]">
-              <VeriTraceLogo size={30} />
-              <span className="kicker">VeriTrace · About</span>
-            </div>
-            <h1 className="home-title mb-5" style={{ fontSize: 'clamp(2.3rem, 5vw, 4rem)' }}>Proof, not promises.</h1>
-            <p className="text-[15px] sm:text-base text-[var(--text-2)] max-w-2xl leading-relaxed mb-7 m-0">
+            <div className="kicker kicker-accent mb-2.5">How it works</div>
+            <h1 className="home-title mb-3" style={{ fontSize: 'clamp(1.9rem, 3.6vw, 2.75rem)' }}>Proof, not promises.</h1>
+            <p className="text-[15px] sm:text-base text-[var(--text-2)] max-w-2xl leading-relaxed mb-5 m-0">
               VeriTrace combines cryptographic proof with perceptual intelligence, making ownership and authenticity verifiable even after content changes hands.
             </p>
             <div className="flex gap-2.5 flex-wrap">
@@ -152,10 +148,10 @@ export default function AboutPage() {
       {/* BOTTOM CTA */}
       <ScrollReveal>
         <section className="max-w-[1280px] mx-auto px-5 pb-6">
-          <div className="ink-panel p-7 sm:p-10 grid grid-cols-1 md:grid-cols-[1.4fr_auto] gap-6 items-center">
+          <div className="panel p-7 sm:p-10 grid grid-cols-1 md:grid-cols-[1.4fr_auto] gap-6 items-center">
             <div>
-              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight leading-[1.05] mb-2">Your work deserves durable proof.</h2>
-              <p className="text-sm m-0 opacity-80">Create an ownership record today, then verify it anywhere tomorrow.</p>
+              <h2 className="section-title text-[var(--text)] mb-2">Your work deserves durable proof.</h2>
+              <p className="text-[15px] text-[var(--text-2)] m-0">Create an ownership record today, then verify it anywhere tomorrow.</p>
             </div>
             <div className="flex gap-2.5 flex-wrap">
               <Link to="/register" className="inline-flex"><Button variant="primary" size="lg" as="span"><FilePlus size={16} /> Get Started</Button></Link>

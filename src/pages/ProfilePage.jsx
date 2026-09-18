@@ -484,7 +484,7 @@ export default function ProfilePage() {
       >
         <Card className="overflow-hidden">
           {/* Banner */}
-          <div className="h-20 bg-[var(--bg-2)] border-b border-[var(--border)] flex items-center px-6">
+          <div className="h-14 bg-[var(--bg-2)] border-b border-[var(--border)] flex items-center px-6">
             <span className="kicker">Creator profile · Arbitrum Sepolia</span>
           </div>
 

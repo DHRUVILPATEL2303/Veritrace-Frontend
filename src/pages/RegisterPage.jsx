@@ -321,11 +321,11 @@ export default function RegisterPage() {
     <section>
       <PageHero eyebrow="CREATE AN IMMUTABLE RECORD" title="Make ownership undeniable." description="Generate a durable proof for media or text, then anchor the evidence to Arbitrum. Your original stays identifiable wherever it goes." icon={FilePlus} />
       <ScrollReveal variant="fade-up">
-      <div className="max-w-[1280px] mx-auto px-5 pt-7">
+      <div className="max-w-[1280px] mx-auto px-5 pt-10 pb-6">
 
       {/* Faucet notice — shown when wallet is connected */}
       {isConnected && (
-        <div className="mb-5 flex items-center gap-3 px-4 py-3 rounded-[6px] border border-[var(--warning-border)] bg-[var(--surface)]">
+        <div className="mb-8 flex items-center gap-3 px-4 py-3 rounded-[6px] border border-[var(--warning-border)] bg-[var(--surface)]">
           <AlertTriangle size={15} className="text-[var(--warning-text)] flex-shrink-0" />
           <p className="text-xs text-[var(--text-2)] leading-relaxed m-0">
             Registration requires a small amount of testnet ETH for gas.{' '}
@@ -338,8 +338,8 @@ export default function RegisterPage() {
 
       <StepIndicator steps={['Upload File', 'Generate Hashes', 'Sign & Register', 'Confirmed']} currentStep={step} />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mt-6">
-        <div className="flex flex-col gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+        <div className="flex flex-col gap-8">
           <SpotlightCard>
             <Card className="card-hover-glow">
               <CardHeader>
@@ -435,7 +435,7 @@ export default function RegisterPage() {
         </div>
 
         {/* RIGHT */}
-        <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-8">
           <SpotlightCard>
             <Card>
               <CardHeader>

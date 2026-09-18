@@ -1,10 +1,8 @@
-import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { CONTRACT_ADDRESS, ARBITRUM_SEPOLIA } from '../config'
 import { VeriTraceLogo } from './ArbitrumLogo'
 import { ExternalLink, Compass } from 'lucide-react'
 import { ArbitrumLogo } from './ArbitrumLogo'
-import { cn } from '@/lib/utils'
 import { replayTour } from './OnboardingTour'
 
 // Inline SVG component for Twitter (X) to avoid trademark icon issues
@@ -29,7 +27,6 @@ const PAGES = [
 const linkClass = 'text-sm text-[var(--footer-text-muted)] hover:text-[var(--footer-text)] inline-flex items-center gap-1.5'
 
 export default function Footer() {
-  const [isHighlighted, setIsHighlighted] = useState(false)
 
   return (
     <footer className="border-t border-[var(--border)] bg-[var(--footer-bg)] text-[var(--footer-text)] mt-16 overflow-hidden">
@@ -92,17 +89,6 @@ export default function Footer() {
           <p className="font-mono text-[10.5px] text-[var(--text-4)] break-all m-0 inline-flex items-center gap-1.5">
             <ArbitrumLogo size={10} /> {ARBITRUM_SEPOLIA.name} · Contract: {CONTRACT_ADDRESS}
           </p>
-        </div>
-      </div>
-
-      {/* Wordmark bleed */}
-      <div
-        onClick={() => setIsHighlighted(!isHighlighted)}
-        className="max-w-[1280px] mx-auto px-5 overflow-hidden h-[7vw] min-h-[44px] cursor-pointer select-none"
-        aria-hidden="true"
-      >
-        <div className={cn('footer-wordmark', isHighlighted ? 'opacity-100 text-[var(--accent)]' : 'opacity-[.09] hover:opacity-20')}>
-          VERITRACE
         </div>
       </div>
     </footer>

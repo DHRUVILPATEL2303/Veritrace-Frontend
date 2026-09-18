@@ -232,10 +232,10 @@ export default function EnterprisePage() {
         icon={Database} 
       />
       <ScrollReveal variant="fade-up">
-      <div className="max-w-[1280px] mx-auto px-5 pt-7 pb-20">
+      <div className="max-w-[1280px] mx-auto px-5 pt-10 pb-6 pb-20">
         
         {isConnected && (
-          <div className="mb-5 flex items-center gap-3 px-4 py-3 rounded-[6px] border border-[var(--warning-border)] bg-[var(--surface)]">
+          <div className="mb-8 flex items-center gap-3 px-4 py-3 rounded-[6px] border border-[var(--warning-border)] bg-[var(--surface)]">
             <AlertTriangle size={15} className="text-[var(--warning-text)] flex-shrink-0" />
             <p className="text-xs text-[var(--text-2)] leading-relaxed m-0">
               Purchasing requires Sepolia USDC. This is a testnet demo. Ensure you have approved the VeriTrace registry to spend your test tokens.
@@ -266,9 +266,9 @@ export default function EnterprisePage() {
         </div>
 
         {activeTab === 'dataset' && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mt-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
           {/* Query Form */}
-          <div className="flex flex-col gap-5">
+          <div className="flex flex-col gap-8">
             <SpotlightCard>
               <Card className="card-hover-glow">
                 <CardHeader>
@@ -318,7 +318,7 @@ export default function EnterprisePage() {
           </div>
 
           {/* Results & Checkout */}
-          <div className="flex flex-col gap-5">
+          <div className="flex flex-col gap-8">
             <SpotlightCard>
               <Card>
                 <CardHeader>
@@ -491,7 +491,7 @@ export default function EnterprisePage() {
         )}
 
         {activeTab === 'publisher' && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
             <div className="flex flex-col gap-6">
               {/* Domain Registration Form */}
               <SpotlightCard>

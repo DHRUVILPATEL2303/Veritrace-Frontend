@@ -210,10 +210,10 @@ export default function VerifyPage() {
     <section>
       <PageHero eyebrow="AUTHENTICITY INTELLIGENCE" title="See the evidence behind a file." description="Compare content against public records and layered similarity signals to identify originals, likely derivatives, and high-risk alterations." icon={Search} />
       <ScrollReveal variant="fade-up">
-      <div className="max-w-[1280px] mx-auto px-5 pt-7">
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.5fr] gap-5">
+      <div className="max-w-[1280px] mx-auto px-5 pt-10 pb-6">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.5fr] gap-8">
         {/* LEFT */}
-        <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-8">
           <SpotlightCard>
             <Card className="card-hover-glow">
               <CardHeader>
@@ -272,7 +272,7 @@ export default function VerifyPage() {
         </div>
 
         {/* RIGHT */}
-        <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-8">
           <AnimatePresence>
             {(blockchainRecord || loading) && (
               <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
@@ -336,7 +336,7 @@ export default function VerifyPage() {
         </div>
       </div>
 
-      <Card className="mt-5">
+      <Card className="mt-8">
         <CardHeader>
           <CardTitle>
             <Info size={15} className="text-[var(--accent)]" />
