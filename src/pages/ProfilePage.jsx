@@ -483,18 +483,14 @@ export default function ProfilePage() {
         transition={{ type: 'spring', stiffness: 120, damping: 18 }}
       >
         <Card className="overflow-hidden">
-          {/* Banner */}
-          <div className="h-14 bg-[var(--bg-2)] border-b border-[var(--border)] flex items-center px-6">
-            <span className="kicker">Creator profile · Arbitrum Sepolia</span>
-          </div>
-
-          <CardBody className="pt-0 px-6 pb-6">
-            <div className="flex flex-col sm:flex-row sm:items-end gap-4 -mt-10">
+          <CardBody>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-5">
               {/* Avatar */}
               <AvatarUpload avatar={profile.avatar} onAvatarChange={handleAvatarChange} />
 
               {/* Name & address */}
-              <div className="flex-1 min-w-0 sm:mb-1">
+              <div className="flex-1 min-w-0">
+                <div className="kicker mb-2">Creator profile · Arbitrum Sepolia</div>
                 {editingName ? (
                   <div className="flex items-center gap-2 mb-1">
                     <input
@@ -534,7 +530,7 @@ export default function ProfilePage() {
               {/* Disconnect */}
               <button
                 onClick={() => disconnect()}
-                className="btn btn-outline text-xs px-3 py-2 !text-[var(--danger-text)] hover:!border-[var(--danger-border)] sm:self-start sm:mt-1"
+                className="btn btn-outline text-xs px-3 py-2 !text-[var(--danger-text)] hover:!border-[var(--danger-border)] sm:self-start"
               >
                 <LogOut size={13} /> Disconnect
               </button>
